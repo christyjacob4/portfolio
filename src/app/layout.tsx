@@ -2,10 +2,10 @@ import './global.css'
 import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
-import { Navbar } from './components/nav'
+import { Navbar } from '../components/nav'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import Footer from './components/footer'
+import Footer from '../components/footer'
 import { baseUrl } from './sitemap'
 
 export const metadata: Metadata = {
@@ -46,8 +46,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cx(
-        'text-black bg-white dark:text-white dark:bg-black',
+        'min-h-screen bg-background font-sans',
         GeistSans.variable,
         GeistMono.variable
       )}
