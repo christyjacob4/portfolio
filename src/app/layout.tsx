@@ -11,15 +11,15 @@ import { baseUrl } from "./sitemap";
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "Next.js Portfolio Starter",
-    template: "%s | Next.js Portfolio Starter",
+    default: "Christy Jacob",
+    template: "%s | Christy Jacob",
   },
-  description: "This is my portfolio.",
+  description: "Developer, optimist, and leader.",
   openGraph: {
-    title: "My Portfolio",
-    description: "This is my portfolio.",
+    title: "Christy Jacob",
+    description: "Developer, writer, and leader",
     url: baseUrl,
-    siteName: "My Portfolio",
+    siteName: "Christy Jacob",
     locale: "en_US",
     type: "website",
   },
@@ -33,6 +33,21 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
+  },
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      {
+        url: "/android-chrome-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/android-chrome-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
   },
 };
 
@@ -50,7 +65,7 @@ export default function RootLayout({
       className={cx(
         "dark min-h-screen bg-background font-sans",
         GeistSans.variable,
-        GeistMono.variable,
+        GeistMono.variable
       )}
     >
       <body className="antialiased max-w-2xl md:p-4 lg:mx-auto flex flex-col md:flex-row mx-4">
