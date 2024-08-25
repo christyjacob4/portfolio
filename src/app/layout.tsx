@@ -65,7 +65,7 @@ export default function RootLayout({
       className={cx(
         "dark min-h-screen bg-background font-sans",
         GeistSans.variable,
-        GeistMono.variable
+        GeistMono.variable,
       )}
     >
       <body className="antialiased max-w-2xl md:p-4 lg:mx-auto flex flex-col md:flex-row mx-4">
