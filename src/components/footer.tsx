@@ -1,6 +1,6 @@
-import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { Separator } from "./ui/separator";
+import { ArrowUpRight } from "lucide-react";
 
 const footerLinks = [
   // { href: "/rss", text: "rss" },
@@ -26,7 +26,7 @@ export default function Footer() {
               target="_blank"
               href={link.href}
             >
-              <ArrowTopRightIcon className="h-5 w-5" />
+              <ArrowUpRight className="h-5 w-5" />
               <p className="ml-1 relative">
                 {link.text}
                 <span className="absolute left-0 -bottom-0.5 w-full h-[1px] bg-current transform scale-x-0 transition-transform duration-200 origin-left group-hover:scale-x-100"></span>
@@ -36,11 +36,11 @@ export default function Footer() {
         ))}
       </ul>
       <Separator className="my-8" />
-      <p className=" italic">
+      <p className="italic text-sm">
         &ldquo;Knowledge is discovered collectively, wisdom is rediscovered
         individually.&rdquo;
       </p>
-      <p className="mt-2 text-muted-foreground">- Naval Ravikant</p>
+      <p className="mt-1 text-muted-foreground text-sm">- Naval Ravikant</p>
     </footer>
   );
 }
