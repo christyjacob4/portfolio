@@ -15,7 +15,8 @@ export default function Page() {
         hey, I&apos;m christy 👋
       </h1>
       <p className="text-lg text-muted-foreground">
-        As a software engineering leader, I'm passionate about innovative solutions and high-performance teams. I lead engineering at{" "}
+        As a software engineering leader, I&lsquo;m passionate about innovative
+        solutions and high-performance teams. I lead engineering at{" "}
         <span>
           <Link
             href="https://appwrite.io"
@@ -33,7 +34,11 @@ export default function Page() {
             Appwrite
           </Link>
         </span>
-        , scaling our open-source platform and community. I focus on simplicity and elegance in problem-solving, with my open-source work impacting developers globally. My experience includes key roles at Intuit and Samsung Research, always prioritizing clean, efficient, and user-centric design.
+        , scaling our open-source platform and community. I focus on simplicity
+        and elegance in problem-solving, with my open-source work impacting
+        developers globally. My experience includes key roles at Intuit and
+        Samsung Research, always prioritizing clean, efficient, and user-centric
+        design.
       </p>
 
       <div className="my-14">
