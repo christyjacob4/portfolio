@@ -1,47 +1,46 @@
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
+import { Separator } from "./ui/separator";
+
+const footerLinks = [
+  // { href: "/rss", text: "rss" },
+  { href: "https://x.com/christyjacob4", text: "twitter" },
+  { href: "https://github.com/christyjacob4", text: "github" },
+  { href: "https://www.linkedin.com/in/christyjacob4/", text: "linkedin" },
+  { href: "mailto:christyjacob4@gmail.com", text: "email" },
+  // {
+  //   href: "https://vercel.com/templates/next.js/portfolio-starter-kit",
+  //   text: "view source",
+  // },
+];
 
 export default function Footer() {
   return (
-    <footer className="mb-12">
-      <ul className="font-sm mt-8 flex flex-col space-x-0 space-y-2 text-neutral-600 md:flex-row md:space-x-4 md:space-y-0 dark:text-neutral-300">
-        <li>
-          <Link
-            className="flex items-center transition-all hover:text-neutral-800 dark:hover:text-neutral-100"
-            rel="noopener noreferrer"
-            target="_blank"
-            href="/rss"
-          >
-            <ArrowTopRightIcon className="" />
-            <p className="ml-2 h-7">rss</p>
-          </Link>
-        </li>
-        <li>
-          <Link
-            className="flex items-center transition-all hover:text-neutral-800 dark:hover:text-neutral-100"
-            rel="noopener noreferrer"
-            target="_blank"
-            href="https://github.com/vercel/next.js"
-          >
-            <ArrowTopRightIcon />
-            <p className="ml-2 h-7">github</p>
-          </Link>
-        </li>
-        <li>
-          <Link
-            className="flex items-center transition-all hover:text-neutral-800 dark:hover:text-neutral-100"
-            rel="noopener noreferrer"
-            target="_blank"
-            href="https://vercel.com/templates/next.js/portfolio-starter-kit"
-          >
-            <ArrowTopRightIcon />
-            <p className="ml-2 h-7">view source</p>
-          </Link>
-        </li>
+    <footer className="my-8">
+      <ul className="flex flex-col space-x-0 space-y-2 md:flex-row md:space-x-4 md:space-y-0">
+        {footerLinks.map((link, index) => (
+          <li key={index}>
+            <Link
+              className="flex items-center transition-all hover:text-neutral-800 dark:hover:text-neutral-100 group"
+              rel="noopener noreferrer"
+              target="_blank"
+              href={link.href}
+            >
+              <ArrowTopRightIcon className="h-5 w-5" />
+              <p className="ml-1 relative">
+                {link.text}
+                <span className="absolute left-0 -bottom-0.5 w-full h-[1px] bg-current transform scale-x-0 transition-transform duration-200 origin-left group-hover:scale-x-100"></span>
+              </p>
+            </Link>
+          </li>
+        ))}
       </ul>
-      <p className="mt-8 text-neutral-600 dark:text-neutral-300">
-        © {new Date().getFullYear()} MIT Licensed
+      <Separator className="my-8" />
+      <p className=" italic">
+        &ldquo;Knowledge is discovered collectively, wisdom is rediscovered
+        individually.&rdquo;
       </p>
+      <p className="mt-2 text-muted-foreground">- Naval Ravikant</p>
     </footer>
   );
 }

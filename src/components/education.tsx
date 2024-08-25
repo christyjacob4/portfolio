@@ -6,7 +6,7 @@ const education = [
     degree: "Master's Degree in AI & Machine Learning",
     school: "Birla Institute of Technology and Science",
     location: "India",
-    date: "Apr 2023 - Present",
+    date: "Apr 2023 - Dec 2024",
     achievements: [
       "Rank #1/900 - Gold Medalist with a 9.96/10.0 GPA",
       "Recipient of Dr. CNR Rao and Dr. MRD Merit scholarships",
@@ -42,14 +42,16 @@ export default function Education() {
         {education.map((edu, index) => (
           <div
             key={index}
-            className="w-full flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 mb-4"
+            className="w-full flex flex-col items-start justify-between gap-1 md:flex-row md:items-center md:space-x-2 mb-4"
           >
-            <div className="flex flex-col items-start justify-center">
+            <div className="flex flex-col items-start justify-center flex-1">
               <h4>{edu.degree}</h4>
-              <p className="text-sm text-muted-foreground font-medium">{edu.school}</p>
+              <p className="text-sm text-muted-foreground font-medium mt-0.5">
+                {edu.school}
+              </p>
             </div>
 
-            <p className="text-sm text-muted-foreground tabular-nums">
+            <p className="text-sm text-muted-foreground tabular-nums md:text-base">
               {edu.date}
             </p>
           </div>

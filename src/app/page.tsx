@@ -3,19 +3,45 @@ import Experience from "@/components/experience";
 import { BlogPosts } from "@/components/posts";
 import Projects from "@/components/projects";
 import TechStack from "@/components/techstack";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function Page() {
   return (
     <section>
-      <h1 className="mb-8 text-2xl font-semibold tracking-tighter">
-        hey, I'm Christy 👋
+      <h1 className="mb-8 text-2xl font-medium tracking-tighter">
+        hey, I&apos;m christy 👋
       </h1>
-      <p className="text-muted-foreground tracking-wide">
-        I'm a Vim enthusiast and tab advocate, finding unmatched efficiency in
-        Vim's keystroke commands and tabs' flexibility for personal viewing
-        preferences. This extends to my support for static typing, where its
-        early error detection ensures cleaner code, and my preference for dark
-        mode, which eases long coding sessions by reducing eye strain.
+      <p className="text-lg text-muted-foreground">
+        I&apos;m a software engineering leader with a passion for building
+        innovative solutions and fostering high-performance teams. I currently
+        lead the engineering team at{" "}
+        <span>
+          <Link
+            href="https://appwrite.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center rounded border border-neutral-200 bg-neutral-50 px-2 py-1 text-sm leading-3 text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+          >
+            <Image
+              src="/companies/appwrite.png"
+              alt="Appwrite"
+              className="h-4 w-4 mr-2"
+              width={16}
+              height={16}
+            />
+            Appwrite
+          </Link>
+        </span>
+        , where I&apos;ve been instrumental in scaling our open-source platform
+        and fostering a vibrant developer community. With an eye for detail and
+        a belief in simplicity, I strive to create elegant solutions to complex
+        problems. My open-source contributions have impacted thousands of
+        developers worldwide. Previously, I&apos;ve worked on impactful projects
+        at Intuit and Samsung Research, always focusing on clean, efficient, and
+        user-centric design.
       </p>
 
       <div className="my-14">

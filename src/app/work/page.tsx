@@ -1,8 +1,7 @@
-
 export const metadata = {
-  title: 'Work',
-  description: 'My work.',
-}
+  title: "Work",
+  description: "My work.",
+};
 
 export default function Page() {
   return (
@@ -10,5 +9,5 @@ export default function Page() {
       <h1 className="font-semibold text-2xl mb-8 tracking-tighter">Work</h1>
       <div></div>
     </section>
-  )
+  );
 }

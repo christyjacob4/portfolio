@@ -57,23 +57,16 @@ export default function Experience() {
         {experiences.map((exp, index) => (
           <div
             key={index}
-            className="w-full flex flex-col md:flex-row items-center justify-between space-x-0 md:space-x-2 mb-4"
+            className="w-full flex flex-col items-start justify-between gap-1 md:flex-row md:items-center md:space-x-2 mb-4"
           >
-            {/* <Avatar>
-              <AvatarImage
-                className="aspect-square rounded-full h-12 w-12 p-0"
-                src={exp.icon}
-              />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar> */}
             <div className="flex flex-col items-start justify-center flex-1">
               <h4>{exp.title}</h4>
-              <p className="text-sm text-muted-foreground font-medium">
+              <p className="text-sm text-muted-foreground font-medium mt-0.5">
                 {exp.company}
               </p>
             </div>
 
-            <p className="text-muted-foreground text-sm tabular-nums">
+            <p className="text-muted-foreground text-sm tabular-nums md:text-base">
               {exp.date}
             </p>
           </div>

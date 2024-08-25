@@ -1,5 +1,6 @@
 import { formatDate, getBlogPosts } from "@/app/blog/utils";
 import Link from "next/link";
+import { Button } from "./ui/button";
 
 export function BlogPosts() {
   let allBlogs = getBlogPosts();
@@ -19,18 +20,17 @@ export function BlogPosts() {
             return 1;
           })
           .map((post) => (
-            <Link
+            <div
               key={post.slug}
-              className="flex flex-col mb-2"
-              href={`/blog/${post.slug}`}
+              className="w-full mb-3 flex flex-col md:flex-row justify-between items-start"
             >
-              <div className="w-full flex flex-col md:flex-row space-x-0 md:space-x-2">
-                <p className="tracking-tight flex-1">{post.metadata.title}</p>
-                <p className="text-muted-foreground tabular-nums">
-                  {formatDate(post.metadata.publishedAt, false)}
-                </p>
-              </div>
-            </Link>
+              <Button variant="link" asChild className="p-0 h-auto text-base">
+                <Link href={`/blog/${post.slug}`}>{post.metadata.title}</Link>
+              </Button>
+              <p className="text-muted-foreground tabular-nums text-sm md:text-base">
+                {formatDate(post.metadata.publishedAt, false)}
+              </p>
+            </div>
           ))}
       </div>
     </div>

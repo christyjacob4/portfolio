@@ -1,6 +1,5 @@
 import React from "react";
 import { Badge } from "./ui/badge";
-import { Separator } from "./ui/separator";
 
 const skills = [
   "TypeScript",
@@ -8,6 +7,7 @@ const skills = [
   "PHP",
   "JavaScript",
   "Java",
+  "Svelte",
   "React",
   "Next.js",
   "Docker",
@@ -15,10 +15,11 @@ const skills = [
   "PostgreSQL",
   "Redis",
   "RESTful APIs",
-  "GraphQL",
   "Machine Learning",
   "Tensorflow",
   "PyTorch",
+  "OpenAI",
+  "LangChain",
 ];
 
 export default function TechStack() {
