@@ -78,7 +78,11 @@ export default function Experience() {
             <div className="flex flex-col items-start justify-center flex-1">
               <h4>{exp.title}</h4>
               <p className="text-sm text-muted-foreground font-medium mt-0.5">
-                <Link href={exp.companyUrl} target="_blank" rel="noopener noreferrer">
+                <Link
+                  href={exp.companyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {exp.company}
                 </Link>
               </p>

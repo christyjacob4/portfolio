@@ -28,7 +28,8 @@ const education = [
   {
     degree: "High School",
     school: "AECS Magnolia",
-    schoolUrl: "https://www.aecsgroup.co.in/aecs-magnolia-maaruti-public-school/",
+    schoolUrl:
+      "https://www.aecsgroup.co.in/aecs-magnolia-maaruti-public-school/",
     location: "Bangalore, India",
     date: "May 2014 - Apr 2016",
     achievements: [
@@ -51,7 +52,11 @@ export default function Education() {
             <div className="flex flex-col items-start justify-center flex-1">
               <h4>{edu.degree}</h4>
               <p className="text-sm text-muted-foreground font-medium mt-0.5">
-                <Link href={edu.schoolUrl} target="_blank" rel="noopener noreferrer">
+                <Link
+                  href={edu.schoolUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {edu.school}
                 </Link>
               </p>
