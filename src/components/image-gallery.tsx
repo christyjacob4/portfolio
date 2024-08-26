@@ -6,21 +6,21 @@ export function ImageGallery() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
       <Image
-        src="/gallery/9.png"
+        src="/gallery/1.png"
         alt="Gallery Image"
         width={600}
         height={600}
         className="object-cover w-full h-full rounded-lg row-span-2 aspect-square"
       />
       <Image
-        src="/gallery/14.png"
+        src="/gallery/16.png"
         alt="Gallery Image"
         width={600}
         height={600}
-        className="object-cover w-full h-72 rounded-lg aspect-square"
+        className="object-cover w-full h-full rounded-lg aspect-square object-[0%_10%]"
       />
       <Image
-        src="/gallery/11.png"
+        src="/gallery/14.png"
         alt="Gallery Image"
         width={600}
         height={600}
@@ -34,18 +34,18 @@ export function ImageGallery() {
         className="object-cover w-full h-full rounded-lg aspect-square"
       />
       <Image
-        src="/gallery/1.png"
+        src="/gallery/11.png"
         alt="Gallery Image"
         width={600}
         height={600}
-        className="object-cover w-full h-72 rounded-lg aspect-square"
+        className="object-cover w-full h-full rounded-lg aspect-square"
       />
       <Image
         src="/gallery/7.png"
         alt="Gallery Image"
         width={600}
         height={600}
-        className="object-cover w-full h-72 md:col-span-2 rounded-lg aspect-square"
+        className="object-cover w-full md:h-56 md:col-span-2 rounded-lg aspect-square"
       />
       <Image
         src="/gallery/10.png"

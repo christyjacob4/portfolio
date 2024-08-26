@@ -15,13 +15,27 @@ export default function Page() {
       <h1 className="mb-8 text-2xl font-medium tracking-tighter">
         hey, i&apos;m christy 👋
       </h1>
-      <p className="text-muted-foreground">
+      <p className="text-muted-foreground my-8">
         A software engineer and open-source advocate specialized in building
-        highly performant distributed systems. Currently, I lead Backend, Cloud
-        and AI @ Appwrite, an open-source developer platform with over 43K stars
-        on GitHub. My role involves architecting scalable cloud systems,
-        mentoring a global community of developers, and driving key engineering
-        initiatives.
+        highly performant distributed systems. Currently, I lead AI and Backend
+        at{" "}
+        <Link
+          href="https://appwrite.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-0.5 after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100"
+        >
+          Appwrite
+        </Link>
+        , an open source developer platform with over{" "}
+        <Link
+          href="https://github.com/appwrite/appwrite"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-0.5 after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100"
+        >
+          43K stars on GitHub.
+        </Link>
       </p>
 
       <div className="my-8">
@@ -29,40 +43,30 @@ export default function Page() {
       </div>
 
       <p className="text-muted-foreground">
-        I also have a strong background in AI and Machine Learning, holding a
-        Master&apos;s degree in Artificial Intelligence. I&apos;ve worked with
-        leading companies like Intuit and Samsung Research. Passionate about
-        technology and community building, I continuously strive to push the
-        boundaries of innovation.
+        My role involves architecting scalable cloud systems, mentoring a global
+        community of developers, and driving key engineering initiatives. I also
+        have a strong background in AI and Machine Learning, holding a
+        Master&apos;s degree in Artificial Intelligence. Previously, I&apos;ve
+        worked with leading companies like{" "}
+        <Link
+          href="https://www.intuit.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-0.5 after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100"
+        >
+          Intuit
+        </Link>{" "}
+        and{" "}
+        <Link
+          href="https://research.samsung.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-0.5 after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100"
+        >
+          Samsung Research
+        </Link>
+        .
       </p>
-
-      {/* As a software engineering leader, I&lsquo;m passionate about innovative
-        solutions and high-performance teams. I lead engineering at{"  "}
-        
-        , scaling our open-source platform and community. I focus on simplicity
-        and elegance in problem-solving, with my open-source work impacting
-        developers globally. My experience includes key roles at Intuit and
-        Samsung Research, always prioritizing clean, efficient, and user-centric
-        design. */}
-      {/* <span>
-          <Link
-            href="https://appwrite.io"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center rounded border border-neutral-200 bg-neutral-50 px-2 py-1 text-sm leading-3 text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
-          >
-            <Image
-              src="/companies/appwrite.png"
-              alt="Appwrite"
-              className="h-4 w-4 mr-2"
-              width={16}
-              height={16}
-            />
-            Appwrite
-          </Link>
-        </span> */}
-      {/* I'm a software developer with a masters in AI & Machine Learning
-today I lead the engineering team at Appwrite, crafting building world class developer tools and .  */}
       <div className="my-14">
         <Experience />
       </div>
