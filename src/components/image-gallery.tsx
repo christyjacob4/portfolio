@@ -6,18 +6,18 @@ export function ImageGallery() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
       <Image
-        src="/gallery/1.png"
-        alt="Gallery Image"
-        width={600}
-        height={600}
-        className="object-cover w-full h-full rounded-lg row-span-2 aspect-square"
-      />
-      <Image
         src="/gallery/16.png"
         alt="Gallery Image"
         width={600}
         height={600}
         className="object-cover w-full h-full rounded-lg aspect-square object-[0%_10%]"
+      />
+      <Image
+        src="/gallery/1.png"
+        alt="Gallery Image"
+        width={600}
+        height={600}
+        className="object-cover w-full h-full rounded-lg row-span-2 aspect-square"
       />
       <Image
         src="/gallery/14.png"
