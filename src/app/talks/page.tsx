@@ -43,7 +43,7 @@ export default function Page() {
     <section>
       <h1 className="font-semibold text-2xl mb-8 tracking-tighter">Talks</h1>
       <div className="space-y-4">
-        {talks.map((talk, index) => (
+        {/* {talks.map((talk, index) => (
           <div key={index} className="border rounded-lg p-4 shadow-sm">
             <h2 className="text-xl font-semibold mb-2">{talk.title}</h2>
             <p className="mb-3">{talk.description}</p>
@@ -132,7 +132,7 @@ export default function Page() {
               )}
             </div>
           </div>
-        ))}
+        ))} */}
       </div>
     </section>
   );
