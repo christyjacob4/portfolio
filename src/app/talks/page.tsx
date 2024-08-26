@@ -4,38 +4,38 @@ export const metadata = {
 };
 
 const talks = [
-  {
-    title: "Introduction to Next.js",
-    description:
-      "A beginner-friendly talk on getting started with Next.js for React developers.",
-    github: "https://github.com/yourusername/nextjs-intro-talk",
-    slides: "https://speakerdeck.com/yourusername/intro-to-nextjs",
-    youtube: "https://www.youtube.com/watch?v=example1",
-  },
-  {
-    title: "Advanced React Patterns",
-    description:
-      "Exploring complex patterns and best practices in React development.",
-    github: "https://github.com/yourusername/advanced-react-patterns",
-    slides: "https://speakerdeck.com/yourusername/advanced-react-patterns",
-    youtube: "https://www.youtube.com/watch?v=example2",
-  },
-  {
-    title: "Building Scalable APIs with GraphQL",
-    description:
-      "Learn how to design and implement scalable APIs using GraphQL.",
-    github: "https://github.com/yourusername/graphql-scalable-apis",
-    slides: "https://speakerdeck.com/yourusername/scalable-graphql-apis",
-    youtube: "https://www.youtube.com/watch?v=example3",
-  },
-  {
-    title: "Introduction to WebRTC",
-    description:
-      "Learn how to design and implement scalable APIs using GraphQL.",
-    github: "https://github.com/yourusername/graphql-scalable-apis",
-    slides: "https://speakerdeck.com/yourusername/scalable-graphql-apis",
-    youtube: "https://youtu.be/Rjv-4aT-_8c?t=544",
-  },
+  // {
+  //   title: "Introduction to Next.js",
+  //   description:
+  //     "A beginner-friendly talk on getting started with Next.js for React developers.",
+  //   github: "https://github.com/yourusername/nextjs-intro-talk",
+  //   slides: "https://speakerdeck.com/yourusername/intro-to-nextjs",
+  //   youtube: "https://www.youtube.com/watch?v=example1",
+  // },
+  // {
+  //   title: "Advanced React Patterns",
+  //   description:
+  //     "Exploring complex patterns and best practices in React development.",
+  //   github: "https://github.com/yourusername/advanced-react-patterns",
+  //   slides: "https://speakerdeck.com/yourusername/advanced-react-patterns",
+  //   youtube: "https://www.youtube.com/watch?v=example2",
+  // },
+  // {
+  //   title: "Building Scalable APIs with GraphQL",
+  //   description:
+  //     "Learn how to design and implement scalable APIs using GraphQL.",
+  //   github: "https://github.com/yourusername/graphql-scalable-apis",
+  //   slides: "https://speakerdeck.com/yourusername/scalable-graphql-apis",
+  //   youtube: "https://www.youtube.com/watch?v=example3",
+  // },
+  // {
+  //   title: "Introduction to WebRTC",
+  //   description:
+  //     "Learn how to design and implement scalable APIs using GraphQL.",
+  //   github: "https://github.com/yourusername/graphql-scalable-apis",
+  //   slides: "https://speakerdeck.com/yourusername/scalable-graphql-apis",
+  //   youtube: "https://youtu.be/Rjv-4aT-_8c?t=544",
+  // },
 ];
 
 export default function Page() {
