@@ -30,10 +30,10 @@ export default function Page() {
 
       <p className="text-muted-foreground">
         I also have a strong background in AI and Machine Learning, holding a
-        Master's degree in Artificial Intelligence. I've worked with leading
-        companies like Intuit and Samsung Research. Passionate about technology
-        and community building, I continuously strive to push the boundaries of
-        innovation.
+        Master&apos;s degree in Artificial Intelligence. I&apos;ve worked with
+        leading companies like Intuit and Samsung Research. Passionate about
+        technology and community building, I continuously strive to push the
+        boundaries of innovation.
       </p>
 
       {/* As a software engineering leader, I&lsquo;m passionate about innovative
