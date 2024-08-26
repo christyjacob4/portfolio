@@ -8,10 +8,6 @@ const footerLinks = [
   { href: "https://github.com/christyjacob4", text: "github" },
   { href: "https://www.linkedin.com/in/christyjacob4/", text: "linkedin" },
   { href: "mailto:christyjacob4@gmail.com", text: "email" },
-  // {
-  //   href: "https://vercel.com/templates/next.js/portfolio-starter-kit",
-  //   text: "view source",
-  // },
 ];
 
 export default function Footer() {
