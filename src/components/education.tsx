@@ -8,7 +8,7 @@ const education = [
     school: "Birla Institute of Technology and Science",
     schoolUrl: "https://www.bits-pilani.ac.in/",
     location: "India",
-    date: "Apr 2023 - Dec 2024",
+    date: "Apr 2023 - Present",
     achievements: [
       "Rank #1/900 - Gold Medalist with a 9.96/10.0 GPA",
       "Recipient of Dr. CNR Rao and Dr. MRD Merit scholarships",
