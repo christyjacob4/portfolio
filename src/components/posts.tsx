@@ -7,7 +7,7 @@ export function BlogPosts() {
 
   return (
     <div>
-      <h3>Blog Posts</h3>
+      <h2>Blog Posts</h2>
       <div>
         {allBlogs
           .sort((a, b) => {

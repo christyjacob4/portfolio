@@ -25,7 +25,7 @@ const skills = [
 export default function TechStack() {
   return (
     <div>
-      <h3>Tech Stack</h3>
+      <h2>Tech Stack</h2>
       {/* <Separator className="mb-4"/> */}
       <div className="flex flex-wrap gap-2">
         {skills.map((skill) => (

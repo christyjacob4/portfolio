@@ -69,7 +69,7 @@
   html {
     min-width: 360px;
   }
-  h3 {
+  h2 {
     @apply text-xl font-semibold mb-6;
   }
 }

@@ -41,7 +41,7 @@ const education = [
 export default function Education() {
   return (
     <div>
-      <h3>Education</h3>
+      <h2>Education</h2>
       {/* <Separator className="mb-4"/> */}
       <div>
         {education.map((edu, index) => (
@@ -50,7 +50,7 @@ export default function Education() {
             className="w-full flex flex-col items-start justify-between gap-1 md:flex-row md:items-center md:space-x-2 mb-4"
           >
             <div className="flex flex-col items-start justify-center flex-1">
-              <h4>{edu.degree}</h4>
+              <h3>{edu.degree}</h3>
               <p className="text-sm text-muted-foreground font-medium mt-0.5">
                 <Link
                   href={edu.schoolUrl}

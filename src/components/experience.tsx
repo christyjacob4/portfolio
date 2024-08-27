@@ -67,7 +67,7 @@ const experiences = [
 export default function Experience() {
   return (
     <div>
-      <h3>Work Experience</h3>
+      <h2>Work Experience</h2>
       {/* <Separator className="mb-4"/> */}
       <div>
         {experiences.map((exp, index) => (
@@ -76,7 +76,7 @@ export default function Experience() {
             className="w-full flex flex-col items-start justify-between gap-1 md:flex-row md:items-center md:space-x-2 mb-4"
           >
             <div className="flex flex-col items-start justify-center flex-1">
-              <h4>{exp.title}</h4>
+              <h3>{exp.title}</h3>
               <p className="text-sm text-muted-foreground font-medium mt-0.5">
                 <Link
                   href={exp.companyUrl}
