@@ -15,11 +15,11 @@ const skills = [
   "PostgreSQL",
   "Redis",
   "RESTful APIs",
-  "Machine Learning",
   "Tensorflow",
   "PyTorch",
   "OpenAI",
   "LangChain",
+  "Machine Learning"
 ];
 
 export default function TechStack() {
