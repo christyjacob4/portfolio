@@ -19,13 +19,13 @@ const skills = [
   "PyTorch",
   "OpenAI",
   "LangChain",
-  "Machine Learning"
+  "Machine Learning",
 ];
 
 export default function TechStack() {
   return (
     <div>
-      <h2>Tech Stack</h2>
+      <h2 className="title">Tech Stack</h2>
       {/* <Separator className="mb-4"/> */}
       <div className="flex flex-wrap gap-2">
         {skills.map((skill) => (

@@ -41,7 +41,7 @@ const education = [
 export default function Education() {
   return (
     <div>
-      <h2>Education</h2>
+      <h2 className="title">Education</h2>
       {/* <Separator className="mb-4"/> */}
       <div>
         {education.map((edu, index) => (

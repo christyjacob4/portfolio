@@ -38,14 +38,16 @@ const projects = [
 export default function Projects() {
   return (
     <div className="">
-      <h2 className="text-xl font-semibold mb-6">Projects</h2>
+      <h2 className="title text-xl font-semibold mb-6">Projects</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {projects.map((project, index) => (
           <div
             key={index}
             className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
           >
-            <h2 className="text-xl font-semibold mb-2">{project.title}</h2>
+            <h2 className="title text-xl font-semibold mb-2">
+              {project.title}
+            </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-2">
               {project.description}
             </p>
