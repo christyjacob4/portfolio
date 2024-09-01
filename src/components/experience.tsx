@@ -67,7 +67,7 @@ const experiences = [
 export default function Experience() {
   return (
     <div>
-      <h2>Work Experience</h2>
+      <h2 className="title">Work Experience</h2>
       {/* <Separator className="mb-4"/> */}
       <div>
         {experiences.map((exp, index) => (
