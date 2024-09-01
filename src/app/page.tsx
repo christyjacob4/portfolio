@@ -23,7 +23,7 @@ export default function Page() {
           href="https://appwrite.io"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-0.5 after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100"
+          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-[1px] after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100 tracking-wide"
         >
           Appwrite
         </Link>
@@ -32,7 +32,7 @@ export default function Page() {
           href="https://github.com/appwrite/appwrite"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-0.5 after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100"
+          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-[1px] after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100 tracking-wide"
         >
           43K stars on GitHub.
         </Link>
@@ -52,7 +52,7 @@ export default function Page() {
           href="https://www.intuit.com/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-0.5 after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100"
+          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-[1px] after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100 tracking-wide"
         >
           Intuit
         </Link>{" "}
@@ -61,7 +61,7 @@ export default function Page() {
           href="https://research.samsung.com/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-0.5 after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100"
+          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-[1px] after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100 tracking-wide"
         >
           Samsung Research
         </Link>
