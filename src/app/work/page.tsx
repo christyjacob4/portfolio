@@ -20,7 +20,14 @@ const workExperiences = [
       "Led open source initiatives like 30 Days of Appwrite and Hacktoberfest 2020, 2021",
       "Managed issue triaging, pull request reviews, and mentorship across 100+ Open source repositories",
     ],
-    skills: ["Cloud Architecture", "Open Source", "Leadership", "SDK Development", "Multi-language Programming", "Community Management"],
+    skills: [
+      "Cloud Architecture",
+      "Open Source",
+      "Leadership",
+      "SDK Development",
+      "Multi-language Programming",
+      "Community Management",
+    ],
   },
   {
     title: "Technical Advisor",
@@ -47,7 +54,19 @@ const workExperiences = [
       "Built iOS and Android apps for Intuit Expert Platform, improving expert productivity by over 60%",
       "Developed fault-tolerant, scalable APIs using SpringBoot and Kafka for efficient data querying",
     ],
-    skills: ["Android", "iOS", "Java", "Swift", "A/B Testing", "MVVM", "SpringBoot", "Kafka", "Espresso", "JUnit", "Mockito"],
+    skills: [
+      "Android",
+      "iOS",
+      "Java",
+      "Swift",
+      "A/B Testing",
+      "MVVM",
+      "SpringBoot",
+      "Kafka",
+      "Espresso",
+      "JUnit",
+      "Mockito",
+    ],
   },
   {
     title: "Research Engineer",
@@ -60,7 +79,13 @@ const workExperiences = [
       "Improved PSNR of state-of-the-art by up to 7 dB by enhancing model architecture and fine-tuning the network",
       "Proposed and built a CLI tool in Python to set up development environments, reducing setup time from minutes to under 5 seconds",
     ],
-    skills: ["Computer Vision", "Image Processing", "Machine Learning", "Python", "CLI Development"],
+    skills: [
+      "Computer Vision",
+      "Image Processing",
+      "Machine Learning",
+      "Python",
+      "CLI Development",
+    ],
   },
   {
     title: "Research Engineer",
@@ -74,7 +99,15 @@ const workExperiences = [
       "Built a companion Android app and developed a REST API to display logs and driving performance",
       "Developed a real-time Number Plate Recognition system for CCTV footage, achieving 97% accuracy on Indian number plates",
     ],
-    skills: ["Computer Vision", "API Development", "Android Development", "Machine Learning", "Embedded Systems", "Python", "Java"],
+    skills: [
+      "Computer Vision",
+      "API Development",
+      "Android Development",
+      "Machine Learning",
+      "Embedded Systems",
+      "Python",
+      "Java",
+    ],
   },
 ];
 
@@ -82,7 +115,8 @@ export default function Page() {
   return (
     <section>
       <h1 className="mb-8 text-2xl font-medium tracking-tighter">Work</h1>
-      <p className="text-muted-foreground my-8">
+      <div className="text-muted-foreground">Coming soon...</div>
+      {/* <p className="text-muted-foreground my-8">
         Over the past 5 years, I've had the opportunity to work with some
         amazing companies and individuals. At every step of my journey, I've
         learned something new and grown as a professional. I've been at the
@@ -107,7 +141,7 @@ export default function Page() {
             </ul>
           </div>
         ))}
-      </div>
+      </div> */}
     </section>
   );
 }
