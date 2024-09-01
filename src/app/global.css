@@ -69,7 +69,7 @@
   html {
     min-width: 360px;
   }
-  
+
   .title {
     @apply text-xl font-semibold mb-6;
   }

@@ -45,7 +45,9 @@ export default function Projects() {
             key={index}
             className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
           >
-            <h2 className="title text-xl font-semibold mb-2">{project.title}</h2>
+            <h2 className="title text-xl font-semibold mb-2">
+              {project.title}
+            </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-2">
               {project.description}
             </p>

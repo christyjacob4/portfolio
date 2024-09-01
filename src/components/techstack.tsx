@@ -19,7 +19,7 @@ const skills = [
   "PyTorch",
   "OpenAI",
   "LangChain",
-  "Machine Learning"
+  "Machine Learning",
 ];
 
 export default function TechStack() {
