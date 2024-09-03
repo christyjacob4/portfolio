@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   description: "Developer, optimist, and leader.",
   openGraph: {
     title: "Christy Jacob",
-    description: "Developer, writer, and leader",
+    description: "Developer, optimist, and leader",
     url: baseUrl,
     siteName: "Christy Jacob",
     locale: "en_US",
@@ -37,6 +37,9 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
   icons: {
     icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       {
         url: "/android-chrome-192x192.png",
         sizes: "192x192",
@@ -47,6 +50,9 @@ export const metadata: Metadata = {
         sizes: "512x512",
         type: "image/png",
       },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
 };
