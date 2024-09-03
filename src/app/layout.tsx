@@ -40,6 +40,16 @@ export const metadata: Metadata = {
       { url: "/favicon.ico" },
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      {
+        url: "/android-chrome-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/android-chrome-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
     ],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
@@ -61,7 +71,7 @@ export default function RootLayout({
       className={cx(
         "dark min-h-screen bg-background font-sans",
         GeistSans.variable,
-        GeistMono.variable,
+        GeistMono.variable
       )}
     >
       <body className="antialiased max-w-2xl md:p-4 lg:mx-auto flex flex-col md:flex-row mx-4">
