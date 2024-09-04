@@ -15,9 +15,9 @@ const navItems = {
   "/talks": {
     name: "talks",
   },
-  "/blog": {
-    name: "blog",
-  },
+  // "/blog": {
+  //   name: "blog",
+  // },
 };
 
 export function Navbar() {
