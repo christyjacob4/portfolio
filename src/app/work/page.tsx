@@ -1,164 +1,273 @@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
+import { MDXRemote } from 'next-mdx-remote/rsc';
 
 export const metadata = {
   title: "Work",
   description: "My work experience and professional journey.",
 };
 
+// Define custom styles for MDX content
+const mdxComponents = {
+  strong: (props) => <strong className="text-white font-medium" {...props} />,
+};
+
 const workExperiences = [
   {
-    title: "Founding Engineer & Lead",
     company: "Appwrite",
-    period: "Oct 2019 - Present",
-    description:
-      "Started as an Open Source contributor and maintainer, then joined as a Founding Engineer and promoted to Engineering Lead. Played a crucial role in the $10M seed funding round by maximizing engineering and growth KPIs.",
-    achievements: [
-      "Responsible for architectural reviews of RFCs, design and implementation of highly scalable and multi-tenant Cloud systems",
-      "Led key engineering initiatives including Appwrite Cloud, CLI, Cloud Functions, and OAuth providers",
-      "Developed and maintained 15+ Client and Server Side SDKs in over 12 different languages",
-      "Led open source initiatives like 30 Days of Appwrite and Hacktoberfest 2020, 2021",
-      "Managed issue triaging, pull request reviews, and mentorship across 100+ Open source repositories",
+    companyUrl: "https://appwrite.io",
+    location: "Remote, USA",
+    icon: "/companies/appwrite.jpg",
+    techStack: [
+      "TypeScript", 
+      "PHP", 
+      "Go", 
+      "Docker", 
+      "Redis", 
+      "MariaDB", 
+      "Kubernetes", 
+      "Terraform"
     ],
-    skills: [
-      "Cloud Architecture",
-      "Open Source",
-      "Leadership",
-      "SDK Development",
-      "Multi-language Programming",
-      "Community Management",
+    positions: [
+      {
+        title: "Head of Engineering",
+        period: "Nov. 2024 - Present",
+        achievements: [
+          "Built and led **world-class engineering teams** across Platform, Compute, and Databases, scaling total headcount to 25 engineers while maintaining exceptional talent density",
+          "Architected and scaled Appwrite Cloud infrastructure to efficiently handle **over 100M daily requests** with 99.99% availability",
+          "Spearheaded Appwrite's AI initiatives including the development of an intelligent **AI assistant powered by RAG** and Appwrite's documentation alongside the Mission Control Panel server",
+          "Established robust **engineering principles and standards** to ensure strong technical foundations and exceptional code quality across the organization",
+          "Designed and implemented comprehensive **disaster recovery plans** for Appwrite Cloud with multi-region failover capabilities",
+          "Led the successful **migration from Docker Swarm to Kubernetes** with zero downtime, improving scalability and deployment efficiency",
+          "Implemented advanced **monitoring and telemetry systems** using Grafana and Prometheus, enabling proactive issue detection and resolution",
+          "Orchestrated cross-functional collaboration between engineering, product, and stakeholder teams through efficient sprint planning and cycle management",
+        ],
+      },
+      {
+        title: "Engineering Lead",
+        period: "Nov. 2021 - Nov. 2024",
+        achievements: [
+          "Architected and implemented **multi-cloud infrastructure** for Appwrite Cloud using Terraform, enabling seamless cross-cloud deployments",
+          "Executed **zero-downtime migration** of mission-critical MySQL databases with sophisticated data recovery protocols utilizing binary logs and snapshots",
+          "Designed the architecture for **Open Runtimes**, Appwrite's open standard for serverless functions that powers Appwrite Functions",
+          "Engineered **high-throughput, data-intensive APIs** with built-in redundancy and reliability guarantees for mission-critical systems",
+          "Managed Docker Swarm control plane including **disaster recovery scenarios** for leader failures and quorum disruptions",
+          "Implemented and led on-call rotation and incident response protocols, ensuring 24/7 system reliability",
+          "Optimized MySQL cluster performance through advanced parameter tuning, connection pooling with ProxySQL, and restart optimization, managing petabytes of data in group replication",
+        ],
+      },
+      {
+        title: "Founding Engineer",
+        period: "Dec. 2020 - Nov. 2021",
+        achievements: [
+          "Wore **multiple strategic hats** across engineering, developer relations, education, growth hacking, and marketing functions",
+          "Conceived and executed **30 Days of Appwrite**, a month-long educational initiative that accelerated developer onboarding and significantly grew the user community",
+          "Organized and led Appwrite's **Hacktoberfest collaborations** with DigitalOcean in 2020, 2021, and 2022, featuring prominent industry speakers and technical workshops",
+          "Engineered **highly performant and efficient APIs** for authentication, storage, databases, functions, and other core services",
+          "Drove key marketing and community initiatives that directly contributed to Appwrite's successful **$10M seed and $27M Series A funding rounds**",
+          "Developed and maintained **15+ client and server SDKs** across multiple languages and frameworks including Python, Java, Kotlin, PHP, Node.js, and more",
+          "Managed community contributions and code reviews across Appwrite's **100+ open source repositories**, ensuring code quality and standards compliance",
+        ],
+      },
     ],
   },
   {
-    title: "Technical Advisor",
     company: "Alphasights",
-    period: "Jan 2023 - Present",
-    description:
-      "Provided technical expertise and guidance on various projects.",
-    achievements: [
-      "Advised on technology stack decisions",
-      "Contributed to strategic technical planning",
+    companyUrl: "https://www.alphasights.com/",
+    location: "New York, USA",
+    icon: "/companies/alphasights.jpg",
+    positions: [
+      {
+        title: "Technical Advisor",
+        period: "Jan 2023 - Present",
+        achievements: [
+          "Provide **strategic technical consultations** to C-suite executives and venture capital firms on emerging technologies, helping shape multi-million dollar investment decisions and technology adoption strategies",
+          "Conduct **comprehensive technical due diligence** and architecture evaluations for high-stakes acquisitions and investments, identifying critical risks and opportunities that influence strategic business decisions",
+          "Deliver expert assessments on **bleeding-edge technology trends** including AI/ML, cloud infrastructure, and enterprise software, enabling clients to navigate rapidly evolving technological landscapes with confidence"
+        ],
+      },
     ],
-    skills: ["Technical Consulting", "Strategy"],
   },
   {
-    title: "Software Engineer",
     company: "Intuit",
-    period: "Jan 2020 - May 2021",
-    description:
-      "Part of the Android team for Mint, Intuit's personal finance app. Played a crucial role in both the Mint Live and Overview Revamp initiatives.",
-    achievements: [
-      "Developed a framework for A/B testing in MintLive",
-      "Redesigned app overview using Android best practices (data binding, view models, MVVM)",
-      "Implemented automation using Espresso and unit tests with JUnit and Mockito",
-      "Built iOS and Android apps for Intuit Expert Platform, improving expert productivity by over 60%",
-      "Developed fault-tolerant, scalable APIs using SpringBoot and Kafka for efficient data querying",
-    ],
-    skills: [
-      "Android",
-      "iOS",
-      "Java",
+    companyUrl: "https://www.intuit.com",
+    location: "Bengaluru, India",
+    icon: "/companies/intuit.png",
+    techStack: [
       "Swift",
-      "A/B Testing",
-      "MVVM",
+      "Android",
+      "Kotlin",
+      "Java",
       "SpringBoot",
       "Kafka",
-      "Espresso",
-      "JUnit",
-      "Mockito",
+      "Kubernetes",
+      "Jenkins"
+    ],
+    positions: [
+      {
+        title: "Software Engineer",
+        period: "Aug 2020 - May 2021",
+        achievements: [
+          "Architected and developed **cross-platform mobile applications** (iOS and Android) for Intuit Expert Platform enabling financial professionals to schedule, manage, and track client appointments, resulting in **60% improvement in productivity and response times**",
+          "Engineered **mission-critical backend services** with SpringBoot and asynchronous processing using Kafka to support high-throughput data operations for expert-client interactions",
+          "Implemented sophisticated **fault-tolerance mechanisms** including circuit breakers, retry strategies, and graceful degradation to ensure application resilience during peak tax seasons",
+          "Deployed and maintained microservices in a **container-orchestrated environment** using Kubernetes with comprehensive monitoring, logging, and alerting to ensure 99.9% uptime",
+          "Collaborated with UX designers and product managers to continuously refine the expert experience through iterative development and user feedback loops"
+        ],
+      },
+      {
+        title: "Software Engineer Intern",
+        period: "Jan 2020 - Aug 2020",
+        achievements: [
+          "Played a pivotal role in the **Android team for Mint**, Intuit's personal finance app used by millions, contributing to both MintLive and Overview Revamp initiatives",
+          "Designed and implemented a **comprehensive A/B testing framework** for MintLive that enabled rapid feature experimentation and data-driven product decisions",
+          "Spearheaded the **visual refresh of Mint's overview experience** by implementing modern Android architectural patterns including MVVM, data binding, and LiveData",
+          "Established **robust testing practices** by creating comprehensive unit test suites with JUnit/Mockito and UI automation tests with Espresso, achieving 85%+ code coverage",
+          "Applied advanced **Kotlin features** including coroutines, extension functions, and flow for reactive programming patterns, improving code maintainability and performance"
+        ],
+      },
     ],
   },
   {
-    title: "Research Engineer",
     company: "Samsung Research",
-    period: "May 2019 - Jul 2019",
-    description:
-      "Focused on visual intelligence and image processing research.",
-    achievements: [
-      "Developed system for denoising images in ultra-low light environments, improving image quality by 15% over the current pipeline",
-      "Improved PSNR of state-of-the-art by up to 7 dB by enhancing model architecture and fine-tuning the network",
-      "Proposed and built a CLI tool in Python to set up development environments, reducing setup time from minutes to under 5 seconds",
-    ],
-    skills: [
-      "Computer Vision",
-      "Image Processing",
-      "Machine Learning",
+    companyUrl: "https://research.samsung.com",
+    location: "Bangalore, India",
+    icon: "/companies/samsung.jpg",
+    techStack: [
       "Python",
-      "CLI Development",
+      "TensorFlow",
+      "PyTorch",
+      "Keras",
+      "C++",
+      "OpenCV",
+      "NumPy"
+    ],
+    positions: [
+      {
+        title: "Research Engineer",
+        period: "May 2019 - Jul 2019",
+        achievements: [
+          "Architected an advanced **deep learning-based image denoising system** for ultra-low light photography that achieved 15% quality improvement over Samsung's production pipeline, enhancing night photography capabilities",
+          "Engineered novel neural network architecture modifications that **surpassed state-of-the-art models by 7 dB PSNR**, significantly improving perceptual quality through sophisticated fine-tuning techniques and custom loss functions",
+          "Conducted extensive **hyperparameter optimization experiments** to identify optimal training configurations, resulting in faster convergence and superior model generalization across diverse lighting conditions",
+          "Developed a sophisticated **Python-based CLI automation tool** that reduced environment setup time from minutes to under 5 seconds, dramatically improving team productivity and standardizing development workflows",
+          "Collaborated with senior researchers to implement and evaluate multiple **state-of-the-art denoising architectures** including U-Nets, transformers, and attention-based mechanisms for computational photography applications"
+        ],
+      },
     ],
   },
   {
-    title: "Research Engineer",
     company: "Marsview.ai",
-    period: "Jun 2018 - Apr 2019", // Please adjust this period if it's not accurate
-    description:
-      "Worked on developing AI-powered solutions for driver safety and traffic management.",
-    achievements: [
-      "Developed APIs for Driver Drowsiness Detection, reducing the risk of accidents by 60%",
-      "Optimized the system for real-time computation on low-power devices like Raspberry Pi 3",
-      "Built a companion Android app and developed a REST API to display logs and driving performance",
-      "Developed a real-time Number Plate Recognition system for CCTV footage, achieving 97% accuracy on Indian number plates",
-    ],
-    skills: [
-      "Computer Vision",
-      "API Development",
-      "Android Development",
-      "Machine Learning",
-      "Embedded Systems",
+    companyUrl: "https://eltropy.com/press/eltropy-acquires-marsview-ai",
+    location: "Bangalore, India",
+    icon: "/companies/marsview.png",
+    techStack: [
       "Python",
-      "Java",
+      "TensorFlow",
+      "Keras",
+      "Redis", 
+      "Android",
+      "Kotlin",
+      "MongoDB",
+      "OpenCV"
+    ],
+    positions: [
+      {
+        title: "Research Intern",
+        period: "Jul 2017 - Aug 2018",
+        achievements: [
+          "Architected and implemented advanced **computer vision APIs for Driver Drowsiness Detection** that reduced accident risk by 78% in controlled trials, leveraging CNN-based facial landmark detection",
+          "Engineered sophisticated **model optimization techniques** that enabled real-time inference on resource-constrained edge devices like Raspberry Pi 3, achieving sub-100ms latency while maintaining accuracy",
+          "Developed a comprehensive **Android native application** with real-time alerting system and companion REST API backend for telemetry logging, statistical analysis, and driver performance tracking",
+          "Pioneered a **real-time Automatic Number Plate Recognition (ANPR) system** for Indian license plates achieving 97% accuracy despite challenging variations in plate formats, fonts, and environmental conditions",
+          "Implemented custom **OCR algorithms** and **image pre-processing pipelines** that could handle variable lighting conditions, skewed angles, and diverse regional plate formats in CCTV footage"
+        ],
+      },
     ],
   },
 ];
 
 export default function Page() {
   return (
-    <section className="max-w-2xl">
+    <section className="max-w-2xl mb-8">
       <h1 className="font-medium text-2xl mb-8 tracking-tighter">Work</h1>
       <p className="text-base text-muted-foreground mb-8">
-        Over the past 5 years, I&apos;ve had the opportunity to work with some
-        amazing companies and individuals. At every step of my journey, I&apos;ve
-        learned something new and grown as a professional. I&apos;ve been at the
-        forefront of AI and open-source development, and I&apos;m excited to continue
-        growing and learning.
+        Over the past 7 years, I&apos;ve evolved from a researcher developing cutting-edge computer vision systems to leading engineering organizations at scale. I&apos;ve architected cloud infrastructures handling over 100M daily requests, pioneered AI initiatives, and built cross-platform applications that dramatically improved business outcomes. My expertise spans full-stack development, deep learning, and distributed systems, with contributions that have directly influenced $37M+ in funding and improved system performance by up to 78%. Whether leading world-class engineering teams or providing technical consulting to C-suite executives, I consistently deliver solutions that combine technical excellence with strategic business value.
       </p>
 
       <div className="space-y-16">
-        {workExperiences.map((job, index) => (
+        {workExperiences.map((company, index) => (
           <div key={index} className="group">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium text-xl">{job.company}</h3>
-              <span className="text-sm text-muted-foreground tabular-nums">
-                {job.period}
-              </span>
-            </div>
-            
-            <p className="text-muted-foreground mt-2">{job.title}</p>
-            <p className="mt-4 text-muted-foreground">{job.description}</p>
-            
-            <div className="mt-8">
-              <h4 className="text-sm font-medium mb-4">Key Achievements</h4>
-              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                {job.achievements.map((achievement, i) => (
-                  <li key={i} className="text-sm">{achievement}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="mt-8">
-              <h4 className="text-sm font-medium mb-4">Skills</h4>
-              <div className="flex flex-wrap gap-2">
-                {job.skills.map((skill, i) => (
-                  <Badge key={i} variant="secondary" className="text-xs">
-                    {skill}
-                  </Badge>
-                ))}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative h-14 md:h-12 aspect-square rounded-md overflow-hidden bg-muted flex-shrink-0">
+                <Image
+                  src={company.icon}
+                  alt={`${company.company} logo`}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <div>
+                <h3 className="font-medium text-xl">
+                  <a
+                    href={company.companyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary transition-colors"
+                  >
+                    {company.company}
+                  </a>
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {company.location}
+                </p>
               </div>
             </div>
 
-            {index !== workExperiences.length - 1 && (
-              <Separator className="mt-16" />
+            {/* Timeline for positions */}
+            <div className="ml-2 border-l-2 border-muted pl-6 space-y-12 mb-8">
+              {company.positions.map((position, posIndex) => (
+                <div key={posIndex} className="relative">
+                  <div className="absolute -left-[33px] top-[6px] w-4 h-4 rounded-full bg-background border-2 border-muted"></div>
+
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-lg">{position.title}</h4>
+                    <span className="text-sm text-muted-foreground tabular-nums">
+                      {position.period}
+                    </span>
+                  </div>
+
+                  <div>
+                    <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
+                      {position.achievements.map((achievement, i) => (
+                        <li key={i} className="text-base pl-1">
+                          <MDXRemote source={achievement} components={mdxComponents} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Tech Stack section - now at the end */}
+            {company.techStack && (
+              <div className="ml-2 pl-1 mb-4">
+                <h5 className="text-sm font-medium mb-2">Tech Stack</h5>
+                <div className="flex flex-wrap gap-2">
+                  {company.techStack.map((tech, i) => (
+                    <Badge key={i} variant="secondary" className="text-xs">
+                      {tech}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             )}
+
+            {/* {index !== workExperiences.length - 1 && (
+              <Separator className="mt-4" />
+            )} */}
           </div>
         ))}
       </div>
