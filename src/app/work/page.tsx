@@ -113,35 +113,55 @@ const workExperiences = [
 
 export default function Page() {
   return (
-    <section>
-      <h1 className="mb-8 text-2xl font-medium tracking-tighter">Work</h1>
-      <div className="text-muted-foreground">Coming soon...</div>
-      {/* <p className="text-muted-foreground my-8">
-        Over the past 5 years, I've had the opportunity to work with some
-        amazing companies and individuals. At every step of my journey, I've
-        learned something new and grown as a professional. I've been at the
-        forefront of AI and open-source development, and I'm excited to continue
+    <section className="max-w-2xl">
+      <h1 className="font-medium text-2xl mb-8 tracking-tighter">Work</h1>
+      <p className="text-base text-muted-foreground mb-8">
+        Over the past 5 years, I&apos;ve had the opportunity to work with some
+        amazing companies and individuals. At every step of my journey, I&apos;ve
+        learned something new and grown as a professional. I&apos;ve been at the
+        forefront of AI and open-source development, and I&apos;m excited to continue
         growing and learning.
       </p>
 
-      <Separator className="my-8" />
-
-      <div className="space-y-12 my-8">
+      <div className="space-y-16">
         {workExperiences.map((job, index) => (
-          <div key={index}>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{job.company}</h3>
-            <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mt-1">{job.title}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{job.period}</p>
-            <p className="text-base text-gray-700 dark:text-gray-300 mt-4">{job.description}</p>
-            <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mt-6 mb-2">Key Achievements</h4>
-            <ul className="list-disc list-inside space-y-2">
-              {job.achievements.map((achievement, i) => (
-                <li key={i} className="text-base text-gray-700 dark:text-gray-300">{achievement}</li>
-              ))}
-            </ul>
+          <div key={index} className="group">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-xl">{job.company}</h3>
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {job.period}
+              </span>
+            </div>
+            
+            <p className="text-muted-foreground mt-2">{job.title}</p>
+            <p className="mt-4 text-muted-foreground">{job.description}</p>
+            
+            <div className="mt-8">
+              <h4 className="text-sm font-medium mb-4">Key Achievements</h4>
+              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                {job.achievements.map((achievement, i) => (
+                  <li key={i} className="text-sm">{achievement}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-8">
+              <h4 className="text-sm font-medium mb-4">Skills</h4>
+              <div className="flex flex-wrap gap-2">
+                {job.skills.map((skill, i) => (
+                  <Badge key={i} variant="secondary" className="text-xs">
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {index !== workExperiences.length - 1 && (
+              <Separator className="mt-16" />
+            )}
           </div>
         ))}
-      </div> */}
+      </div>
     </section>
   );
 }
