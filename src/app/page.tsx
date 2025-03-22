@@ -43,8 +43,8 @@ export default function Page() {
       </div>
 
       <p className="text-muted-foreground">
-        My role involves architecting scalable cloud systems, mentoring a global
-        community of developers, and driving key engineering initiatives. I also
+        My role involves architecting scalable cloud systems, driving key engineering initiatives and mentoring a global
+        community of developers. I also
         have a strong background in AI and Machine Learning, holding a
         Master&apos;s degree in Artificial Intelligence. Previously, I&apos;ve
         worked with leading companies like{" "}

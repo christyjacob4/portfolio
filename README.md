@@ -40,3 +40,8 @@ pnpm dev
 ```
 
 Deploy it to the cloud with [Vercel](https://vercel.com/templates) ([Documentation](https://nextjs.org/docs/app/building-your-application/deploying)).
+
+### Todos
+1. Add details to the work experience section
+2. Add icons for the companies in the work experience section
+3. Add 1 blog post
