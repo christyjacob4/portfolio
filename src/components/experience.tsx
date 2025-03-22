@@ -75,7 +75,7 @@ export default function Experience() {
             key={index}
             className="w-full flex gap-4 mb-6 justify-between items-center"
           >
-            <div className="relative h-12 aspect-square rounded-md overflow-hidden bg-muted">
+            <div className="relative h-14 md:h-12 aspect-square rounded-md overflow-hidden bg-muted">
               <Image
                 src={exp.icon}
                 alt={`${exp.company} logo`}
