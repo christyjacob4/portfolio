@@ -9,7 +9,7 @@ const experiences = [
     title: "Head of Engineering",
     company: "Appwrite",
     companyUrl: "https://appwrite.io",
-    date: "Dec. 2020 - Present",
+    date: "Nov. 2021 - Present",
     description: [
       "Lead key engineering initiatives like Appwrite Cloud, CLI, and Cloud Functions",
       "Responsible for architectural reviews of RFCs and design of scalable Cloud systems",
@@ -23,9 +23,9 @@ const experiences = [
     companyUrl: "https://www.alphasights.com/",
     date: "Jan. 2023 - Present",
     description: [
-      "Developed features for Mint, Intuit's personal finance app",
-      "Built iOS and Android apps for the Intuit Expert Platform",
-      "Developed fault-tolerant and scalable APIs using SpringBoot and Kafka",
+      "Provide strategic technical consultations to C-suite executives and venture capital firms",
+      "Conduct comprehensive technical due diligence and architecture evaluations",
+      "Deliver expert assessments on bleeding-edge technology trends",
     ],
     icon: "/companies/alphasights.jpg",
   },
@@ -33,7 +33,7 @@ const experiences = [
     title: "Software Engineer",
     company: "Intuit",
     companyUrl: "https://www.intuit.com",
-    date: "Jan. 2020 - May 2021",
+    date: "Aug. 2020 - May 2021",
     description: [
       "Developed features for Mint, Intuit's personal finance app",
       "Built iOS and Android apps for the Intuit Expert Platform",
