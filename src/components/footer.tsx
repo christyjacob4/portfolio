@@ -31,7 +31,7 @@ export default function Footer() {
           </li>
         ))}
       </ul>
-      <Separator className="my-8" />
+      <Separator className="my-6" />
       <p className="italic text-sm">
         &ldquo;Knowledge is discovered collectively, wisdom is rediscovered
         individually.&rdquo;

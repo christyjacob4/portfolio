@@ -75,9 +75,9 @@ export default function Page() {
         <Education />
       </div>
 
-      <div className="my-14">
+      {/* <div className="my-14">
         <TechStack />
-      </div>
+      </div> */}
 
       {/* <div className="my-8">
         <Projects />
