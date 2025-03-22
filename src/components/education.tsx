@@ -1,41 +1,33 @@
 import React from "react";
 import { Separator } from "./ui/separator";
 import Link from "next/link";
+import Image from "next/image";
 
 const education = [
   {
-    degree: "Master's Degree in AI & Machine Learning",
+    degree: "Master's in AI & Machine Learning",
     school: "Birla Institute of Technology and Science",
     schoolUrl: "https://www.bits-pilani.ac.in/",
     location: "India",
-    date: "Apr 2023 - Present",
+    date: "Apr. 2023 - Mar. 2025",
     achievements: [
       "Rank #1/900 - Gold Medalist with a 9.96/10.0 GPA",
       "Recipient of Dr. CNR Rao and Dr. MRD Merit scholarships",
     ],
+    icon: "/education/bits_pilani.jpeg",
   },
   {
-    degree: "Bachelor's Degree in Computer Science",
+    degree: "Bachelor's in Computer Science",
     school: "PES University",
     schoolUrl: "https://pes.edu/",
     location: "Bangalore, India",
-    date: "Aug 2016 - Jul 2020",
+    date: "Aug. 2016 - Jul. 2020",
     achievements: [
       "Rank #1/900 - Gold Medalist with a 9.96/10.0 GPA",
       "Recipient of Dr. CNR Rao and Dr. MRD Merit scholarships",
     ],
-  },
-  {
-    degree: "High School",
-    school: "AECS Magnolia",
-    schoolUrl:
-      "https://www.aecsgroup.co.in/aecs-magnolia-maaruti-public-school/",
-    location: "Bangalore, India",
-    date: "May 2014 - Apr 2016",
-    achievements: [
-      "Topper of the graduating class with an aggregate of 95.4% in AISSCE 2016",
-    ],
-  },
+    icon: "/education/pes.jpg",
+  }
 ];
 
 export default function Education() {
@@ -47,24 +39,37 @@ export default function Education() {
         {education.map((edu, index) => (
           <div
             key={index}
-            className="w-full flex flex-col items-start justify-between gap-1 md:flex-row md:items-center md:space-x-2 mb-4"
+            className="w-full flex gap-4 mb-6 justify-between items-center"
           >
-            <div className="flex flex-col items-start justify-center flex-1">
-              <h3>{edu.degree}</h3>
-              <p className="text-sm text-muted-foreground font-medium mt-0.5">
-                <Link
-                  href={edu.schoolUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {edu.school}
-                </Link>
-              </p>
+            <div className="relative h-14 md:h-12 aspect-square rounded-md overflow-hidden bg-muted">
+              <Image
+                src={edu.icon}
+                alt={`${edu.school} logo`}
+                fill
+                className="object-contain"
+              />
             </div>
 
-            <p className="text-sm text-muted-foreground tabular-nums md:text-base">
-              {edu.date}
-            </p>
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between flex-1 min-w-0">
+              <div className="flex flex-col">
+                <h3 className="font-medium">
+                  {edu.degree}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  <Link
+                    href={edu.schoolUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {edu.school}
+                  </Link>
+                </p>
+              </div>
+
+              <p className="text-muted-foreground text-sm tabular-nums mt-1 md:mt-0">
+                {edu.date}
+              </p>
+            </div>
           </div>
         ))}
       </div>
