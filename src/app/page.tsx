@@ -34,7 +34,7 @@ export default function Page() {
           rel="noopener noreferrer"
           className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-[1px] after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100 tracking-wide"
         >
-          43K stars on GitHub.
+          47K stars on GitHub.
         </Link>
       </p>
 
