@@ -193,7 +193,7 @@ export default function Page() {
     <section className="max-w-2xl mb-8">
       <h1 className="font-medium text-2xl mb-8 tracking-tighter">Work</h1>
       <p className="text-base text-muted-foreground mb-8">
-        Over the past 5 years, I&apos;ve evolved from a researcher developing cutting-edge computer vision systems to leading engineering organizations at scale. I&apos;ve architected cloud infrastructures handling over 100M daily requests, pioneered AI initiatives, and built cross-platform applications that dramatically improved business outcomes. My expertise spans full-stack development, deep learning, and distributed systems, with contributions that have directly influenced $37M+ in funding. Whether leading world-class engineering teams or providing technical consulting to C-suite executives, I consistently deliver solutions that combine technical excellence with strategic business value.
+        Over the past 5 years, I&apos;ve evolved from a researcher developing cutting-edge computer vision systems to leading engineering organizations at scale. I&apos;ve architected cloud infrastructures handling <strong>over 100M daily requests</strong>, pioneered AI initiatives, and built cross-platform applications that dramatically improved business outcomes. My expertise spans full-stack development, deep learning, and distributed systems, with contributions that have directly influenced <strong>$37M+ in funding</strong>. Whether leading world-class engineering teams or providing technical consulting to founders & C-suite executives, I consistently deliver solutions that combine technical excellence with strategic business value.
       </p>
 
       <div className="space-y-16">
