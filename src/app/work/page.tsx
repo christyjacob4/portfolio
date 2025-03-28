@@ -36,7 +36,7 @@ const workExperiences = [
         achievements: [
           "Built and led **world-class engineering teams** across Platform, Compute, and Databases, scaling total headcount to 25 engineers while maintaining exceptional talent density",
           "Architected and scaled Appwrite Cloud infrastructure to efficiently handle **over 100M daily requests** with 99.99% availability",
-          "Spearheaded Appwrite's AI initiatives including the development of an intelligent **AI assistant powered by RAG** and Appwrite's documentation alongside the Mission Control Panel server",
+          "Spearheaded Appwrite's AI initiatives including the development of an intelligent **AI assistant powered by RAG** and Appwrite's documentation alongside the [Model Context Protocol server](https://github.com/appwrite/mcp)",
           "Established robust **engineering principles and standards** to ensure strong technical foundations and exceptional code quality across the organization",
           "Designed and implemented comprehensive **disaster recovery plans** for Appwrite Cloud with multi-region failover capabilities",
           "Led the successful **migration from Docker Swarm to Kubernetes** with zero downtime, improving scalability and deployment efficiency",
