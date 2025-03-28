@@ -42,7 +42,7 @@ const experiences = [
     icon: "/companies/intuit.png",
   },
   {
-    title: "Research Engineer",
+    title: "Research Intern",
     company: "Samsung Research",
     companyUrl: "https://research.samsung.com",
     date: "May 2019 - Jul. 2019",
@@ -53,7 +53,7 @@ const experiences = [
     icon: "/companies/samsung.jpg",
   },
   {
-    title: "Research Intern",
+    title: "Founding Research Engineer",
     company: "Marsview.ai",
     companyUrl: "https://eltropy.com/press/eltropy-acquires-marsview-ai",
     date: "Jul. 2017 - Aug. 2018",
