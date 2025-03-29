@@ -30,6 +30,24 @@ const projects = [
       "Terraform",
     ],
   },
+  {
+    title: "Appwrite MCP Server",
+    description:
+      "A Model Context Protocol server for interacting with Appwrite's API. Provides tools to manage databases, users, functions, teams, and more within your Appwrite project.",
+    image: "/projects/appwrite-mcp.png",
+    projectUrl: "https://github.com/appwrite/mcp",
+    githubUrl: "https://github.com/appwrite/mcp",
+    techStack: ["Python", "MCP", "Claude", "Appwrite", "LLM"],
+  },
+  // {
+  //   title: "Resource Monitor",
+  //   description:
+  //     "A lightweight system monitoring tool that tracks CPU, memory, and disk usage across infrastructure. It creates incidents in BetterStack when resource usage exceeds defined thresholds, with configurable parameters for monitoring sensitivity.",
+  //   image: "/projects/resource-monitor.png",
+  //   projectUrl: "https://github.com/appwrite/monitoring",
+  //   githubUrl: "https://github.com/appwrite/monitoring",
+  //   techStack: ["Go", "Docker", "BetterStack", "DevOps"],
+  // },
 ];
 
 export const metadata = {
@@ -52,8 +70,8 @@ export default function Page() {
                 src={project.image}
                 alt={project.title}
                 width={1200}
-                height={630}
-                className="object-cover transition-transform duration-500 group-hover/image:scale-105"
+                height={130}
+                className="object-fill transition-transform duration-500 group-hover/image:scale-105"
               />
             </div>
             <div className="p-6">
