@@ -1,7 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import { MDXRemote } from 'next-mdx-remote/rsc';
+import { MDXRemote } from "next-mdx-remote/rsc";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const metadata = {
   title: "Work",
@@ -20,14 +26,14 @@ const workExperiences = [
     location: "Remote, USA",
     icon: "/companies/appwrite.jpg",
     techStack: [
-      "TypeScript", 
-      "PHP", 
-      "Go", 
-      "Docker", 
-      "Redis", 
-      "MariaDB", 
-      "Kubernetes", 
-      "Terraform"
+      "TypeScript",
+      "PHP",
+      "Go",
+      "Docker",
+      "Redis",
+      "MariaDB",
+      "Kubernetes",
+      "Terraform",
     ],
     positions: [
       {
@@ -84,7 +90,7 @@ const workExperiences = [
         achievements: [
           "Provide **strategic technical consultations** to C-suite executives and venture capital firms on emerging technologies, helping shape multi-million dollar investment decisions and technology adoption strategies",
           "Conduct **comprehensive technical due diligence** and architecture evaluations for high-stakes acquisitions and investments, identifying critical risks and opportunities that influence strategic business decisions",
-          "Deliver expert assessments on **bleeding-edge technology trends** including AI/ML, cloud infrastructure, and enterprise software, enabling clients to navigate rapidly evolving technological landscapes with confidence"
+          "Deliver expert assessments on **bleeding-edge technology trends** including AI/ML, cloud infrastructure, and enterprise software, enabling clients to navigate rapidly evolving technological landscapes with confidence",
         ],
       },
     ],
@@ -102,7 +108,7 @@ const workExperiences = [
       "SpringBoot",
       "Kafka",
       "Kubernetes",
-      "Jenkins"
+      "Jenkins",
     ],
     positions: [
       {
@@ -113,7 +119,7 @@ const workExperiences = [
           "Engineered **mission-critical backend services** with SpringBoot and asynchronous processing using Kafka to support high-throughput data operations for expert-client interactions",
           "Implemented sophisticated **fault-tolerance mechanisms** including circuit breakers, retry strategies, and graceful degradation to ensure application resilience during peak tax seasons",
           "Deployed and maintained microservices in a **container-orchestrated environment** using Kubernetes with comprehensive monitoring, logging, and alerting to ensure 99.9% uptime",
-          "Collaborated with UX designers and product managers to continuously refine the expert experience through iterative development and user feedback loops"
+          "Collaborated with UX designers and product managers to continuously refine the expert experience through iterative development and user feedback loops",
         ],
       },
       {
@@ -124,7 +130,7 @@ const workExperiences = [
           "Designed and implemented a **comprehensive A/B testing framework** for MintLive that enabled rapid feature experimentation and data-driven product decisions",
           "Spearheaded the **visual refresh of Mint's overview experience** by implementing modern Android architectural patterns including MVVM, data binding, and LiveData",
           "Established **robust testing practices** by creating comprehensive unit test suites with JUnit/Mockito and UI automation tests with Espresso, achieving 85%+ code coverage",
-          "Applied advanced **Kotlin features** including coroutines, extension functions, and flow for reactive programming patterns, improving code maintainability and performance"
+          "Applied advanced **Kotlin features** including coroutines, extension functions, and flow for reactive programming patterns, improving code maintainability and performance",
         ],
       },
     ],
@@ -141,7 +147,7 @@ const workExperiences = [
       "Keras",
       "C++",
       "OpenCV",
-      "NumPy"
+      "NumPy",
     ],
     positions: [
       {
@@ -152,7 +158,7 @@ const workExperiences = [
           "Engineered novel neural network architecture modifications that **surpassed state-of-the-art models by 7 dB PSNR**, significantly improving perceptual quality through sophisticated fine-tuning techniques and custom loss functions",
           "Conducted extensive **hyperparameter optimization experiments** to identify optimal training configurations, resulting in faster convergence and superior model generalization across diverse lighting conditions",
           "Developed a sophisticated **Python-based CLI automation tool** that reduced environment setup time from minutes to under 5 seconds, dramatically improving team productivity and standardizing development workflows",
-          "Collaborated with senior researchers to implement and evaluate multiple **state-of-the-art denoising architectures** including U-Nets, transformers, and attention-based mechanisms for computational photography applications"
+          "Collaborated with senior researchers to implement and evaluate multiple **state-of-the-art denoising architectures** including U-Nets, transformers, and attention-based mechanisms for computational photography applications",
         ],
       },
     ],
@@ -166,11 +172,11 @@ const workExperiences = [
       "Python",
       "TensorFlow",
       "Keras",
-      "Redis", 
+      "Redis",
       "Android",
       "Kotlin",
       "MongoDB",
-      "OpenCV"
+      "OpenCV",
     ],
     positions: [
       {
@@ -181,7 +187,7 @@ const workExperiences = [
           "Engineered sophisticated **model optimization techniques** that enabled real-time inference on resource-constrained edge devices like Raspberry Pi 3, achieving sub-100ms latency while maintaining accuracy",
           "Developed a comprehensive **Android native application** with real-time alerting system and companion REST API backend for telemetry logging, statistical analysis, and driver performance tracking",
           "Pioneered a **real-time Automatic Number Plate Recognition (ANPR) system** for Indian license plates achieving 97% accuracy despite challenging variations in plate formats, fonts, and environmental conditions",
-          "Implemented custom **OCR algorithms** and **image pre-processing pipelines** that could handle variable lighting conditions, skewed angles, and diverse regional plate formats in CCTV footage"
+          "Implemented custom **OCR algorithms** and **image pre-processing pipelines** that could handle variable lighting conditions, skewed angles, and diverse regional plate formats in CCTV footage",
         ],
       },
     ],
@@ -193,10 +199,20 @@ export default function Page() {
     <section className="max-w-2xl mb-8">
       <h1 className="font-medium text-2xl mb-8 tracking-tighter">Work</h1>
       <p className="text-base text-muted-foreground mb-8">
-        Over the past 5 years, I&apos;ve evolved from a researcher developing cutting-edge computer vision systems to leading engineering organizations at scale. I&apos;ve architected cloud infrastructures handling <strong>over 100M daily requests</strong>, pioneered AI initiatives, and built cross-platform applications that dramatically improved business outcomes. My expertise spans full-stack development, deep learning, and distributed systems, with contributions that have directly influenced <strong>$37M+ in funding</strong>. Whether leading world-class engineering teams or providing technical consulting to founders & C-suite executives, I consistently deliver solutions that combine technical excellence with strategic business value.
+        Over the past 5 years, I&apos;ve evolved from a researcher developing
+        cutting-edge computer vision systems to leading engineering
+        organizations at scale. I&apos;ve architected cloud infrastructures
+        handling <strong className="text-foreground">over 100M daily requests</strong>, pioneered AI
+        initiatives, and built cross-platform applications that dramatically
+        improved business outcomes. My expertise spans full-stack development,
+        deep learning, and distributed systems, with contributions that have
+        directly influenced <strong className="text-foreground">$37M+ in funding</strong>. Whether leading
+        world-class engineering teams or providing technical consulting to
+        founders & C-suite executives, I consistently deliver solutions that
+        combine technical excellence with strategic business value.
       </p>
 
-      <div className="space-y-16">
+      <div className="space-y-14">
         {workExperiences.map((company, index) => (
           <div key={index} className="group">
             <div className="flex items-center gap-4 mb-6">
@@ -225,34 +241,47 @@ export default function Page() {
               </div>
             </div>
 
-            {/* Timeline for positions */}
-            <div className="ml-2 border-l-2 border-muted pl-6 space-y-12 mb-8">
-              {company.positions.map((position, posIndex) => (
-                <div key={posIndex} className="relative">
-                  <div className="absolute -left-[33px] top-[6px] w-4 h-4 rounded-full bg-background border-2 border-muted"></div>
+            {/* Positions using accordion without timeline */}
+            <div className="mb-12">
+              <Accordion type="single" collapsible defaultValue="item-0" className="space-y-1">
+                {company.positions.map((position, posIndex) => (
+                  <AccordionItem
+                    key={posIndex}
+                    value={`item-${posIndex}`}
+                    className="border-none"
+                  >
+                    <AccordionTrigger className="py-1 hover:no-underline">
+                      <div className="flex items-center justify-between w-full">
+                        <h4 className="font-semibold text-lg text-muted-foreground">
+                          {position.title}
+                        </h4>
+                        <span className="text-sm text-muted-foreground tabular-nums mr-2">
+                          {position.period}
+                        </span>
+                      </div>
+                    </AccordionTrigger>
 
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-lg">{position.title}</h4>
-                    <span className="text-sm text-muted-foreground tabular-nums">
-                      {position.period}
-                    </span>
-                  </div>
-
-                  <div>
-                    <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
-                      {position.achievements.map((achievement, i) => (
-                        <li key={i} className="text-base pl-1">
-                          <MDXRemote source={achievement} components={mdxComponents} />
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ))}
+                    <AccordionContent>
+                      <div className="pt-2">
+                        <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
+                          {position.achievements.map((achievement, i) => (
+                            <li key={i} className="text-base pl-1">
+                              <MDXRemote
+                                source={achievement}
+                                components={mdxComponents}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </div>
 
             {/* Tech Stack section - now at the end */}
-            {company.techStack && (
+            {/* {company.techStack && (
               <div className="ml-2 pl-1 mb-4">
                 <h5 className="text-sm font-medium mb-2">Tech Stack</h5>
                 <div className="flex flex-wrap gap-2">
@@ -263,10 +292,6 @@ export default function Page() {
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* {index !== workExperiences.length - 1 && (
-              <Separator className="mt-4" />
             )} */}
           </div>
         ))}
