@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Github, ArrowUpRight } from "lucide-react";
+import { CoverImage } from "@/components/CoverImage";
 
 const projects = [
   {
@@ -39,15 +40,24 @@ const projects = [
     githubUrl: "https://github.com/appwrite/mcp",
     techStack: ["Python", "MCP", "Claude", "Appwrite", "LLM"],
   },
-  // {
-  //   title: "Resource Monitor",
-  //   description:
-  //     "A lightweight system monitoring tool that tracks CPU, memory, and disk usage across infrastructure. It creates incidents in BetterStack when resource usage exceeds defined thresholds, with configurable parameters for monitoring sensitivity.",
-  //   image: "/projects/resource-monitor.png",
-  //   projectUrl: "https://github.com/appwrite/monitoring",
-  //   githubUrl: "https://github.com/appwrite/monitoring",
-  //   techStack: ["Go", "Docker", "BetterStack", "DevOps"],
-  // },
+  {
+    title: "Resource Monitor",
+    description:
+      "A lightweight system monitoring tool that tracks CPU, memory, and disk usage across infrastructure. It creates incidents in BetterStack when resource usage exceeds defined thresholds, with configurable parameters for monitoring sensitivity.",
+    coverText: "monitoring",
+    projectUrl: "https://github.com/appwrite/monitoring",
+    githubUrl: "https://github.com/appwrite/monitoring",
+    techStack: ["Go", "Docker", "BetterStack", "DevOps"],
+  },
+  {
+    title: "Openruntimes Executor",
+    description:
+      "Executor provides a lightweight and highly performant HTTP API to create and manage OCI complaint runtimes (Docker). Executor manages the runtime's state and ensures jobs are scheduled to the right containers while handles horizontal auto-scaling and minimizing cold starts.",
+    coverText: "executor",
+    projectUrl: "https://github.com/openruntimes/executor",
+    githubUrl: "https://github.com/openruntimes/executor",
+    techStack: ["Go", "Docker", "OpenRuntimes"],
+  },
 ];
 
 export const metadata = {
@@ -65,14 +75,18 @@ export default function Page() {
             key={index}
             className="relative group/image border border-neutral-200 dark:border-neutral-800 rounded-lg overflow-hidden transition-all hover:border-neutral-400 dark:hover:border-neutral-600"
           >
-            <div className="aspect-video relative overflow-hidden">
-              <Image
-                src={project.image}
-                alt={project.title}
-                width={1200}
-                height={130}
-                className="object-fill transition-transform duration-500 group-hover/image:scale-105"
-              />
+            <div className="aspect-video relative overflow-hidden h-64 sm:h-90 w-full">
+              {project.image ? (
+                <Image
+                  src={project.image}
+                  alt={project.title}
+                  fill={true}
+                  style={{ objectFit: "cover", objectPosition: "top" }}
+                  className="transition-transform duration-300 group-hover/image:scale-105 w-full"
+                />
+              ) : (
+                <CoverImage title={project.coverText ?? project.title} />
+              )}
             </div>
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
