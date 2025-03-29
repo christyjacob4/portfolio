@@ -32,7 +32,7 @@ const projects = [
     ],
   },
   {
-    title: "Appwrite MCP Server",
+    title: "appwrite/mcp",
     description:
       "A Model Context Protocol server for interacting with Appwrite's API. Provides tools to manage databases, users, functions, teams, and more within your Appwrite project.",
     image: "/projects/appwrite-mcp.png",
@@ -41,7 +41,7 @@ const projects = [
     techStack: ["Python", "MCP", "Claude", "Appwrite", "LLM"],
   },
   {
-    title: "Resource Monitor",
+    title: "appwrite/monitoring",
     description:
       "A lightweight system monitoring tool that tracks CPU, memory, and disk usage across infrastructure. It creates incidents in BetterStack when resource usage exceeds defined thresholds, with configurable parameters for monitoring sensitivity.",
     coverText: "monitoring",
@@ -50,13 +50,13 @@ const projects = [
     techStack: ["Go", "Docker", "BetterStack", "DevOps"],
   },
   {
-    title: "Openruntimes Executor",
+    title: "open-runtimes/executor",
     description:
       "Executor provides a lightweight and highly performant HTTP API to create and manage OCI complaint runtimes (Docker). Executor manages the runtime's state and ensures jobs are scheduled to the right containers while handles horizontal auto-scaling and minimizing cold starts.",
     coverText: "executor",
-    projectUrl: "https://github.com/openruntimes/executor",
-    githubUrl: "https://github.com/openruntimes/executor",
-    techStack: ["Go", "Docker", "OpenRuntimes"],
+    projectUrl: "https://github.com/open-runtimes/executor",
+    githubUrl: "https://github.com/open-runtimes/executor",
+    techStack: ["PHP", "Swoole","Docker"],
   },
 ];
 
