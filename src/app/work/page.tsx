@@ -202,11 +202,11 @@ export default function Page() {
         Over the past 5 years, I&apos;ve evolved from a researcher developing
         cutting-edge computer vision systems to leading engineering
         organizations at scale. I&apos;ve architected cloud infrastructures
-        handling <strong className="text-foreground">over 100M daily requests</strong>, pioneered AI
+        handling <strong className="text-foreground font-medium">over 100M daily requests</strong>, pioneered AI
         initiatives, and built cross-platform applications that dramatically
         improved business outcomes. My expertise spans full-stack development,
         deep learning, and distributed systems, with contributions that have
-        directly influenced <strong className="text-foreground">$37M+ in funding</strong>. Whether leading
+        directly influenced <strong className="text-foreground font-medium">$37M+ in funding</strong>. Whether leading
         world-class engineering teams or providing technical consulting to
         founders & C-suite executives, I consistently deliver solutions that
         combine technical excellence with strategic business value.
