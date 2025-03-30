@@ -100,7 +100,7 @@ let components = {
   Image: RoundedImage,
   a: CustomLink,
   code: Code,
-  Table,
+  Table
 }
 
 export function CustomMDX(props) {
