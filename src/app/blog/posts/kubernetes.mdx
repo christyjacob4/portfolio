@@ -1,0 +1,274 @@
+---
+title: "Kubernetes: Zero to One"
+publishedAt: "2025-04-12"
+summary: "A comprehensive guide to understanding Kubernetes architecture, components, and getting started with your first deployment"
+published: false
+---
+
+
+Kubernetes (often abbreviated as K8s) has become the de facto standard for container orchestration in modern cloud-native environments. This guide will take you from fundamental concepts to creating your first workloads, providing a solid foundation for your Kubernetes journey.
+
+# What is Kubernetes?
+
+Kubernetes is an open-source platform designed to automate deploying, scaling, and operating application containers. It groups containers that make up an application into logical units for easy management and discovery.
+
+Originally developed by Google based on their experience running containers in production, Kubernetes is now maintained by the Cloud Native Computing Foundation (CNCF) and has a thriving ecosystem of tools and services.
+
+# Kubernetes System Architecture
+
+Kubernetes follows a distributed architecture consisting of a **Control Plane** and a **Data Plane** (sometimes called the worker nodes). Let's explore both in detail.
+
+## Cluster Components
+
+A Kubernetes cluster consists of a set of nodes (physical or virtual machines) that run containerized applications. The cluster provides a higher level of abstraction to manage these containerized applications and their networking, storage, and other requirements.
+
+```mermaid
+graph TD
+    subgraph "Kubernetes Cluster"
+        subgraph "Control Plane"
+            A[API Server] 
+            B[etcd] 
+            C[Controller Manager]
+            D[Cloud Controller Manager]
+            E[Scheduler]
+            A --- B
+            A --- C
+            A --- D
+            A --- E
+        end
+        
+        subgraph "Data Plane (Worker Nodes)"
+            F[Kubelet]
+            G[Kube Proxy]
+            H[Container Runtime]
+            I[Pods/Containers]
+            F --- H
+            G --- H
+            H --- I
+        end
+        
+        A -.-> F
+        F -.-> A
+    end
+```
+
+### Control Plane Components
+
+The Control Plane manages the worker nodes and the Pods in the cluster. In production environments, the control plane usually runs across multiple computers for high availability, typically with a minimum of three nodes.
+
+- **API Server (kube-apiserver)**: The front-end of the Kubernetes control plane, exposing the Kubernetes API. All communications between components and external users go through the API server.
+
+- **etcd**: A consistent and highly-available key-value store used as Kubernetes' backing store for all cluster data. Always have a backup plan for etcd's data.
+
+- **Controller Manager (kube-controller-manager)**: Runs controller processes that regulate the state of the cluster. Examples include:
+  - Node Controller: Monitors node health and responds when nodes go down
+  - Replication Controller: Maintains the correct number of pods
+  - Endpoints Controller: Populates endpoint objects (service-pod linkage)
+  - Service Account & Token Controllers: Create default accounts and API access tokens
+
+- **Cloud Controller Manager (CCM)**: Links the cluster with your cloud provider's API, separating components that interact with the cloud platform from components that only interact with your cluster. This is crucial for multi-cloud deployments.
+
+- **Scheduler (kube-scheduler)**: Watches for newly created Pods with no assigned node, and selects a node for them to run on based on resource requirements, constraints, and other factors like data locality and inter-workload interference.
+
+### Data Plane Components
+
+The Data Plane consists of worker nodes that execute and manage the actual containerized applications.
+
+- **Kubelet**: An agent that runs on each node in the cluster. It ensures containers are running in a Pod and healthy. The kubelet takes a set of PodSpecs and ensures the containers described are running and in the desired state.
+
+- **Kube-proxy**: A network proxy that runs on each node, implementing part of the Kubernetes Service concept. It maintains network rules that allow network communication to your Pods from inside or outside of your cluster.
+
+- **Container Runtime**: The software responsible for running containers. Kubernetes supports container runtimes such as containerd, CRI-O, and any implementation of the Kubernetes CRI (Container Runtime Interface).
+
+## Key Interfaces
+
+Kubernetes leverages several interfaces to interact with external components:
+
+- **Container Runtime Interface (CRI)**: Enables kubelet to use different container runtimes without recompilation. Popular CRI implementations include:
+  - **containerd**: A lightweight, high-performance container runtime that is the default for most Kubernetes deployments
+  - **CRI-O**: A lightweight alternative specifically designed for Kubernetes
+  
+  *Note: Docker is no longer directly compatible with the CRI, and requires dockershim for compatibility (which has been deprecated from the core Kubernetes code since v1.24)*
+
+- **Container Network Interface (CNI)**: A specification and libraries for writing plugins to configure network interfaces in Linux containers. Popular CNI plugins include Calico, Cilium, and Flannel.
+
+- **Container Storage Interface (CSI)**: Standardizes the way that Kubernetes orchestration interacts with different storage systems. CSI allows storage vendors to develop a plugin once and have it work across different container orchestration systems.
+
+# Using kubectl: The Kubernetes Command-Line Tool
+
+`kubectl` is the primary command-line interface for interacting with your Kubernetes cluster. It allows you to deploy applications, inspect and manage cluster resources, and view logs.
+
+## Essential kubectl Resources
+
+- [Official Cheatsheet](https://kubernetes.io/docs/reference/kubectl/quick-reference/)
+- [Docker CLI to kubectl Migration Guide](https://kubernetes.io/docs/reference/kubectl/docker-cli-to-kubectl/)
+
+## Useful kubectl Commands
+
+```bash
+# Get cluster information
+kubectl cluster-info
+
+# View all resources in the cluster
+kubectl get all --all-namespaces
+
+# Describe detailed information about a resource
+kubectl describe pod <pod-name>
+
+# View logs for a pod
+kubectl logs <pod-name>
+
+# Execute a command in a running container
+kubectl exec -it <pod-name> -- /bin/bash
+```
+
+# Creating Your First Pod
+
+A Pod is the smallest deployable unit in Kubernetes. Let's create a simple NGINX pod to understand the basics.
+
+## Step 1: Create a Pod Manifest
+
+Create a file named `nginx-pod.yaml` with the following content:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.14.2
+      ports:
+        - containerPort: 80
+      resources:
+        limits:
+          memory: "128Mi"
+          cpu: "500m"
+```
+
+This manifest defines:
+- A Pod resource with the name "nginx"
+- Labels for organization and selection
+- A single container using the nginx:1.14.2 image
+- Port 80 exposed from the container
+- Resource limits to ensure the container doesn't consume too many resources
+
+## Step 2: Create the Pod
+
+Apply the manifest to your cluster:
+
+```bash
+kubectl apply -f nginx-pod.yaml
+pod/nginx created
+```
+
+## Step 3: Verify Pod Status
+
+Check that your pod is running:
+
+```bash
+kubectl get pods -o wide
+
+NAME    READY   STATUS    RESTARTS   AGE     IP           NODE                   NOMINATED NODE   READINESS GATES
+nginx   1/1     Running   0          8m10s   10.42.0.14   lima-rancher-desktop   <none>           <none>
+```
+
+## Step 4: Access the Pod
+
+Forward a local port to the pod to access it:
+
+```bash
+kubectl port-forward nginx 8080:80
+Forwarding from 127.0.0.1:8080 -> 80
+Forwarding from [::1]:8080 -> 80
+```
+
+Now you can access the NGINX welcome page from your local machine:
+
+```bash
+curl http://localhost:8080
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+...
+</html>
+```
+
+## Step 5: Clean Up
+
+When you're finished, delete the pod:
+
+```bash
+kubectl delete pod nginx
+pod "nginx" deleted
+```
+
+# Beyond Pods: Working with Higher-Level Controllers
+
+While Pods are the basic building blocks, in real-world scenarios you'll typically use higher-level controllers:
+
+## Deployments
+
+Deployments manage ReplicaSets, which in turn manage Pods. They provide declarative updates, rollback capability, and scaling.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+```
+
+## Services
+
+Services provide a stable endpoint to access pods, handling IP changes and load balancing.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
+```
+
+# Next Steps
+
+Now that you've gotten a taste of Kubernetes basics, consider exploring:
+
+- **ConfigMaps and Secrets**: For managing configuration
+- **Volumes and Persistent Storage**: For data that needs to survive container restarts
+- **Ingress Controllers**: For sophisticated HTTP routing
+- **Helm**: The Kubernetes package manager
+- **Operators**: For managing complex applications
+
+Happy Kubernetes journey!
+
+
+
+

@@ -243,7 +243,7 @@ export default function Page() {
 
             {/* Positions using accordion without timeline */}
             <div className="mb-12">
-              <Accordion type="single" collapsible defaultValue="item-0" className="space-y-1">
+              <Accordion type="single" collapsible className="space-y-1">
                 {company.positions.map((position, posIndex) => (
                   <AccordionItem
                     key={posIndex}

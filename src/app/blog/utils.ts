@@ -6,6 +6,7 @@ type Metadata = {
   publishedAt: string;
   summary: string;
   image?: string;
+  published?: boolean;
 };
 
 function parseFrontmatter(fileContent: string) {
@@ -20,7 +21,15 @@ function parseFrontmatter(fileContent: string) {
     let [key, ...valueArr] = line.split(": ");
     let value = valueArr.join(": ").trim();
     value = value.replace(/^['"](.*)['"]$/, "$1"); // Remove quotes
-    metadata[key.trim() as keyof Metadata] = value;
+    
+    // Handle boolean values
+    if (value === "true") {
+      metadata[key.trim() as keyof Metadata] = true as any;
+    } else if (value === "false") {
+      metadata[key.trim() as keyof Metadata] = false as any;
+    } else {
+      metadata[key.trim() as keyof Metadata] = value as any;
+    }
   });
 
   return { metadata: metadata as Metadata, content };
@@ -50,7 +59,9 @@ function getMDXData(dir) {
 }
 
 export function getBlogPosts() {
-  return getMDXData(path.join(process.cwd(), "src", "app", "blog", "posts"));
+  const posts = getMDXData(path.join(process.cwd(), "src", "app", "blog", "posts"));
+  // Filter out unpublished posts
+  return posts.filter(post => post.metadata.published !== false);
 }
 
 export function formatDate(date: string, includeRelative = false) {
