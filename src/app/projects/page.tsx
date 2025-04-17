@@ -14,6 +14,14 @@ const projects = [
     techStack: ["Sveltekit", "Tailwind CSS", "Appwrite"],
   },
   {
+    title: "PromptSauce",
+    description:
+      "A platform for discovering and sharing AI prompts.",
+    image: "/projects/promptsauce.png",
+    projectUrl: "https://promptsauce.com",
+    techStack: ["Next.js", "Tailwind CSS", "Appwrite"],
+  },
+  {
     title: "Appwrite",
     description:
       "Appwrite is an open-source backend-as-a-service server that allows you to build scalable, secure, and real-time web and mobile applications.",
