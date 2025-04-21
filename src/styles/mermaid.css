@@ -1,0 +1,50 @@
+/* Mermaid Diagram Styling */
+.mermaid-diagram {
+  @apply my-6;
+}
+
+.mermaid-diagram svg {
+  @apply mx-auto max-w-full;
+}
+
+/* Improve text visibility on sequence diagrams */
+.mermaid-diagram .messageText,
+.mermaid-diagram text.actor,
+.mermaid-diagram .loopText,
+.mermaid-diagram .noteText,
+.mermaid-diagram .labelText,
+.mermaid-diagram .activation0Text,
+.mermaid-diagram .activation1Text,
+.mermaid-diagram .activationGroupText,
+.mermaid-diagram .sequenceNumber {
+  @apply fill-white text-white font-medium;
+  font-size: 12px;
+}
+
+/* Make actor boxes stand out more */
+.mermaid-diagram .actor {
+  @apply fill-neutral-800 stroke-white;
+}
+
+/* Make the note boxes more visible */
+.mermaid-diagram .note {
+  @apply stroke-white;
+}
+
+/* Ensure arrows are visible */
+.mermaid-diagram .messageLine0,
+.mermaid-diagram .messageLine1 {
+  @apply stroke-white;
+  stroke-width: 1.5;
+}
+
+/* Label backgrounds for better contrast */
+.mermaid-diagram .labelBox {
+  @apply fill-neutral-800 stroke-white;
+}
+
+/* Ensure flowchart text is visible */
+.mermaid-diagram .flowchartTitleText,
+.mermaid-diagram .nodeLabel {
+  @apply fill-white text-white font-medium;
+}

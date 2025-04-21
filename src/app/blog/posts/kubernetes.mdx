@@ -22,7 +22,7 @@ Kubernetes follows a distributed architecture consisting of a **Control Plane** 
 
 A Kubernetes cluster consists of a set of nodes (physical or virtual machines) that run containerized applications. The cluster provides a higher level of abstraction to manage these containerized applications and their networking, storage, and other requirements.
 
-```mermaid
+<Mermaid chart={`
 graph TD
     subgraph "Kubernetes Cluster"
         subgraph "Control Plane"
@@ -50,7 +50,7 @@ graph TD
         A -.-> F
         F -.-> A
     end
-```
+`} />
 
 ### Control Plane Components
 

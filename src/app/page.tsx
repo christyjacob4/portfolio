@@ -1,12 +1,7 @@
 import Education from "@/components/education";
 import Experience from "@/components/experience";
 import { BlogPosts } from "@/components/posts";
-import Projects from "@/components/projects";
-import TechStack from "@/components/techstack";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import Image from "next/image";
 import { ImageGallery } from "@/components/image-gallery";
 
 export default function Page() {
