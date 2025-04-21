@@ -4,3 +4,200 @@ publishedAt: "2025-04-17"
 summary: "This is a test post to see if the blog is working."
 published: true
 ---
+
+# Headings
+
+# This is an H1 heading
+
+## This is an H2 heading
+
+### This is an H3 heading
+
+#### This is an H4 heading
+
+##### This is an H5 heading
+
+###### This is an H6 heading
+
+This is a paragraph.
+
+These are some **bold** words.
+
+These are some _italic_ words.
+
+These are some ~~strikethrough~~ words.
+
+These are some [links](https://www.google.com).
+
+These are some [links](https://www.google.com) with a [title](https://www.google.com).
+
+## Code
+
+You can use inline `code` like this.
+
+You can also use block `code` like this:
+
+### Typescript
+
+```typescript
+const x = 1;
+```
+
+### Python
+
+```python
+print("Hello, World!")
+```
+
+### JavaScript
+
+```javascript
+console.log("Hello, World!");
+```
+
+### JSON
+
+```json
+{
+  "name": "John",
+  "age": 30
+}
+```
+
+### Diff
+
+You can highlight changes in code using diff syntax:
+
+```diff
+- This line was removed
++ This line was added
+  This line was unchanged
+```
+
+### Diff with language highlighting
+
+You can combine diff with language syntax highlighting:
+
+```diff-javascript
+- const greeting = "Hello";
++ const greeting = "Hello World";
+  console.log(greeting);
+```
+
+Or alternatively:
+
+```javascript diff
+- function oldFunction() {
+-   return "This is the old implementation";
+- }
++ function newFunction() {
++   return "This is the new implementation";
++ }
+```
+
+### Diff with PHP (as requested)
+
+```diff-php
+- $variable = "Hello";
++ $variable = "Hello World";
+  echo $variable;
+```
+
+## Custom Components
+
+### Badges
+
+<Badge variant="outline">This is a badge</Badge>
+<Badge variant="secondary">This is a badge</Badge>
+<Badge variant="destructive">This is a badge</Badge>
+
+## Mermaid Diagrams
+
+Mermaid diagrams can be added using the `<Mermaid>` component:
+
+### Basic Flowchart
+
+<Mermaid
+  chart={`
+graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+`}
+/>
+
+### Sequence Diagram
+
+<Mermaid
+  chart={`
+sequenceDiagram
+    participant Alice
+    participant Bob
+`}
+/>
+
+### Pie Chart
+
+<Mermaid
+  chart={`
+pie title What Voldemort doesn't have?
+         "FRIENDS" : 2
+         "FAMILY" : 3
+         "NOSE" : 45
+`}
+/>
+
+### Sequence Diagram with Notes
+
+<Mermaid chart={`
+sequenceDiagram
+    participant web as Web Browser
+    participant blog as Blog Service
+    participant account as Account Service
+    participant mail as Mail Service
+    participant db as Storage
+
+    Note over web,db: The user must be logged in to submit blog posts
+    web->>+account: Logs in using credentials
+    account->>db: Query stored accounts
+    db->>account: Respond with query result
+
+    alt Credentials not found
+        account->>web: Invalid credentials
+    else Credentials found
+        account->>-web: Successfully logged in
+
+        Note over web,db: When the user is authenticated, they can now submit new posts
+        web->>+blog: Submit new post
+        blog->>db: Store post data
+
+        par Notifications
+            blog--)mail: Send mail to blog subscribers
+            blog--)db: Store in-site notifications
+        and Response
+            blog-->>-web: Successfully posted
+        end
+    end
+
+`} />
+
+### Git Graph
+
+<Mermaid
+  chart={`
+gitGraph:
+    commit "Ashish"
+    branch newbranch
+    checkout newbranch
+    commit id:"1111"
+    commit tag:"test"
+    checkout main
+    commit type: HIGHLIGHT
+    commit
+    merge newbranch
+    commit
+    branch b2
+    commit
+`}
+/>
