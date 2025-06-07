@@ -111,7 +111,7 @@ let components = {
   Mermaid,
 }
 
-export async function CustomMDX(props) {
+export function CustomMDX(props) {
   return MDXRemote({
     ...props,
     components: { ...components, ...(props.components || {}) },
