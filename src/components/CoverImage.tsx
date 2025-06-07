@@ -36,7 +36,7 @@ export function CoverImage({ title, className }: CoverImageProps) {
       <div className="p-8 w-full h-full flex items-center justify-center transition-transform duration-300 group-hover/image:scale-105 relative z-10">
         <div className="relative">
           <h3 
-            className="text-4xl md:text-5xl lg:text-6xl font-semibold text-black dark:text-white tracking-tight"
+            className="text-2xl md:text-3xl lg:text-4xl font-semibold text-black dark:text-white tracking-tight"
             style={{ 
               fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               fontWeight: 600,
