@@ -1,0 +1,139 @@
+---
+title: "Getting Started with Postgres Extensions"
+publishedAt: "2025-07-04"
+summary: "Dive into the world of Postgres extensibility. This guide walks you through creating a custom Postgres extension from scratch using C, from the essential macros to the final Makefile."
+image: "/blog/postgres-extensions/header.png"
+published: true
+---
+
+Postgres is a relational database known for its scalability, reliability, and ease of use. It's one of the most popular databases in the world and one of the reasons for its popularity is the ability to extend the database with custom functions, data types and more using the Postgres Extensions API.
+
+In this post, we'll learn to build a Postgres extension from scratch touching upon all the core concepts. This requires some knowledge of C and Postgres.
+
+At its core, a Postgres extension is a collection of 4 files:
+1. The `.c` source code file that contains the C code for the extension.
+2. A `.sql` file that contains the SQL code for the extension.
+3. A `Makefile` that defines how to build the extension.
+4. A `.control` file that serves as a manifest and defines the extension name, version, and dependencies.
+
+
+## The C source file
+
+This is our main source code for the extension. In our case we will define a simple function to print hello world.
+
+```c
+#include "postgres.h"
+#include "fmgr.h"
+#include "utils/builtins.h"
+
+PG_MODULE_MAGIC;
+
+PG_FUNCTION_INFO_V1(hello_hashlib);
+
+Datum hello_hashlib(PG_FUNCTION_ARGS)
+{
+    PG_RETURN_TEXT_P(cstring_to_text("Hello from hashlib extension!"));
+}
+```
+
+Let's break this down and examine each part in detail.
+
+### 1. Header files
+
+- **`postgres.h`** - The main Postgres header that provides core data types, macros, and definitions. This is the foundation that every Postgres extension must include and is defined in [postgres.h](https://github.com/postgres/postgres/blob/master/src/include/postgres.h).
+- **`fmgr.h`** - Contains the Function Manager interface, which handles how Postgres calls your C functions. It defines macros like `PG_FUNCTION_ARGS` and `PG_RETURN_*` and is defined in [fmgr.h](https://github.com/postgres/postgres/blob/master/src/include/fmgr.h).
+- **`utils/builtins.h`** - Provides utility functions for common operations, including `cstring_to_text()` which we use to convert C strings to Postgres's text type and is defined in [builtins.h](https://github.com/postgres/postgres/blob/master/src/include/utils/builtins.h).
+
+### 2. PG_MODULE_MAGIC
+
+This macro is **mandatory** for all Postgres extensions. It serves as a version check to ensure your extension is compatible with the Postgres server it's being loaded into. Without this, Postgres will refuse to load your extension with an error message.
+
+The magic number contains information about:
+- PostgreSQL version the extension was compiled against
+- Architecture (32-bit vs 64-bit)
+- Floating-point format
+- Other ABI compatibility details 
+
+### 3. PG_FUNCTION_INFO_V1
+
+This macro declares metadata about your function to PostgreSQL. It tells the server:
+- The function name (`hello_hashlib`)
+- That it follows version 1 of the calling convention
+- How to properly invoke the function
+
+Think of it as registering your function with PostgreSQL's function registry.
+
+### 4. Function Definition
+
+#### Function Signature
+
+- **`Datum`** - PostgreSQL's universal data type that can hold any PostgreSQL data type (int, text, boolean, etc.). All PostgreSQL functions return a `Datum`.
+- **`hello_hashlib`** - Our function name that will be callable from SQL.
+- **`PG_FUNCTION_ARGS`** - A macro that expands to `FunctionCallInfo fcinfo`, which contains all the arguments passed to the function and metadata about the call.
+
+#### Function Body
+
+- **`cstring_to_text("Hello from hashlib extension!")`** - Converts a C string literal into PostgreSQL's internal `text` type. PostgreSQL has its own string representation that includes length information.
+- **`PG_RETURN_TEXT_P(...)`** - A macro that properly returns a PostgreSQL `text` value. The `_P` suffix indicates we're returning a pointer to the text object.
+
+#### The Complete Flow
+
+When someone calls `SELECT hello_hashlib();` in SQL:
+
+1. PostgreSQL looks up the function using the metadata from `PG_FUNCTION_INFO_V1`
+2. It calls our C function with the standard `PG_FUNCTION_ARGS` parameter
+3. Our function creates a PostgreSQL text object from our C string
+4. We return it using the proper PostgreSQL return macro
+5. PostgreSQL handles the memory management and returns the result to the user
+
+This simple example demonstrates the fundamental pattern that all PostgreSQL extension functions follow: receive arguments through the standard interface, process them using PostgreSQL's data types and utilities, and return results using PostgreSQL's return macros.
+
+
+## The Makefile
+
+The Makefile defines how to build the extension. 
+
+```makefile
+EXTENSION = hashlib
+MODULE_big = hashlib
+DATA = hashlib--0.0.1.sql
+OBJS = hashlib.o 
+PG_CONFIG = pg_config
+PGXS := $(shell $(PG_CONFIG) --pgxs)
+include $(PGXS)
+```
+
+Let's break down what we're doing here. 
+
+- `EXTENSION` is the name of the extension.
+- `MODULE_big` is the name of the module.
+- `DATA` is the name of the sql file.
+- `OBJS` is the name of the object file.
+- `PG_CONFIG` is the path to the pg_config command.
+- `PGXS` is the path to the pgxs file.
+
+Now that we have all the components ready, its time to build and test the extension. Instead of installing postgres in your local environment, we will use the Docker image to build and test the extension. This will ensure we have a consistent environment.
+
+```dockerfile
+ARG PG_MAJOR=17
+FROM postgres:$PG_MAJOR
+ARG PG_MAJOR
+
+COPY . /tmp/pghashlib
+WORKDIR /tmp/pghashlib
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+            build-essential \
+            postgresql-server-dev-$PG_MAJOR && \
+    make clean && \
+    make OPTFLAGS="" && \
+    make install && \
+    cd / && \
+    rm -rf /tmp/pghashlib && \
+    apt-get purge -y build-essential postgresql-server-dev-$PG_MAJOR && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+```
+
+Let's breakdown what we're doing here. 

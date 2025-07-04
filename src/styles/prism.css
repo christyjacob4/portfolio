@@ -1,10 +1,8 @@
 .prose pre {
-  @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg overflow-x-auto border border-neutral-200 dark:border-neutral-900;
+  @apply rounded-lg overflow-x-auto border;
   padding: 0.75rem 1rem;
-}
-
-.prose code {
-  @apply text-sm bg-neutral-50 dark:bg-neutral-900 px-1 py-0.5 rounded-lg;
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
 }
 
 .prose pre code {

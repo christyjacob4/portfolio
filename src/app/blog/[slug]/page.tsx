@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { CustomMDX } from '@/components/mdx'
 import { formatDate, getBlogPosts } from '@/app/blog/utils'
 import { baseUrl } from '@/app/sitemap'
+import Image from 'next/image'
 
 export async function generateStaticParams() {
   let posts = getBlogPosts()
@@ -82,15 +83,35 @@ export default function Blog({ params }) {
           }),
         }}
       />
-      <h1 className="title font-semibold text-3xl tracking-tighter">
-        {post.metadata.title}
-      </h1>
-      <div className="flex justify-between items-center mt-2 mb-8 text-sm">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          {formatDate(post.metadata.publishedAt)}
-        </p>
+      <div className="mb-12">
+        <div className="mb-8">
+          <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase mb-3">
+            {formatDate(post.metadata.publishedAt)}
+          </p>
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight leading-snug mb-4">
+            {post.metadata.title}
+          </h1>
+          <p className="text-muted-foreground max-w-2xl leading-snug">
+            {post.metadata.summary}
+          </p>
+        </div>
+        
+        {post.metadata.image && (
+          <div className="relative aspect-video overflow-hidden rounded-xl shadow-2xl mb-8">
+            <Image
+              src={post.metadata.image}
+              alt={`${post.metadata.title} hero image`}
+              fill
+              className="object-cover"
+            />
+          </div>
+        )}
+
+        {/* Horizontal separator */}
+        <div className="h-px w-full bg-border/60" />
       </div>
-      <article className="prose">
+      
+      <article className="prose mt-8">
         <CustomMDX source={post.content} />
       </article>
     </section>

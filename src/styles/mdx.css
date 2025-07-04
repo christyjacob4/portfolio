@@ -34,43 +34,59 @@
 }
 
 .prose h1 {
-  @apply text-3xl font-semibold tracking-tight mt-8 mb-4;
+  @apply text-4xl font-normal tracking-tight mt-10 mb-6;
+  color: hsl(var(--foreground));
 }
 
 .prose h2 {
-  @apply text-2xl font-semibold tracking-tight mt-7 mb-3;
+  @apply text-3xl font-normal tracking-tight mt-8 mb-5;
+  color: hsl(var(--foreground));
 }
 
 .prose h3 {
-  @apply text-xl font-medium tracking-tight mt-6 mb-2;
+  @apply text-2xl font-semibold tracking-tight mt-7 mb-4;
+  color: hsl(var(--foreground));
 }
 
 .prose h4 {
-  @apply text-lg font-medium tracking-tight mt-5 mb-2 text-neutral-800 dark:text-neutral-200;
+  @apply text-xl font-semibold tracking-tight mt-6 mb-3;
+  color: hsl(var(--foreground));
 }
 
 .prose h5 {
-  @apply text-base font-medium tracking-tight mt-4 mb-1 text-neutral-700 dark:text-neutral-300;
+  @apply text-lg font-bold tracking-tight mt-5 mb-2;
+  color: hsl(var(--foreground));
 }
 
 .prose h6 {
-  @apply text-sm font-medium tracking-tight mt-4 mb-1 text-neutral-600 dark:text-neutral-400 uppercase;
+  @apply text-base font-bold tracking-tight mt-4 mb-1 uppercase;
+  color: hsl(var(--foreground));
 }
 
 .prose strong {
   @apply font-medium;
+  color: hsl(var(--foreground));
 }
 
 .prose ul {
-  @apply list-disc pl-6;
+  @apply pl-6 my-6 list-disc;
 }
 
 .prose ol {
-  @apply list-decimal pl-6;
+  @apply pl-6 my-6 list-decimal;
+}
+
+.prose li {
+  @apply my-3;
+  color: hsl(var(--muted-foreground));
+}
+
+.prose blockquote {
+  /* ... existing code ... */
 }
 
 .prose > :first-child {
   /* Override removing top margin, causing layout shift */
-  margin-top: 1.25em !important;
+  margin-top: 0 !important;
   margin-bottom: 1.25em !important;
 }
