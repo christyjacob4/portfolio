@@ -53,98 +53,61 @@ The magic is in the parameters. Each one controls a specific aspect of the gener
 | `depth_feel` | Optional phrase that adds a sense of spatial depth | `Subtle parallax blur for layered depth.`, `Deep, atmospheric haze receding into darkness.` *(leave blank for a flatter look)* |
 | `aspect_ratio` | Canvas dimensions / orientation | `16:9` (hero banner), `1:1` (square card), `9:16` (vertical story) |
 
-## My Process in Action
+## Example Prompts and Results
 
-When I'm writing a new blog post, here's how I choose parameters:
+To show you how versatile this system is, here are several examples of prompts I've generated using different parameter combinations, along with the beautiful images they produced:
 
-### 1. **Consider the Topic**
-- **Technical posts**: I lean toward `low-poly facets` or `glass shards` for a modern, structured feel
-- **Creative posts**: `swirl ribbons` or `liquid ink` for more organic, flowing patterns
-- **Data/Analytics posts**: `moiré lines` or `fractal spirals` for mathematical precision
+<BlogCarousel 
+  direction="left"
+  examples={[
+    {
+      id: "1",
+      title: "Glass Shards with Arctic-Teal Gradient",
+      image: "/blog/blog-covers/prompt1.png",
+      alt: "Glass shards background with arctic-teal to ice-white gradient",
+      prompt: "Minimal, abstract digital background — glass-shard shapes with holographic speckle finish sweeping across a 16:9 frame. Dreamy gradient blending arctic-teal → ice-white with subtle hints of silver. Deep, atmospheric haze receding into darkness. Gentle ambient glow and fine grain for a modern tech aesthetic. Reserve the central zone as negative space for text or icon overlay (like a frosted-glass card). High-resolution, 4K, 16:9, cinematic lighting, trending Unsplash style."
+    },
+    {
+      id: "2",
+      title: "Nebula Mist with Coral-Orange Gradient",
+      image: "/blog/blog-covers/prompt2.png",
+      alt: "Nebula mist background with coral-orange to blush-pink gradient",
+      prompt: "Minimal, abstract digital background — nebula-mist shapes with micro-paper fleck finish sweeping across a 16:9 frame. Dreamy gradient blending coral-orange → blush-pink with subtle hints of lavender. Subtle parallax blur for layered depth. Gentle ambient glow and fine grain for a modern tech aesthetic. Reserve the central zone as negative space for text or icon overlay (like a frosted-glass card). High-resolution, 4K, 16:9, cinematic lighting, trending Unsplash style."
+    },
+    {
+      id: "3",
+      title: "Moiré Lines with Sapphire-Blue Gradient",
+      image: "/blog/blog-covers/prompt3.png",
+      alt: "Moiré lines background with sapphire-blue to electric-cyan gradient",
+      prompt: "Minimal, abstract digital background — moiré line shapes with brushed-vapor finish sweeping across a 16:9 frame. Dreamy gradient blending sapphire-blue → electric-cyan with subtle hints of neon-lime. Deep, atmospheric haze receding into darkness. Gentle ambient glow and fine grain for a modern tech aesthetic. Reserve the central zone as negative space for text or icon overlay (like a frosted-glass card). High-resolution, 4K, 16:9, cinematic lighting, trending Unsplash style."
+    }
+  ]}
+/>
 
-### 2. **Pick a Color Scheme**
-I have a few go-to color combinations that work well with my brand:
-- **Tech-focused**: `cobalt-blue → mint-teal` with `icy-white` accents
-- **Creative**: `coral-orange → blush-pink` with `starlight-white` accents
-- **Professional**: `midnight-navy → ice-white` with `silver` accents
+<BlogCarousel 
+  direction="right"
+  examples={[
+    {
+      id: "4",
+      title: "Braided Fibers with Emerald-Green Gradient",
+      image: "/blog/blog-covers/prompt4.png",
+      alt: "Braided fibers background with emerald-green to lime-green gradient",
+      prompt: "Minimal, abstract digital background — braided-fiber shapes with silky glow finish sweeping across a 16:9 frame. Dreamy gradient blending emerald-green → lime-green with subtle hints of mint-white. Subtle parallax blur for layered depth. Gentle ambient glow and fine grain for a modern tech aesthetic. Reserve the central zone as negative space for text or icon overlay (like a frosted-glass card). High-resolution, 4K, 16:9, cinematic lighting, trending Unsplash style."
+    },
+    {
+      id: "5",
+      title: "Liquid Ink with Midnight-Navy Gradient",
+      image: "/blog/blog-covers/prompt5.png",
+      alt: "Liquid ink background with midnight-navy to electric-magenta gradient",
+      prompt: "Minimal, abstract digital background — liquid-ink shapes with matte noise-film finish sweeping across a 16:9 frame. Dreamy gradient blending midnight-navy → electric-magenta with subtle hints of pale-cyan. Deep, atmospheric haze receding into darkness. Gentle ambient glow and fine grain for a modern tech aesthetic. Reserve the central zone as negative space for text or icon overlay (like a frosted-glass card). High-resolution, 4K, 16:9, cinematic lighting, trending Unsplash style."
+    },
+    {
+      id: "6",
+      title: "Fractal Spirals with Rich Plum Gradient",
+      image: "/blog/blog-covers/prompt6.png",
+      alt: "Fractal spirals background with rich plum to pastel lavender gradient",
+      prompt: "Minimal, abstract digital background — fractal spiral shapes with holographic speckle finish sweeping across a 16:9 frame. Dreamy gradient blending rich plum → pastel lavender with subtle hints of starlight-white. Subtle parallax blur for layered depth. Gentle ambient glow and fine grain for a modern tech aesthetic. Reserve the central zone as negative space for text or icon overlay (like a frosted-glass card). High-resolution, 4K, 16:9, cinematic lighting, trending Unsplash style."
+    }
+  ]}
+/>
 
-### 3. **Choose Texture and Depth**
-- For serious, professional topics: `matte noise film` with minimal depth
-- For creative, experimental topics: `holographic speckle` with `Deep, atmospheric haze receding into darkness`
-
-### 4. **Set the Aspect Ratio**
-- Blog headers: `16:9`
-- Social media shares: `1:1`
-- Instagram stories: `9:16`
-
-## Real Examples
-
-Let me show you how this works in practice:
-
-**For a post about Python concurrency:**
-```
-Minimal, abstract digital background — low-poly facets shapes with
-matte noise film finish sweeping across a 16:9 frame.
-Dreamy gradient blending **cobalt-blue → mint-teal**
-with subtle hints of **icy-white**. Subtle parallax blur for layered depth.
-Gentle ambient glow and fine grain for a modern tech aesthetic.
-Reserve the central zone as negative space for text or icon overlay
-(like a frosted-glass card). High-resolution, 4 K, 16:9,
-cinematic lighting, trending Unsplash style.
-```
-
-**For a post about creative AI:**
-```
-Minimal, abstract digital background — swirl ribbons shapes with
-holographic speckle finish sweeping across a 16:9 frame.
-Dreamy gradient blending **coral-orange → blush-pink**
-with subtle hints of **starlight-white**. Deep, atmospheric haze receding into darkness.
-Gentle ambient glow and fine grain for a modern tech aesthetic.
-Reserve the central zone as negative space for text or icon overlay
-(like a frosted-glass card). High-resolution, 4 K, 16:9,
-cinematic lighting, trending Unsplash style.
-```
-
-## Why This Approach Works
-
-**Consistency**: The core prompt structure ensures all my images have a similar aesthetic foundation.
-
-**Flexibility**: The parameters let me adapt the mood and style to match each post's content.
-
-**Efficiency**: I can generate a cover image in under 5 minutes, including the time to choose parameters.
-
-**Professional Quality**: The prompt is designed to produce images that look like they could be premium stock photos.
-
-**Brand Alignment**: The "modern tech aesthetic" and consistent elements reinforce my personal brand.
-
-## Pro Tips for Your Own Implementation
-
-If you want to adapt this approach for your own blog:
-
-1. **Start with the base prompt**: Use mine as a foundation and adjust the aesthetic descriptors to match your brand
-2. **Build your parameter library**: Create a collection of values that work well for your typical content types
-3. **Test combinations**: Generate several variations to see what works best for your style
-4. **Document your favorites**: Keep a note of parameter combinations that work well for future reference
-5. **Consider your platform**: Adjust aspect ratios and composition for where your images will be used
-
-## The Results
-
-Since implementing this system, I've:
-- Reduced cover image creation time from 30+ minutes to under 5 minutes
-- Achieved much more consistent visual branding across all posts
-- Generated covers that perform well on social media
-- Eliminated the stress of "what image should I use?" decision fatigue
-
-The best part? Each image feels unique and crafted for its specific post, even though they're all generated from the same template.
-
-## Conclusion
-
-Parameterized prompts represent a sweet spot between automation and creativity. They give you the consistency and efficiency of a systematic approach while preserving the flexibility to create something unique for each piece of content.
-
-If you're spending too much time on blog cover images, or if your current images feel inconsistent or amateur, try building your own parameterized prompt system. Start with my template, adapt it to your brand, and watch your content creation workflow become much more efficient.
-
-The future of content creation isn't about replacing creativity with automation – it's about using smart systems to free up your creative energy for what matters most: the ideas you're sharing with the world.
-
----
-
-*What's your approach to blog cover images? Have you experimented with AI-generated graphics for your content? I'd love to hear about your process – reach out and let me know what's working for you.*
