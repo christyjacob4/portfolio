@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import React from 'react'
 import rehypePrism from 'rehype-prism-plus'
+import remarkGfm from 'remark-gfm'
 import { Badge } from "@/components/ui/badge"
 import { Button } from './ui/button'
 import dynamic from 'next/dynamic'
@@ -10,27 +11,7 @@ import dynamic from 'next/dynamic'
 // Dynamically import the Mermaid component with SSR disabled
 const Mermaid = dynamic(() => import('./Mermaid'), { ssr: false })
 
-function Table({ data }) {
-  let headers = data.headers.map((header, index) => (
-    <th key={index}>{header}</th>
-  ))
-  let rows = data.rows.map((row, index) => (
-    <tr key={index}>
-      {row.map((cell, cellIndex) => (
-        <td key={cellIndex}>{cell}</td>
-      ))}
-    </tr>
-  ))
 
-  return (
-    <table>
-      <thead>
-        <tr>{headers}</tr>
-      </thead>
-      <tbody>{rows}</tbody>
-    </table>
-  )
-}
 
 function CustomLink(props) {
   let href = props.href
@@ -105,7 +86,6 @@ let components = {
   Image: RoundedImage,
   a: CustomLink,
   code: Code,
-  Table,
   Badge,
   Button,
   Mermaid,
@@ -117,6 +97,9 @@ export function CustomMDX(props) {
     components: { ...components, ...(props.components || {}) },
     options: {
       mdxOptions: {
+        remarkPlugins: [
+          remarkGfm
+        ],
         rehypePlugins: [
           rehypePrism
         ],
