@@ -14,8 +14,8 @@ At its core, a Postgres extension is a collection of 4 files:
 
 1. The `.c` source code file that contains the main business logic for the extension.
 2. A `.sql` file that contains the SQL code for the extension.
-3. A `Makefile` that defines how to build the extension.
-4. A `.control` file that serves as a manifest and defines the extension name, version, and dependencies.
+3. A `.control` file that serves as a manifest and defines the extension name, version, and dependencies.
+4. A `Makefile` that defines how to build the extension.
 
 ## The C source file
 
@@ -215,7 +215,7 @@ PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 ```
 
-## Building the extension
+## Local Development with Docker
 
 Instead of installing Postgres development packages locally, we'll use Docker to ensure a consistent build environment. We'll use the official Postgres Docker image and build our extension in a container.
 
@@ -234,14 +234,10 @@ RUN apt-get update && \
     make clean && \
     make OPTFLAGS="" && \
     make install && \
-    cd / && \
-    rm -rf /tmp/pg_hello_world && \
-    apt-get purge -y build-essential postgresql-server-dev-$PG_MAJOR && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
+    chown -R postgres:postgres /tmp/pg_hello_world
 ```
 
-This Dockerfile starts with the official PostgreSQL image, installs the necessary build tools and development headers, compiles and installs our extension using the PGXS build system, and then cleans up to keep the final image size small.
+This Dockerfile starts with the official PostgreSQL image, installs the necessary build tools and development headers, then compiles and installs our extension using the PGXS build system. We keep the build tools and source code available for testing and development.
 
 Now that we have all our files, here's what our project structure looks like
 
@@ -256,11 +252,8 @@ hello_world/
 └── Dockerfile
 ```
 
-This organized structure separates source code, SQL files, and configuration files, making the project easier to navigate and maintain as it grows.
+To test our extension locally, we'll use Docker Compose. Create a `docker-compose.yml` file in your project root:
 
-## Running the extension with Docker Compose 
-
-First, create a `docker-compose.yml` file in your project root:
 ```yaml
 services:
   postgres:
@@ -271,7 +264,7 @@ services:
       POSTGRES_PASSWORD: password
 ```
 
-This configuration builds our custom Postgres image with the hello_world extension and sets up the database with a password.
+This configuration builds our custom Postgres image with the hello_world extension and sets up the database with a password. Run the following command to start the container
 
 ```bash
 # Build and start the container
@@ -297,7 +290,7 @@ CREATE EXTENSION hello_world;
 SELECT hello_world();
 ```
 
-You should see the output:
+You should see the following output
 
 ```
             hello_world            
@@ -313,7 +306,7 @@ When you're done testing, you can stop and remove the containers
 docker compose down
 
 # Remove the built image (optional)
-docker compose down --rmi all
+# docker compose down --rmi all
 ```
 
 ## Writing Tests
@@ -405,13 +398,6 @@ PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 ```
 
-Now you can run tests with:
-
-```bash
-# Run the regression tests
-make installcheck
-```
-
 ### Running Tests with Docker
 
 You can run the pg_regress tests in your Docker environment by building and installing the extension first:
@@ -423,8 +409,8 @@ docker compose build
 # Start PostgreSQL
 docker compose up -d
 
-# Run the regression tests
-docker compose exec postgres bash -c "cd /tmp/pg_hello_world && make installcheck"
+# Run the regression tests as the postgres user
+docker compose exec postgres su - postgres -c "cd /tmp/pg_hello_world && make installcheck"
 ```
 
 The `make installcheck` command will run your test SQL files against the installed extension and compare the output with your expected results.
