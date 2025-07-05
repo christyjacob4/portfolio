@@ -88,6 +88,51 @@ When someone calls `SELECT hello_hashlib();` in SQL:
 
 This simple example demonstrates the fundamental pattern that all PostgreSQL extension functions follow: receive arguments through the standard interface, process them using PostgreSQL's data types and utilities, and return results using PostgreSQL's return macros.
 
+## The Control File
+
+The control file serves as a manifest for your extension. It contains metadata that PostgreSQL uses to understand how to install, manage, and interact with your extension.
+
+Create a file named `hashlib.control`:
+
+```ini
+# hashlib extension
+comment = 'Simple hash library extension for PostgreSQL'
+default_version = '0.0.1'
+module_pathname = '$libdir/hashlib'
+relocatable = true
+```
+
+Let's break down each parameter:
+
+- **`comment`** - A human-readable description of what your extension does
+- **`default_version`** - The version of the extension to install when no version is specified
+- **`module_pathname`** - Path to the compiled shared library. `$libdir` is a PostgreSQL variable that points to the library directory
+- **`relocatable`** - Whether the extension can be moved to a different schema after installation
+
+## The SQL File
+
+The SQL file defines the SQL interface for your extension. It creates the function signatures that map to your C functions.
+
+Create a file named `hashlib--0.0.1.sql`:
+
+```sql
+-- complain if script is sourced in psql, rather than via CREATE EXTENSION
+\echo Use "CREATE EXTENSION hashlib" to load this file. \quit
+
+CREATE OR REPLACE FUNCTION hello_hashlib()
+RETURNS text
+AS 'MODULE_PATHNAME', 'hello_hashlib'
+LANGUAGE C IMMUTABLE STRICT;
+```
+
+Let's understand what's happening:
+
+- **`\echo Use "CREATE EXTENSION hashlib" to load this file. \quit`** - This prevents the SQL file from being executed directly with `psql`. It should only be run through `CREATE EXTENSION`.
+- **`CREATE OR REPLACE FUNCTION`** - Defines the SQL function signature
+- **`RETURNS text`** - Specifies that the function returns a text value
+- **`AS 'MODULE_PATHNAME', 'hello_hashlib'`** - Links the SQL function to the C function. `MODULE_PATHNAME` is replaced by the path from the control file.
+- **`LANGUAGE C`** - Indicates this is a C function
+- **`IMMUTABLE STRICT`** - Performance hints. `IMMUTABLE` means the function always returns the same result for the same input, and `STRICT` means it returns NULL if any argument is NULL.
 
 ## The Makefile
 
@@ -103,16 +148,18 @@ PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 ```
 
-Let's break down what we're doing here. 
+Let's break down what we're doing here:
 
-- `EXTENSION` is the name of the extension.
-- `MODULE_big` is the name of the module.
-- `DATA` is the name of the sql file.
-- `OBJS` is the name of the object file.
-- `PG_CONFIG` is the path to the pg_config command.
-- `PGXS` is the path to the pgxs file.
+- **`EXTENSION`** - The name of the extension (must match the .control file name)
+- **`MODULE_big`** - The name of the shared library that will be created
+- **`DATA`** - The SQL files that should be installed with the extension
+- **`OBJS`** - The object files that need to be compiled and linked
+- **`PG_CONFIG`** - The path to the pg_config command, which provides build configuration
+- **`PGXS`** - PostgreSQL Extension Building Infrastructure. This provides all the build rules.
 
-Now that we have all the components ready, its time to build and test the extension. Instead of installing postgres in your local environment, we will use the Docker image to build and test the extension. This will ensure we have a consistent environment.
+## Building with Docker
+
+Instead of installing PostgreSQL development packages locally, we'll use Docker to ensure a consistent build environment.
 
 ```dockerfile
 ARG PG_MAJOR=17
@@ -136,4 +183,70 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 ```
 
-Let's breakdown what we're doing here. 
+Here's what each step does:
+
+1. **`ARG PG_MAJOR=17`** - Sets the PostgreSQL major version (17 in this case)
+2. **`FROM postgres:$PG_MAJOR`** - Uses the official PostgreSQL Docker image
+3. **`COPY . /tmp/pghashlib`** - Copies our extension source code into the container
+4. **`apt-get install`** - Installs the necessary build tools and PostgreSQL development headers
+5. **`make clean && make OPTFLAGS="" && make install`** - Builds and installs the extension
+6. **Clean up** - Removes build dependencies and temporary files to keep the image size small
+
+## Building and Testing
+
+### 1. Build the Extension
+
+```bash
+# Build the Docker image
+docker build -t postgres-hashlib .
+
+# Run the container
+docker run -d --name postgres-test \
+  -e POSTGRES_PASSWORD=password \
+  -p 5432:5432 \
+  postgres-hashlib
+```
+
+### 2. Connect and Test
+
+```bash
+# Connect to the database
+docker exec -it postgres-test psql -U postgres
+
+# Create the extension
+CREATE EXTENSION hashlib;
+
+# Test the function
+SELECT hello_hashlib();
+```
+
+You should see the output:
+```
+           hello_hashlib            
+-----------------------------------
+ Hello from hashlib extension!
+```
+
+## Key Takeaways
+
+1. **Extensions are Powerful** - They allow you to add custom functionality directly to PostgreSQL
+2. **Four Essential Files** - Every extension needs a .c file, .sql file, .control file, and Makefile
+3. **Version Management** - Extensions support versioning through the control file and SQL scripts
+4. **PGXS Simplifies Building** - The PostgreSQL Extension Building Infrastructure handles most of the complexity
+5. **Docker for Consistency** - Using Docker ensures reproducible builds across different environments
+
+## Best Practices
+
+- **Always include PG_MODULE_MAGIC** - Without it, PostgreSQL won't load your extension
+- **Use proper PostgreSQL data types** - Don't mix C types with PostgreSQL types
+- **Handle memory management carefully** - Use PostgreSQL's memory contexts
+- **Test thoroughly** - Extensions run in the database process, so bugs can crash the server
+- **Version your extensions** - Plan for updates and migrations from the beginning
+
+## Conclusion
+
+Creating PostgreSQL extensions opens up endless possibilities for extending your database's capabilities. From simple utility functions to complex data types and operators, extensions allow you to implement performance-critical functionality directly in the database server.
+
+The pattern we've explored - C functions wrapped in SQL interfaces, managed through control files and built with PGXS - forms the foundation for all PostgreSQL extensions. Whether you're building a simple hash function or a complex full-text search engine, these same principles apply.
+
+Start with simple functions like our hello world example, then gradually add more complex functionality as you become comfortable with the PostgreSQL extension API. The database server's extensibility is one of its greatest strengths, and now you have the tools to take advantage of it.
