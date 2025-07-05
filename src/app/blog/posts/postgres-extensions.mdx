@@ -25,7 +25,9 @@ This is our main source code for the extension. Let's build up our simple "hello
 
 Every PostgreSQL extension starts with including the necessary header files. We need three essential headers:
 
-**`postgres.h`** contains core data types and macros that every extension needs. **`fmgr.h`** handles the Function Manager interface, defining macros like `PG_FUNCTION_ARGS` and `PG_RETURN_*` for function communication. **`utils/builtins.h`** provides utility functions including `cstring_to_text()` for converting C strings to PostgreSQL's text type.
+- **[`postgres.h`](https://github.com/postgres/postgres/blob/master/src/include/postgres.h)** contains core data types and macros that every extension needs. 
+- **[`fmgr.h`](https://github.com/postgres/postgres/blob/master/src/include/fmgr.h)** handles the Function Manager interface, defining macros like `PG_FUNCTION_ARGS` and `PG_RETURN_*` for function communication. 
+- **[`utils/builtins.h`](https://github.com/postgres/postgres/blob/master/src/include/utils/builtins.h)** provides utility functions including `cstring_to_text()` for converting C strings to PostgreSQL's text type.
 
 ```c
 #include "postgres.h"
