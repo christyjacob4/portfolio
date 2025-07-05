@@ -8,7 +8,7 @@ published: true
 
 Postgres is a relational database known for its scalability, reliability, and ease of use. It's one of the most popular databases in the world and one of the reasons for its popularity is the ability to extend the database with custom functions, data types and more using the [Postgres Extensions API](https://www.postgresql.org/docs/current/extend-extensions.html).
 
-In this post, we'll learn to build a Postgres extension from scratch touching upon all the core concepts. Some knowledge of C and Postgres is preferred but not required.
+In this post, we'll learn to build a Postgres extension from scratch touching upon all the core concepts. Some knowledge of C, Docker and Postgres is preferred but not required.
 
 At its core, a Postgres extension is a collection of 4 files:
 
@@ -19,7 +19,7 @@ At its core, a Postgres extension is a collection of 4 files:
 
 ## The C source file
 
-This is our main source code for the extension. Let's build up our simple "hello world" function by understanding each component first.
+This is our main source code for the extension. We'll organize our source files in a `src/` directory to keep things clean. Let's build up our simple "hello world" function by understanding each component first.
 
 Every PostgreSQL extension starts with including the necessary header files. We need three essential headers:
 
@@ -54,7 +54,7 @@ Datum hello_world(PG_FUNCTION_ARGS)
 }
 ```
 
-Putting it all together, here's our completed `hello_world.c` file
+Putting it all together, here's our completed `src/hello_world.c` file
 
 ```c
 #include "postgres.h"
@@ -75,7 +75,7 @@ When someone calls `SELECT hello_world();`, Postgres looks up the function metad
 
 ## The SQL File
 
-The SQL file defines the SQL interface for your extension. It creates the function signatures that map to your C functions. Let's build up our SQL file step by step.
+The SQL file defines the SQL interface for your extension. It creates the function signatures that map to your C functions. We'll place all SQL files in a `sql/` directory to keep them organized. Let's build up our SQL file step by step.
 
 First, we add a safety mechanism to prevent the SQL file from being executed directly
 
@@ -112,7 +112,7 @@ IMMUTABLE STRICT;
 
 **`IMMUTABLE`** means the function always returns the same result for the same input, and **`STRICT`** means it returns NULL if any argument is NULL.
 
-Here's our complete `hello_world--0.0.1.sql` file:
+Here's our complete `sql/hello_world--0.0.1.sql` file:
 
 ```sql
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
@@ -180,8 +180,8 @@ MODULE_big = hello_world
 Next, we specify which files should be included in the build:
 
 ```makefile
-DATA = hello_world--0.0.1.sql
-OBJS = hello_world.o
+DATA = sql/hello_world--0.0.1.sql
+OBJS = src/hello_world.o
 ```
 
 **`DATA`** lists the SQL files that should be installed with the extension. **`OBJS`** specifies the object files that need to be compiled and linked.
@@ -208,14 +208,14 @@ Here's our complete Makefile:
 ```makefile
 EXTENSION = hello_world
 MODULE_big = hello_world
-DATA = hello_world--0.0.1.sql
-OBJS = hello_world.o
+DATA = sql/hello_world--0.0.1.sql
+OBJS = src/hello_world.o
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 ```
 
-## Building with Docker
+## Building the extension
 
 Instead of installing Postgres development packages locally, we'll use Docker to ensure a consistent build environment. We'll use the official Postgres Docker image and build our extension in a container.
 
@@ -241,16 +241,24 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 ```
 
-Here's what each step does:
+This Dockerfile starts with the official PostgreSQL image, installs the necessary build tools and development headers, compiles and installs our extension using the PGXS build system, and then cleans up to keep the final image size small.
 
-1. **`ARG PG_MAJOR=17`** - Sets the PostgreSQL major version (17 in this case)
-2. **`FROM postgres:$PG_MAJOR`** - Uses the official PostgreSQL Docker image
-3. **`COPY . /tmp/pg_hello_world`** - Copies our extension source code into the container
-4. **`apt-get install`** - Installs the necessary build tools and PostgreSQL development headers
-5. **`make clean && make OPTFLAGS="" && make install`** - Builds and installs the extension
-6. **Clean up** - Removes build dependencies and temporary files to keep the image size small
+Now that we have all our files, here's what our project structure looks like
 
-## Building and Testing with Docker
+```bash
+hello_world/
+├── src/
+│   └── hello_world.c
+├── sql/
+│   └── hello_world--0.0.1.sql
+├── hello_world.control
+├── Makefile
+└── Dockerfile
+```
+
+This organized structure separates source code, SQL files, and configuration files, making the project easier to navigate and maintain as it grows.
+
+## Running the extension with Docker Compose 
 
 First, create a `docker-compose.yml` file in your project root:
 ```yaml
@@ -310,23 +318,175 @@ docker compose down --rmi all
 
 ## Writing Tests
 
-## Conventions 
+Testing is crucial for extension development since bugs can crash the entire PostgreSQL server. PostgreSQL provides `pg_regress`, a robust testing framework used by PostgreSQL itself and the standard way to test extensions.
 
-Now that we have our basic extension ready, we'll organize the files into a good folder structure
-
-- **Extension Name**: `hello_world`
-- **SQL File**: `hello_world--0.0.1.sql`
-- **Control File**: `hello_world.control`
-- **Makefile**: `Makefile`
-- **C Source File**: `hello_world.c`
+For our hello_world extension, we'll create test files in a dedicated `tests/` directory:
 
 ```bash
 hello_world/
-├── hello_world.c
-├── hello_world--0.0.1.sql
+├── src/
+│   └── hello_world.c
+├── sql/
+│   └── hello_world--0.0.1.sql
+├── tests/
+│   ├── sql/
+│   │   └── hello_world.sql      # Test SQL commands
+│   └── expected/
+│       └── hello_world.out      # Expected output
 ├── hello_world.control
-└── Makefile
+├── Makefile
+└── Dockerfile
 ```
+
+Create the test SQL file `tests/sql/hello_world.sql`:
+
+```sql
+-- Test extension creation
+CREATE EXTENSION hello_world;
+
+-- Test basic functionality
+SELECT hello_world();
+
+-- Test function properties
+SELECT 
+    proname,
+    provolatile,
+    proisstrict
+FROM pg_proc 
+WHERE proname = 'hello_world';
+
+-- Test extension metadata
+SELECT 
+    extname,
+    extversion
+FROM pg_extension 
+WHERE extname = 'hello_world';
+
+-- Clean up
+DROP EXTENSION hello_world;
+```
+
+Generate the expected output by running the test manually and saving the output to `tests/expected/hello_world.out`:
+
+```
+CREATE EXTENSION
+            hello_world            
+-----------------------------------
+ Hello from hello world extension!
+(1 row)
+
+ proname    | provolatile | proisstrict 
+------------+-------------+-------------
+ hello_world| i           | t
+(1 row)
+
+   extname   | extversion 
+-------------+------------
+ hello_world | 0.0.1
+(1 row)
+
+DROP EXTENSION
+```
+
+Update your Makefile to include the test configuration:
+
+```makefile
+EXTENSION = hello_world
+MODULE_big = hello_world
+DATA = sql/hello_world--0.0.1.sql
+OBJS = src/hello_world.o
+PG_CONFIG = pg_config
+
+# Test configuration
+REGRESS = hello_world
+REGRESS_OPTS = --inputdir=tests
+
+PGXS := $(shell $(PG_CONFIG) --pgxs)
+include $(PGXS)
+```
+
+Now you can run tests with:
+
+```bash
+# Run the regression tests
+make installcheck
+```
+
+### Running Tests with Docker
+
+You can run the pg_regress tests in your Docker environment by building and installing the extension first:
+
+```bash
+# Build the extension with tests
+docker compose build
+
+# Start PostgreSQL
+docker compose up -d
+
+# Run the regression tests
+docker compose exec postgres bash -c "cd /tmp/pg_hello_world && make installcheck"
+```
+
+The `make installcheck` command will run your test SQL files against the installed extension and compare the output with your expected results.
+
+### Error Handling Tests
+
+Even simple extensions should handle edge cases gracefully. While our hello_world function doesn't take parameters, you should test error scenarios for more complex extensions:
+
+```sql
+-- Test extension loading twice (should not error)
+CREATE EXTENSION IF NOT EXISTS hello_world;
+CREATE EXTENSION IF NOT EXISTS hello_world;
+
+-- Test function in different schemas
+CREATE SCHEMA test_schema;
+SELECT test_schema.hello_world(); -- Should work if relocatable = true
+
+-- Test permissions
+CREATE USER test_user;
+GRANT USAGE ON SCHEMA public TO test_user;
+SET ROLE test_user;
+SELECT hello_world(); -- Should work for basic functions
+RESET ROLE;
+```
+
+### Performance Testing
+
+For performance-critical extensions, include basic performance tests:
+
+```sql
+-- Performance test: measure execution time
+\timing on
+SELECT count(*) FROM generate_series(1, 1000000) WHERE hello_world() IS NOT NULL;
+\timing off
+```
+
+### Continuous Integration
+
+For production extensions, set up automated testing with GitHub Actions. Create `.github/workflows/test.yml`:
+
+```yaml
+name: Test Extension
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        postgres_version: [13, 14, 15, 16, 17]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Test with PostgreSQL ${{ matrix.postgres_version }}
+      run: |
+        docker build --build-arg PG_MAJOR=${{ matrix.postgres_version }} -t test-extension .
+        docker run --rm test-extension psql -U postgres -c "CREATE EXTENSION hello_world; SELECT hello_world();"
+```
+
+This ensures your extension works across different PostgreSQL versions and catches regressions early.
 
 ## Best Practices
 
