@@ -83,7 +83,7 @@ export default function Blog({ params }) {
           }),
         }}
       />
-      <div className="mb-12">
+      <div>
         <div className="mb-8">
           <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase mb-3">
             {formatDate(post.metadata.publishedAt)}
@@ -106,9 +106,6 @@ export default function Blog({ params }) {
             />
           </div>
         )}
-
-        {/* Horizontal separator */}
-        <div className="h-px w-full bg-border/60" />
       </div>
       
       <article className="prose mt-8">
