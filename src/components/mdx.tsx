@@ -4,14 +4,10 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import React from 'react'
 import rehypePrism from 'rehype-prism-plus'
 import remarkGfm from 'remark-gfm'
-import { Badge } from "@/components/ui/badge"
-import { Button } from './ui/button'
 import dynamic from 'next/dynamic'
 
 // Dynamically import the Mermaid component with SSR disabled
 const Mermaid = dynamic(() => import('./Mermaid'), { ssr: false })
-
-
 
 function CustomLink(props) {
   let href = props.href
@@ -86,9 +82,7 @@ let components = {
   Image: RoundedImage,
   a: CustomLink,
   code: Code,
-  Badge,
-  Button,
-  Mermaid,
+  Mermaid
 }
 
 export function CustomMDX(props) {
