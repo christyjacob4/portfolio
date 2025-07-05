@@ -1,5 +1,5 @@
 ---
-title: "Getting Started with Postgres Extensions"
+title: "Postgres Extensions 101"
 publishedAt: "2025-07-04"
 summary: "Dive into the world of Postgres extensibility. This guide walks you through creating a custom Postgres extension from scratch using C, from the essential macros to the final Makefile."
 image: "/blog/postgres-extensions/header.png"
@@ -19,7 +19,50 @@ At its core, a Postgres extension is a collection of 4 files:
 
 ## The C source file
 
-This is our main source code for the extension. In our case we will define a simple function to print hello world.
+This is our main source code for the extension. Let's build up our simple "hello world" function by understanding each component first.
+
+#### Header Files
+
+Every PostgreSQL extension starts with including the necessary header files. We need three essential headers:
+
+**`postgres.h`** contains core data types and macros that every extension needs. **`fmgr.h`** handles the Function Manager interface, defining macros like `PG_FUNCTION_ARGS` and `PG_RETURN_*` for function communication. **`utils/builtins.h`** provides utility functions including `cstring_to_text()` for converting C strings to PostgreSQL's text type.
+
+```c
+#include "postgres.h"
+#include "fmgr.h"
+#include "utils/builtins.h"
+```
+
+#### PG_MODULE_MAGIC
+
+Next, we need to include a **mandatory** macro that serves as a version check containing information about the PostgreSQL version, architecture, and ABI compatibility details. Without it, PostgreSQL will refuse to load your extension.
+
+```c
+PG_MODULE_MAGIC;
+```
+
+#### Function Declaration
+
+Before defining our function, we need to register it with PostgreSQL using a macro that declares metadata like the function name and calling convention. Think of it as registering your function with PostgreSQL's function registry.
+
+```c
+PG_FUNCTION_INFO_V1(hello_hashlib);
+```
+
+#### Function Definition
+
+Our function returns a **`Datum`** (PostgreSQL's universal data type) and takes **`PG_FUNCTION_ARGS`** as input, which contains all function arguments and metadata. Inside the function, `cstring_to_text()` converts our C string to PostgreSQL's internal text type, and `PG_RETURN_TEXT_P()` properly returns the text value.
+
+```c
+Datum hello_hashlib(PG_FUNCTION_ARGS)
+{
+    PG_RETURN_TEXT_P(cstring_to_text("Hello from hashlib extension!"));
+}
+```
+
+#### The Complete Code
+
+Putting it all together, here's our complete C source file:
 
 ```c
 #include "postgres.h"
@@ -36,63 +79,47 @@ Datum hello_hashlib(PG_FUNCTION_ARGS)
 }
 ```
 
-Let's break this down and examine each part in detail.
-
-### 1. Header files
-
-- **`postgres.h`** - The main Postgres header that provides core data types, macros, and definitions. This is the foundation that every Postgres extension must include and is defined in [postgres.h](https://github.com/postgres/postgres/blob/master/src/include/postgres.h).
-- **`fmgr.h`** - Contains the Function Manager interface, which handles how Postgres calls your C functions. It defines macros like `PG_FUNCTION_ARGS` and `PG_RETURN_*` and is defined in [fmgr.h](https://github.com/postgres/postgres/blob/master/src/include/fmgr.h).
-- **`utils/builtins.h`** - Provides utility functions for common operations, including `cstring_to_text()` which we use to convert C strings to Postgres's text type and is defined in [builtins.h](https://github.com/postgres/postgres/blob/master/src/include/utils/builtins.h).
-
-### 2. PG_MODULE_MAGIC
-
-This macro is **mandatory** for all Postgres extensions. It serves as a version check to ensure your extension is compatible with the Postgres server it's being loaded into. Without this, Postgres will refuse to load your extension with an error message.
-
-The magic number contains information about:
-- PostgreSQL version the extension was compiled against
-- Architecture (32-bit vs 64-bit)
-- Floating-point format
-- Other ABI compatibility details 
-
-### 3. PG_FUNCTION_INFO_V1
-
-This macro declares metadata about your function to PostgreSQL. It tells the server:
-- The function name (`hello_hashlib`)
-- That it follows version 1 of the calling convention
-- How to properly invoke the function
-
-Think of it as registering your function with PostgreSQL's function registry.
-
-### 4. Function Definition
-
-#### Function Signature
-
-- **`Datum`** - PostgreSQL's universal data type that can hold any PostgreSQL data type (int, text, boolean, etc.). All PostgreSQL functions return a `Datum`.
-- **`hello_hashlib`** - Our function name that will be callable from SQL.
-- **`PG_FUNCTION_ARGS`** - A macro that expands to `FunctionCallInfo fcinfo`, which contains all the arguments passed to the function and metadata about the call.
-
-#### Function Body
-
-- **`cstring_to_text("Hello from hashlib extension!")`** - Converts a C string literal into PostgreSQL's internal `text` type. PostgreSQL has its own string representation that includes length information.
-- **`PG_RETURN_TEXT_P(...)`** - A macro that properly returns a PostgreSQL `text` value. The `_P` suffix indicates we're returning a pointer to the text object.
-
-#### The Complete Flow
-
-When someone calls `SELECT hello_hashlib();` in SQL:
-
-1. PostgreSQL looks up the function using the metadata from `PG_FUNCTION_INFO_V1`
-2. It calls our C function with the standard `PG_FUNCTION_ARGS` parameter
-3. Our function creates a PostgreSQL text object from our C string
-4. We return it using the proper PostgreSQL return macro
-5. PostgreSQL handles the memory management and returns the result to the user
-
-This simple example demonstrates the fundamental pattern that all PostgreSQL extension functions follow: receive arguments through the standard interface, process them using PostgreSQL's data types and utilities, and return results using PostgreSQL's return macros.
+When someone calls `SELECT hello_hashlib();`, PostgreSQL looks up the function metadata, calls our C function with the standard interface, creates a PostgreSQL text object from our string, and returns it to the user. This demonstrates the fundamental pattern all PostgreSQL extensions follow: receive arguments through the standard interface, process them using PostgreSQL's data types, and return results using PostgreSQL's macros.
 
 ## The Control File
 
-The control file serves as a manifest for your extension. It contains metadata that PostgreSQL uses to understand how to install, manage, and interact with your extension.
+The control file serves as a manifest for your extension. It contains metadata that PostgreSQL uses to understand how to install, manage, and interact with your extension. Let's build up our control file step by step.
 
-Create a file named `hashlib.control`:
+#### Basic Information
+
+First, we need to provide a description and version for our extension:
+
+```ini
+# hashlib extension
+comment = 'Simple hash library extension for PostgreSQL'
+default_version = '0.0.1'
+```
+
+The **`comment`** provides a human-readable description of what your extension does, while **`default_version`** specifies the version to install when no version is specified.
+
+#### Library Path
+
+Next, we tell PostgreSQL where to find our compiled shared library:
+
+```ini
+module_pathname = '$libdir/hashlib'
+```
+
+**`module_pathname`** points to the compiled shared library. `$libdir` is a PostgreSQL variable that points to the library directory.
+
+#### Schema Configuration
+
+Finally, we configure how the extension behaves in different schemas:
+
+```ini
+relocatable = true
+```
+
+**`relocatable`** determines whether the extension can be moved to a different schema after installation.
+
+#### Complete Control File
+
+Here's our complete `hashlib.control` file:
 
 ```ini
 # hashlib extension
@@ -102,18 +129,56 @@ module_pathname = '$libdir/hashlib'
 relocatable = true
 ```
 
-Let's break down each parameter:
-
-- **`comment`** - A human-readable description of what your extension does
-- **`default_version`** - The version of the extension to install when no version is specified
-- **`module_pathname`** - Path to the compiled shared library. `$libdir` is a PostgreSQL variable that points to the library directory
-- **`relocatable`** - Whether the extension can be moved to a different schema after installation
-
 ## The SQL File
 
-The SQL file defines the SQL interface for your extension. It creates the function signatures that map to your C functions.
+The SQL file defines the SQL interface for your extension. It creates the function signatures that map to your C functions. Let's build up our SQL file step by step.
 
-Create a file named `hashlib--0.0.1.sql`:
+#### Safety Guard
+
+First, we add a safety mechanism to prevent the SQL file from being executed directly:
+
+```sql
+-- complain if script is sourced in psql, rather than via CREATE EXTENSION
+\echo Use "CREATE EXTENSION hashlib" to load this file. \quit
+```
+
+This prevents the SQL file from being executed directly with `psql`. It should only be run through `CREATE EXTENSION`.
+
+#### Function Signature
+
+Next, we define the basic function signature:
+
+```sql
+CREATE OR REPLACE FUNCTION hello_hashlib()
+RETURNS text
+```
+
+**`CREATE OR REPLACE FUNCTION`** defines the SQL function signature, and **`RETURNS text`** specifies that the function returns a text value.
+
+#### Function Implementation
+
+Now we link our SQL function to the C function:
+
+```sql
+AS 'MODULE_PATHNAME', 'hello_hashlib'
+LANGUAGE C
+```
+
+**`AS 'MODULE_PATHNAME', 'hello_hashlib'`** links the SQL function to the C function. `MODULE_PATHNAME` is replaced by the path from the control file. **`LANGUAGE C`** indicates this is a C function.
+
+#### Performance Hints
+
+Finally, we add performance optimization hints:
+
+```sql
+IMMUTABLE STRICT;
+```
+
+**`IMMUTABLE`** means the function always returns the same result for the same input, and **`STRICT`** means it returns NULL if any argument is NULL.
+
+#### Complete SQL File
+
+Here's our complete `hashlib--0.0.1.sql` file:
 
 ```sql
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
@@ -125,18 +190,56 @@ AS 'MODULE_PATHNAME', 'hello_hashlib'
 LANGUAGE C IMMUTABLE STRICT;
 ```
 
-Let's understand what's happening:
-
-- **`\echo Use "CREATE EXTENSION hashlib" to load this file. \quit`** - This prevents the SQL file from being executed directly with `psql`. It should only be run through `CREATE EXTENSION`.
-- **`CREATE OR REPLACE FUNCTION`** - Defines the SQL function signature
-- **`RETURNS text`** - Specifies that the function returns a text value
-- **`AS 'MODULE_PATHNAME', 'hello_hashlib'`** - Links the SQL function to the C function. `MODULE_PATHNAME` is replaced by the path from the control file.
-- **`LANGUAGE C`** - Indicates this is a C function
-- **`IMMUTABLE STRICT`** - Performance hints. `IMMUTABLE` means the function always returns the same result for the same input, and `STRICT` means it returns NULL if any argument is NULL.
-
 ## The Makefile
 
-The Makefile defines how to build the extension. 
+The Makefile defines how to build the extension. Let's build it up step by step to understand each component.
+
+#### Extension Identity
+
+First, we define the basic identity of our extension:
+
+```makefile
+EXTENSION = hashlib
+MODULE_big = hashlib
+```
+
+**`EXTENSION`** is the name of the extension and must match the .control file name. **`MODULE_big`** is the name of the shared library that will be created.
+
+#### Files to Include
+
+Next, we specify which files should be included in the build:
+
+```makefile
+DATA = hashlib--0.0.1.sql
+OBJS = hashlib.o
+```
+
+**`DATA`** lists the SQL files that should be installed with the extension. **`OBJS`** specifies the object files that need to be compiled and linked.
+
+#### Build Configuration
+
+Now we set up the build configuration:
+
+```makefile
+PG_CONFIG = pg_config
+```
+
+**`PG_CONFIG`** is the path to the pg_config command, which provides build configuration information.
+
+#### PostgreSQL Extension Infrastructure
+
+Finally, we include the PostgreSQL build system:
+
+```makefile
+PGXS := $(shell $(PG_CONFIG) --pgxs)
+include $(PGXS)
+```
+
+**`PGXS`** is the PostgreSQL Extension Building Infrastructure that provides all the build rules and targets we need.
+
+#### Complete Makefile
+
+Here's our complete Makefile:
 
 ```makefile
 EXTENSION = hashlib
@@ -147,15 +250,6 @@ PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 ```
-
-Let's break down what we're doing here:
-
-- **`EXTENSION`** - The name of the extension (must match the .control file name)
-- **`MODULE_big`** - The name of the shared library that will be created
-- **`DATA`** - The SQL files that should be installed with the extension
-- **`OBJS`** - The object files that need to be compiled and linked
-- **`PG_CONFIG`** - The path to the pg_config command, which provides build configuration
-- **`PGXS`** - PostgreSQL Extension Building Infrastructure. This provides all the build rules.
 
 ## Building with Docker
 
