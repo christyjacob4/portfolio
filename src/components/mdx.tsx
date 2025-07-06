@@ -51,6 +51,17 @@ function ScrollableTable({ children, ...props }) {
   )
 }
 
+function CustomBlockquote({ children, ...props }) {
+  return (
+    <blockquote 
+      className="border-l-4 border-slate-600 dark:border-slate-500 bg-slate-100 dark:bg-slate-800/70 px-4 py-1 italic text-slate-800 dark:text-slate-200"
+      {...props}
+    >
+      {children}
+    </blockquote>
+  )
+}
+
 function slugify(str) {
   return str
     .toString()
@@ -95,6 +106,7 @@ let components = {
   a: CustomLink,
   code: Code,
   table: ScrollableTable,
+  blockquote: CustomBlockquote,
   Mermaid,
   Accordion,
   AccordionItem,
