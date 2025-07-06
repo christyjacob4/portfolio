@@ -85,12 +85,12 @@ export function BlogPostsClient({ posts }: BlogPostsClientProps) {
         <h2 className="title">Recent Posts</h2>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              Sort by {sortOrder === "newest" ? "Most Recent" : "Oldest"}
-              <ChevronDownIcon className="ml-2 h-4 w-4" />
+            <Button variant="outline" size="sm" className="w-[120px] justify-between">
+              {sortOrder === "newest" ? "Most Recent" : "Oldest First"}
+              <ChevronDownIcon className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="border-border">
+          <DropdownMenuContent align="end" className="border-border w-[120px]">
             <DropdownMenuItem onClick={() => setSortOrder("newest")}>
               Most Recent
             </DropdownMenuItem>

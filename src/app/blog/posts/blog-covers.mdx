@@ -1,32 +1,18 @@
 ---
 title: "Blog covers powered by GPT-4o"
 publishedAt: "2025-07-05"
-summary: "Discover how I create beautiful blog cover images using a single parameterized GPT prompt that generates multiple variations."
+summary: "Discover how I create beautiful blog cover images using a single parameterized prompt and ChatGPT's Image Generation feature."
 image: "/blog/blog-covers/header.png"
 published: true
 ---
 
-Creating compelling blog cover images is one of those tasks that can easily become a bottleneck in your workflow. You want something that looks professional, matches your brand aesthetic, and captures the essence of your post, but you don't want to spend hours in design tools for every single article and 
+Creating compelling blog covers is one of those tasks that can easily become a bottleneck in your workflow. You want something that looks professional, matches your vibes, and captures the essence of your post, but you don't want to spend hours in design tools or may not have the skills to do it yourself.
 
 After experimenting with various approaches, I've settled on a system that gives me beautiful, consistent cover images in minutes: **parameterized AI prompts**. Let me walk you through exactly how I do it.
 
-## The Problem with Traditional Approaches
+## The Prompt
 
-Before diving into my solution, let's talk about why this matters. I've tried several approaches over the years:
-
-- **Stock photos**: Often generic, hard to find relevant images, licensing concerns
-- **Custom design**: Time-consuming, requires design skills, inconsistent results
-- **AI generation without structure**: Unpredictable outputs, hard to maintain brand consistency
-
-What I needed was a system that could:
-- Generate high-quality, professional-looking images
-- Maintain visual consistency across all posts
-- Allow for easy customization per topic
-- Be fast enough to not slow down my publishing workflow
-
-## Enter the Parameterized Prompt
-
-The solution I've developed centers around a single, carefully crafted prompt template with strategic parameters that I can adjust for each post. Here's the complete prompt I use:
+I use [ChatGPT's Image Generation](https://openai.com/index/introducing-4o-image-generation/) feature with a reusable parameterised prompt that goes like this:
 
 ```bash
 4K (high-resolution) 16:9 abstract blog header —
@@ -39,9 +25,7 @@ Lighting mood: {LIGHTING_MOOD}
 Modern, luxurious, minimal aesthetic, no text
 ```
 
-## Breaking Down the Parameters
-
-The magic is in the parameters. Each one controls a specific aspect of the generated image, allowing me to create variations that feel cohesive but unique. Here's how each parameter works:
+The magic is in the parameters. Each one controls a specific aspect of the generated image, allowing me to create variations that feel cohesive but unique. Here's how each parameter works
 
 | **Parameter**      | **Type / Range** | **Allowed / Typical Values**                                                                    |
 | ------------------ | ---------------- | ----------------------------------------------------------------------------------------------- |
@@ -55,9 +39,11 @@ The magic is in the parameters. Each one controls a specific aspect of the gener
 | `GEOMETRY_OVERLAY` | Enum             | `none`, `four_square_tiles`, `subtle_circle_cluster`, `diagonal_ribbon`                         |
 | `LIGHTING_MOOD`    | Enum             | `soft ambient`, `radiant`, `moody`, `high key`                                                  |
 
-## Example Prompts and Results
+Once you choose the parameters, simply drop the resulting prompt into ChatGPT or other AI image generation tools and you will get some interesting results.
 
-To show you how versatile this system is, here are several examples of prompts I've generated using different parameter combinations, along with the beautiful images they produced:
+## Results
+
+To see how versatile this system is, here are several examples of prompts I've generated using different parameter combinations, along with the beautiful images they produced:
 
 #### Mystic Purple with Velvet Texture
 
@@ -228,3 +214,4 @@ To show you how versatile this system is, here are several examples of prompts I
   ]}
 />
 
+As you can see, the results are quite impressive considering the time it took. I decided to take this approach one step further and built [**PromptSauce**](https://www.promptsauce.com/) - an online directory to search for and share your design assets and the prompts used to generate them. 
