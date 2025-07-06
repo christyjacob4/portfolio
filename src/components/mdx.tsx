@@ -6,7 +6,7 @@ import rehypePrism from 'rehype-prism-plus'
 import remarkGfm from 'remark-gfm'
 import dynamic from 'next/dynamic'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/accordion'
-import { BlogCarousel } from './BlogCarousel'
+import { BlogImageGrid } from './BlogImageGrid'
 
 // Dynamically import the Mermaid component with SSR disabled
 const Mermaid = dynamic(() => import('./Mermaid'), { ssr: false })
@@ -100,7 +100,7 @@ let components = {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
-  BlogCarousel
+  BlogImageGrid
 }
 
 export function CustomMDX(props) {

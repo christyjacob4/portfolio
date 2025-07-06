@@ -1,59 +1,47 @@
 "use client"
 
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "./ui/carousel"
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./ui/accordion"
 
-interface BlogExample {
+interface ImageExample {
   id: string
-  title: string
   image: string
   alt: string
   prompt: string
 }
 
-interface BlogCarouselProps {
-  examples: BlogExample[]
+interface BlogImageGridProps {
+  examples: ImageExample[]
 }
 
-export function BlogCarousel({ examples }: BlogCarouselProps) {
+export function BlogImageGrid({ examples }: BlogImageGridProps) {
   return (
-    <div className="py-4">
-      <Carousel 
-        opts={{
-          align: "start",
-          loop: true,
-        }}
-        className="w-full max-w-6xl mx-auto"
-      >
-        <CarouselContent className="-ml-2 md:-ml-4">
-          {examples.map((example) => (
-            <CarouselItem key={example.id} className="pl-2 md:pl-4 basis-full">
-              <div className="relative group cursor-pointer overflow-hidden rounded-lg">
-                <img 
-                  src={example.image} 
-                  alt={example.alt} 
-                  className="w-full aspect-video rounded-lg object-cover shadow-lg transition-transform duration-300 group-hover:scale-105"
-                />
-                
-                {/* Hover overlay with prompt - commented out for now */}
-                {/* 
-                <div className="absolute inset-0 bg-black bg-opacity-80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex flex-col justify-center px-6 py-4">
-                  <h3 className="text-white text-sm font-semibold mb-3 text-center">
-                    {example.title}
-                  </h3>
-                  <div className="max-h-32 overflow-y-auto px-2">
-                    <p className="text-xs font-mono text-white leading-relaxed">
-                      {example.prompt}
-                    </p>
-                  </div>
+    <div className="grid grid-cols-1 gap-8 max-w-4xl mx-auto">
+      {examples.map((example) => (
+        <div key={example.id} className="space-y-2">
+          <div className="relative group overflow-hidden rounded-lg">
+            <img 
+              src={example.image} 
+              alt={example.alt} 
+              className="w-full aspect-video rounded-lg object-cover shadow-lg transition-transform duration-300 group-hover:scale-105"
+            />
+          </div>
+          
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value={`prompt-${example.id}`} className="border-none">
+              <AccordionTrigger className="text-left py-2 text-sm font-medium hover:no-underline">
+                View Prompt
+              </AccordionTrigger>
+              <AccordionContent className="pt-0 pb-2">
+                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg border dark:border-gray-700">
+                  <p className="text-xs font-mono text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {example.prompt}
+                  </p>
                 </div>
-                */}
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className="hidden md:flex" />
-        <CarouselNext className="hidden md:flex" />
-      </Carousel>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      ))}
     </div>
   )
 } 
