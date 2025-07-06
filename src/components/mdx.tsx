@@ -41,6 +41,16 @@ function Code({ children, className, ...props }) {
   )
 }
 
+function ScrollableTable({ children, ...props }) {
+  return (
+    <div className="overflow-x-auto my-6">
+      <table className="min-w-full" {...props}>
+        {children}
+      </table>
+    </div>
+  )
+}
+
 function slugify(str) {
   return str
     .toString()
@@ -84,6 +94,7 @@ let components = {
   Image: RoundedImage,
   a: CustomLink,
   code: Code,
+  table: ScrollableTable,
   Mermaid,
   Accordion,
   AccordionItem,
