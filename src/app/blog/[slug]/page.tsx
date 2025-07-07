@@ -102,7 +102,8 @@ export default function Blog({ params }) {
               src={post.metadata.image}
               alt={`${post.metadata.title} hero image`}
               fill
-              quality={100}
+              priority
+              quality={75}
               className="object-cover"
             />
           </div>

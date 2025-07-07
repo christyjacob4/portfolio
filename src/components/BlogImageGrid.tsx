@@ -24,7 +24,7 @@ export function BlogImageGrid({ examples }: BlogImageGridProps) {
               src={example.image} 
               alt={example.alt}
               fill
-              quality={100}
+              quality={80}
               className="w-full rounded-lg object-cover shadow-lg transition-transform duration-300 group-hover:scale-105"
             />
           </div>
