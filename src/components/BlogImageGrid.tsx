@@ -1,5 +1,6 @@
 "use client"
 
+import Image from 'next/image'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./ui/accordion"
 
 interface ImageExample {
@@ -18,11 +19,13 @@ export function BlogImageGrid({ examples }: BlogImageGridProps) {
     <div className="grid grid-cols-1 gap-8 max-w-4xl mx-auto">
       {examples.map((example) => (
         <div key={example.id} className="space-y-2">
-          <div className="relative group overflow-hidden rounded-lg">
-            <img 
+          <div className="relative group overflow-hidden rounded-lg aspect-video">
+            <Image 
               src={example.image} 
-              alt={example.alt} 
-              className="w-full aspect-video rounded-lg object-cover shadow-lg transition-transform duration-300 group-hover:scale-105"
+              alt={example.alt}
+              fill
+              quality={100}
+              className="w-full rounded-lg object-cover shadow-lg transition-transform duration-300 group-hover:scale-105"
             />
           </div>
           
