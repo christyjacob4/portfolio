@@ -251,8 +251,6 @@ RUN apt-get update && \
     chmod -R 777 /tmp/pg_hello_world
 ```
 
-> **Note**: The directory name `/tmp/pg_hello_world` can be anything, but it should be consistent with the Docker Compose volume mount and the working directory used in test commands.
-
 This Dockerfile starts with the official PostgreSQL image, installs the necessary build tools and development headers, then compiles and installs our extension using the PGXS build system. We keep the build tools and source code available for testing and development.
 
 Now that we have all our files, here's what our project structure looks like
@@ -283,8 +281,6 @@ services:
       - ./:/tmp/pg_hello_world
 ```
 
-> **Note**: The volume mount `./:/tmp/pg_hello_world` maps your current directory to the same path used in the Dockerfile's `WORKDIR`. This allows for live code changes during development.
-
 This configuration builds our custom Postgres image with the hello_world extension and sets up the database with a password. Run the following command to start the container
 
 ```bash
@@ -302,7 +298,7 @@ Now we can connect to the database and test our extension.
 
 ```bash
 # Connect to the database
-docker compose exec postgres psql -U postgres
+docker compose exec postgres psql
 
 # Create the extension
 CREATE EXTENSION hello_world;
@@ -351,8 +347,6 @@ hello_world/
 
 Create the test SQL file `tests/sql/hello_world.sql`:
 
-> **Note**: The test file name `hello_world.sql` should match your extension name. The corresponding expected output file must be named `tests/expected/hello_world.out` (same base name, different extension and location).
-
 ```sql
 -- Test basic functionality
 SELECT hello_world();
@@ -374,8 +368,6 @@ WHERE extname = 'hello_world';
 ```
 
 Generate the expected output by running the test manually and saving the output to `tests/expected/hello_world.out`:
-
-> **Note**: The output file `hello_world.out` must have the exact same base name as your test SQL file (`hello_world.sql`), just with `.out` extension instead of `.sql`.
 
 ```
 -- Test basic functionality
@@ -407,6 +399,7 @@ WHERE extname = 'hello_world';
 -------------+------------
  hello_world | 0.0.1
 (1 row)
+
 ```
 
 The updated Makefile includes several improvements over the basic configuration. The new test configuration automatically discovers test files, loads the extension automatically, and provides better error reporting:
@@ -440,8 +433,6 @@ Let's break down what each new line does:
 - `TESTS = $(wildcard tests/sql/*.sql)` - Automatically discovers all `.sql` files in the `tests/sql/` directory, making it easy to add new tests without modifying the Makefile
 - `REGRESS = $(patsubst tests/sql/%.sql,%,$(TESTS))` - Converts the full file paths to test names by removing the directory prefix and `.sql` extension
 - `--load-extension=$(EXTENSION)` - Automatically loads your extension before running tests, eliminating the need for manual `CREATE EXTENSION` commands in test files
-
-> **Note**: The `$(EXTENSION)` variable here references the `EXTENSION = hello_world` line at the top of your Makefile, ensuring the correct extension is loaded for testing.
 - The custom `test` target makes it easier to run tests and see the diffs on failure.
 
 ## Running Tests with Docker
@@ -449,30 +440,28 @@ Let's break down what each new line does:
 You can run the pg_regress tests in your Docker environment by building and installing the extension first:
 
 ```bash
-# Build the extension with tests
-docker compose build
+# Build and start the extension 
+docker compose up -d --build
 
-# Start PostgreSQL
-docker compose up -d
-
-# Run the regression tests as the postgres user
-docker compose exec postgres su - postgres -c "cd /tmp/pg_hello_world && make installcheck"
+# Run the regression tests
+docker compose exec postgres make installcheck
 ```
 
-> **Note**: The path `/tmp/pg_hello_world` in the test command must match the `WORKDIR` in your Dockerfile and the volume mount path in your Docker Compose file.
+The `make installcheck` command will run your test SQL files against the installed extension and compare the output with your expected results. If everything is working, you should see the following output:
 
-The `make installcheck` command will run your test SQL files against the installed extension and compare the output with your expected results.
-
-## Best Practices
-
-- **Always include PG_MODULE_MAGIC** - Without it, PostgreSQL won't load your extension
-- **Use proper PostgreSQL data types** - Don't mix C types with PostgreSQL types
-- **Handle memory management carefully** - Use PostgreSQL's memory contexts
-- **Test thoroughly** - Extensions run in the database process, so bugs can crash the server
-- **Version your extensions** - Plan for updates and migrations from the beginning
+```bash
+echo "# +++ regress install-check in  +++" && /usr/lib/postgresql/17/lib/pgxs/src/makefiles/../../src/test/regress/pg_regress --inputdir=./ --bindir='/usr/lib/postgresql/17/bin'    --inputdir=tests --load-extension=hello_world --dbname=contrib_regression hello_world
+# +++ regress install-check in  +++
+# using postmaster on Unix socket, default port
+ok 1         - hello_world                                 7 ms
+1..1
+# All 1 tests passed.
+```
 
 ## What's Next?
 
 Creating Postgres extensions opens up endless possibilities for extending your database's capabilities. From simple utility functions to complex data types and operators, extensions allow you to implement performance-critical functionality directly in the database server.
 
-The pattern we've explored - C functions wrapped in SQL interfaces, managed through control files and built with PGXS - forms the foundation for all Postgres extensions. Whether you're building a simple function or a complex full-text search engine, these same principles apply. In a future post, we'll explore how to build more complex extensions for real world use cases.
+The pattern we've explored - C functions wrapped in SQL interfaces, managed through control files and built with PGXS - forms the foundation for all Postgres extensions. Whether you're building a simple function or a complex full-text search engine, these same principles apply.
+
+In a future post, we'll explore how to build more complex extensions for real world use cases and also explore [pgrx](https://docs.rs/pgrx/latest/pgrx/), a tool for building Postgres extensions in Rust.

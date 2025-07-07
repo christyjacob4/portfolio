@@ -1,6 +1,6 @@
 /* VS Code Dark Theme for Code Blocks */
 .prose pre {
-  @apply rounded-lg overflow-x-auto border;
+  @apply rounded-lg overflow-x-auto border my-6;
   padding: 0.75rem 1rem;
   background-color: #1e1e1e;
   border-color: #3e3e3e;
