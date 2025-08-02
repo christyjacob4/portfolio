@@ -2,6 +2,14 @@ import { ProjectItem, Project } from "@/components/ProjectItem";
 
 const projects: Project[] = [
   {
+    title: "pghashlib",
+    description: "PostgreSQL extension providing fast stable hash functions with support for text, bytea, and integer inputs.",
+    coverText: "pghashlib",
+    projectUrl: "https://github.com/christyjacob4/pghashlib",
+    githubUrl: "https://github.com/christyjacob4/pghashlib",
+    techStack: ["C", "Docker", "PostgreSQL"],
+  },
+  {
     title: "remotenomad",
     description:
       "A modern job board platform helping developers find their dream remote positions at top tech companies worldwide.",
