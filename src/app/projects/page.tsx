@@ -2,6 +2,15 @@ import { ProjectItem, Project } from "@/components/ProjectItem";
 
 const projects: Project[] = [
   {
+    title: "mcat",
+    description:
+      "A drop-in cat replacement that understands Parquet, Avro, CSV, JSONL, and streams from remote sources like S3, GCS, and HTTP. Includes schema inspection, column selection, grep, sort, stats, and diff.",
+    coverText: "mcat",
+    projectUrl: "https://christyjacob4.github.io/mcat",
+    githubUrl: "https://github.com/christyjacob4/mcat",
+    techStack: ["Python", "PyArrow", "fsspec", "CLI"],
+  },
+  {
     title: "pghashlib",
     description: "PostgreSQL extension providing fast stable hash functions with support for text, bytea, and integer inputs.",
     coverText: "pghashlib",
