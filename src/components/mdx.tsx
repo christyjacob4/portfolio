@@ -128,6 +128,7 @@ export function CustomMDX(props) {
           rehypePrism
         ],
       },
+      blockJS: false,
     }
   })
 }
