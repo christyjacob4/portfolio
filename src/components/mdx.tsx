@@ -11,6 +11,16 @@ import { BlogImageGrid } from './BlogImageGrid'
 // Dynamically import the Mermaid component with SSR disabled
 const Mermaid = dynamic(() => import('./Mermaid'), { ssr: false })
 
+// RNN blog post interactive visualizations
+const NetworkComparison = dynamic(() => import('./blog/rnn/NetworkComparison'), { ssr: false })
+const RNNUnrolled = dynamic(() => import('./blog/rnn/RNNUnrolled'), { ssr: false })
+const GradientExplorer = dynamic(() => import('./blog/rnn/GradientExplorer'), { ssr: false })
+const LSTMViz = dynamic(() => import('./blog/rnn/LSTMViz'), { ssr: false })
+const GRUViz = dynamic(() => import('./blog/rnn/GRUViz'), { ssr: false })
+const BiRNNViz = dynamic(() => import('./blog/rnn/BiRNNViz'), { ssr: false })
+const Seq2SeqViz = dynamic(() => import('./blog/rnn/Seq2SeqViz'), { ssr: false })
+const AttentionViz = dynamic(() => import('./blog/rnn/AttentionViz'), { ssr: false })
+
 function CustomLink(props) {
   let href = props.href
 
@@ -112,7 +122,15 @@ let components = {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
-  BlogImageGrid
+  BlogImageGrid,
+  NetworkComparison,
+  RNNUnrolled,
+  GradientExplorer,
+  LSTMViz,
+  GRUViz,
+  BiRNNViz,
+  Seq2SeqViz,
+  AttentionViz
 }
 
 export function CustomMDX(props) {
