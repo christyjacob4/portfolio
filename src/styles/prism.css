@@ -20,12 +20,12 @@
 }
 
 .prose code {
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-  font-size: 0.9em;
-  background-color: #2d2d2d;
-  padding: 0.2em 0.4em;
-  border-radius: 3px;
-  color: #f8f8f2;
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.8em;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: #6dbd6d;
 }
 
 .prose pre code {
@@ -274,4 +274,21 @@
 
 .prose pre::-webkit-scrollbar-thumb:hover {
   background: #666;
+}
+
+/* Reset prism pre styles inside CodeBlock — the component
+   manages its own layout, spacing, and background. */
+.prose [data-codeblock] pre {
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+}
+
+.prose [data-codeblock] pre code {
+  padding: 0 !important;
+  background-color: transparent !important;
+  border: none !important;
 }

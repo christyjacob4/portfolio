@@ -7,9 +7,30 @@ import remarkGfm from 'remark-gfm'
 import dynamic from 'next/dynamic'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/accordion'
 import { BlogImageGrid } from './BlogImageGrid'
+import { CodeBlock } from './CodeBlock'
 
 // Dynamically import the Mermaid component with SSR disabled
 const Mermaid = dynamic(() => import('./Mermaid'), { ssr: false })
+const AnimatedGauge = dynamic(() => import('./craft/AnimatedGauge'), { ssr: false })
+const EmbeddingSpace = dynamic(() => import('./blog/building-blocks/EmbeddingSpace'), { ssr: false })
+const NeuronPlayground = dynamic(() => import('./blog/building-blocks/NeuronPlayground'), { ssr: false })
+const MatrixMultiplier = dynamic(() => import('./blog/building-blocks/MatrixMultiplier'), { ssr: false })
+const SoftmaxVisualizer = dynamic(() => import('./blog/building-blocks/SoftmaxVisualizer'), { ssr: false })
+const GradientDescentLandscape = dynamic(() => import('./blog/building-blocks/GradientDescentLandscape'), { ssr: false })
+const SequenceOrderDemo = dynamic(() => import('./blog/building-blocks/SequenceOrderDemo'), { ssr: false })
+const VanishingGradient = dynamic(() => import('./blog/building-blocks/VanishingGradient'), { ssr: false })
+const NetworkDiagram = dynamic(() => import('./blog/building-blocks/NetworkDiagram'), { ssr: false })
+const TokenizerDemo = dynamic(() => import('./blog/building-blocks/TokenizerDemo'), { ssr: false })
+const TensorVisualizer = dynamic(() => import('./blog/building-blocks/TensorVisualizer'), { ssr: false })
+const DropoutDemo = dynamic(() => import('./blog/building-blocks/DropoutDemo'), { ssr: false })
+const VectorVisualizer = dynamic(() => import('./blog/building-blocks/VectorVisualizer'), { ssr: false })
+const TokenFlow = dynamic(() => import('./blog/transformers/TokenFlow'), { ssr: false })
+const AttentionMatrix = dynamic(() => import('./blog/transformers/AttentionMatrix'), { ssr: false })
+const TransformerDiagram = dynamic(() => import('./blog/transformers/TransformerDiagram'), { ssr: false })
+const QKVComputation = dynamic(() => import('./blog/transformers/QKVComputation'), { ssr: false })
+const PositionalEncoding = dynamic(() => import('./blog/transformers/PositionalEncoding'), { ssr: false })
+const EncoderDecoder = dynamic(() => import('./blog/transformers/EncoderDecoder'), { ssr: false })
+const MaskedAttention = dynamic(() => import('./blog/transformers/MaskedAttention'), { ssr: false })
 
 function CustomLink(props) {
   let href = props.href
@@ -39,6 +60,25 @@ function Code({ children, className, ...props }) {
       {children}
     </code>
   )
+}
+
+function Pre({ children, ...props }) {
+  // MDX renders fenced code blocks as <pre><code className="language-xxx">...</code></pre>.
+  // Extract the code element's props so CodeBlock can render with
+  // the macOS window chrome, line numbers, and language label.
+  const codeElement = React.isValidElement(children) ? children : null
+  const codeProps = codeElement?.props as { className?: string; children?: React.ReactNode } | undefined
+
+  if (codeProps) {
+    return (
+      <CodeBlock className={codeProps.className} {...props}>
+        {codeProps.children}
+      </CodeBlock>
+    )
+  }
+
+  // Fallback for non-code children inside <pre> (unlikely but safe)
+  return <pre {...props}>{children}</pre>
 }
 
 function ScrollableTable({ children, ...props }) {
@@ -104,6 +144,7 @@ let components = {
   h6: createHeading(6),
   Image: RoundedImage,
   a: CustomLink,
+  pre: Pre,
   code: Code,
   table: ScrollableTable,
   blockquote: CustomBlockquote,
@@ -112,7 +153,27 @@ let components = {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
-  BlogImageGrid
+  BlogImageGrid,
+  AnimatedGauge,
+  EmbeddingSpace,
+  NeuronPlayground,
+  MatrixMultiplier,
+  SoftmaxVisualizer,
+  GradientDescentLandscape,
+  SequenceOrderDemo,
+  VanishingGradient,
+  NetworkDiagram,
+  TokenizerDemo,
+  TensorVisualizer,
+  DropoutDemo,
+  VectorVisualizer,
+  TokenFlow,
+  AttentionMatrix,
+  TransformerDiagram,
+  QKVComputation,
+  PositionalEncoding,
+  EncoderDecoder,
+  MaskedAttention
 }
 
 export function CustomMDX(props) {

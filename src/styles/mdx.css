@@ -1,3 +1,10 @@
+.prose {
+  font-family: var(--font-lora), Georgia, 'Times New Roman', serif;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: #c4c0ba;
+}
+
 .prose .anchor {
   @apply absolute invisible no-underline;
   margin-left: -1em;
@@ -12,11 +19,18 @@
 }
 
 .prose a {
-  @apply underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em];
+  @apply underline transition-all underline-offset-2 decoration-[0.1em];
+  color: #d0ccc6;
+  text-decoration-color: rgba(190, 185, 178, 0.3);
+}
+
+.prose a:hover {
+  text-decoration-color: #4ade80;
+  color: #e2ded8;
 }
 
 .prose .anchor:after {
-  @apply text-neutral-300 dark:text-neutral-700;
+  color: rgba(170, 165, 158, 0.2);
   content: "#";
 }
 
@@ -25,76 +39,146 @@
 }
 
 .prose img {
-  /* Don't apply styles to next/image */
   @apply m-0;
 }
 
 .prose p {
-  @apply my-4 text-neutral-800 dark:text-neutral-200;
+  @apply my-3;
+  color: #c4c0ba;
 }
 
+/* Headings — same serif family as body, weight for hierarchy */
+
 .prose h1 {
-  @apply text-4xl font-normal tracking-tight mt-10 mb-6;
-  color: hsl(var(--foreground));
+  @apply text-3xl mt-8 mb-3;
+  font-family: var(--font-lora), Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: #eae7e2;
 }
 
 .prose h2 {
-  @apply text-3xl font-normal tracking-tight mt-8 mb-5;
-  color: hsl(var(--foreground));
+  @apply text-2xl mt-7 mb-2;
+  font-family: var(--font-lora), Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.35;
+  color: #e0ddd8;
 }
 
 .prose h3 {
-  @apply text-2xl font-semibold tracking-tight mt-7 mb-4;
-  color: hsl(var(--foreground));
+  @apply text-xl mt-6 mb-2;
+  font-family: var(--font-lora), Georgia, serif;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #d8d4ce;
 }
 
 .prose h4 {
-  @apply text-xl font-semibold tracking-tight mt-6 mb-3;
-  color: hsl(var(--foreground));
+  @apply text-lg mt-5 mb-1.5;
+  font-family: var(--font-lora), Georgia, serif;
+  font-weight: 500;
+  color: #ccc8c2;
 }
 
 .prose h5 {
-  @apply text-lg font-bold tracking-tight mt-5 mb-2;
-  color: hsl(var(--foreground));
+  @apply text-base mt-4 mb-1;
+  font-family: var(--font-lora), Georgia, serif;
+  font-weight: 600;
+  color: #ccc8c2;
 }
 
 .prose h6 {
-  @apply text-base font-bold tracking-tight mt-4 mb-1 uppercase;
-  color: hsl(var(--foreground));
+  @apply text-sm mt-3 mb-1 uppercase;
+  font-family: var(--font-lora), Georgia, serif;
+  font-weight: 600;
+  color: #9e9a94;
+  letter-spacing: 0.06em;
 }
 
 .prose strong {
-  @apply font-medium;
-  color: hsl(var(--foreground));
+  font-weight: 600;
+  color: #d5d1cb;
+}
+
+.prose em {
+  font-style: italic;
+  color: #cac6c0;
 }
 
 .prose ul {
-  @apply pl-6 my-6 list-disc;
+  @apply pl-6 my-3 list-disc;
 }
 
 .prose ol {
-  @apply pl-6 my-6 list-decimal;
+  @apply pl-6 my-3 list-decimal;
 }
 
 .prose li {
-  @apply my-3;
-  color: hsl(var(--muted-foreground));
+  @apply my-1.5;
+  color: #b5b1ab;
+  line-height: 1.65;
+}
+
+.prose li strong {
+  color: #d8d4ce;
 }
 
 .prose blockquote {
-  /* ... existing code ... */
+  @apply border-l-2 px-5 py-1 my-4;
+  border-color: rgba(74, 222, 128, 0.3);
+  color: #8e8a86;
+  font-style: italic;
 }
 
 .prose > :first-child {
-  /* Override removing top margin, causing layout shift */
   margin-top: 0 !important;
-  margin-bottom: 1.25em !important;
+  margin-bottom: 0.75em !important;
+}
+
+.prose code {
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.8em;
+  color: #6dbd6d;
+  background: none;
+  padding: 0;
+  border: none;
+}
+
+.prose pre {
+  @apply my-5 rounded-lg;
+  background-color: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  border: none;
+  font-size: 0.84em;
+  line-height: 1.75;
+  color: #a8a4a0;
+}
+
+/* Reset default pre styles inside the CodeBlock component,
+   which handles its own chrome, spacing, and background. */
+.prose [data-codeblock] pre {
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: rgba(0, 0, 0, 0.2) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
 }
 
 /* Table styles */
 .prose table {
-  @apply w-full border-collapse text-sm my-6 block overflow-x-auto;
-  border: 1px solid hsl(var(--border));
+  @apply w-full border-collapse text-sm my-5 block overflow-x-auto;
+  font-family: var(--font-lora), Georgia, serif;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 0.5rem;
   min-width: 600px;
 }
@@ -105,16 +189,17 @@
 }
 
 .prose th {
-  @apply border-b px-4 py-3 text-left font-semibold;
-  color: hsl(var(--foreground));
-  background-color: hsl(var(--muted));
-  border-color: hsl(var(--border));
+  @apply border-b px-4 py-3 text-left;
+  font-weight: 600;
+  color: #bab6b0;
+  background-color: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .prose td {
   @apply border-b px-4 py-3;
-  color: hsl(var(--muted-foreground));
-  border-color: hsl(var(--border));
+  color: #9e9a96;
+  border-color: rgba(255, 255, 255, 0.03);
 }
 
 .prose tr:last-child td {
@@ -124,7 +209,14 @@
 .prose th code,
 .prose td code {
   @apply text-xs px-1 py-0.5 rounded;
-  background-color: hsl(var(--muted));
-  color: hsl(var(--foreground));
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  background-color: rgba(255, 255, 255, 0.035);
+  color: #b8b4ae;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Horizontal rules */
+.prose hr {
+  border-color: rgba(255, 255, 255, 0.04);
+  margin: 2rem 0;
 }

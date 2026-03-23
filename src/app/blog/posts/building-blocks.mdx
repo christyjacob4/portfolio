@@ -1,0 +1,302 @@
+---
+title: "Deep Learning from First Principles"
+publishedAt: "2026-03-23"
+summary: "An interactive primer on vectors, neural networks, embeddings, and learning — every prerequisite for understanding the Transformer architecture, built from first principles."
+published: true
+---
+
+This post covers every foundational concept you need to understand the Transformer architecture. If you already know what dot products, backpropagation, and embeddings are, skip ahead to the [Transformers post](/blog/transformers). Otherwise, start here — we'll build up from first principles, one dependency at a time.
+
+## Vectors
+
+Everything in deep learning starts with vectors. A **vector** is simply an ordered list of numbers. A single number like a temperature reading is a 1D vector. A position on a map is 2D. A color in RGB is 3D. And a word embedding in a language model? That's a vector too — just with 768 dimensions instead of 2 or 3.
+
+<div className="not-prose my-8">
+  <VectorVisualizer />
+</div>
+
+
+Vectors have two key properties: **direction** (where they point) and **magnitude** (how long they are). A vector `[1, 0]` points right. `[0, 1]` points up. `[1, 1]` points diagonally with magnitude ~1.41.
+
+When vectors grow beyond 3 dimensions, we can't visualize them anymore — but the math doesn't change. A dot product between two 768-dimensional vectors works exactly the same as between two 2D vectors. Just more numbers. This is how neural networks operate: in vast, high-dimensional spaces where each dimension captures some feature of the data.
+
+Why does this matter? Because in machine learning, we represent everything — words, images, sounds, concepts — as vectors. And we need a way to compare them.
+
+## Dot Products — Measuring Similarity
+
+The **dot product** is the single most important operation in deep learning. Take two vectors, multiply their corresponding elements, and sum the results:
+
+`[a, b] · [c, d] = a×c + b×d`
+
+The geometric intuition is beautiful: the dot product measures **how much two vectors point in the same direction**.
+
+- **Same direction** — large positive value (the vectors agree)
+- **Perpendicular** — zero (the vectors are unrelated)
+- **Opposite directions** — large negative value (the vectors disagree)
+
+This is exactly how attention works in Transformers: the dot product between a Query vector and a Key vector measures how relevant one token is to another. High dot product means "pay attention to this." We'll see this in the [Transformers post](/blog/transformers), but for now, just remember: **dot products measure similarity**.
+
+## Matrix Multiplication
+
+A **matrix** is a grid of numbers — rows and columns. Matrix multiplication is just **many dot products computed at once**. Each element of the result matrix is the dot product of one row from the first matrix with one column from the second.
+
+The dimension rule: an (m × n) matrix times an (n × p) matrix gives an (m × p) matrix. The inner dimensions must match — that's the shared length of the dot products.
+
+Why is this important? Every layer of a neural network is a matrix multiplication. Every projection in a Transformer (Q, K, V) is a matrix multiplication. It's the computational backbone of all of deep learning.
+
+<div className="not-prose my-8">
+  <MatrixMultiplier />
+</div>
+
+
+
+
+## Tensors — Thinking Beyond 2D
+
+We've talked about vectors (1D lists of numbers) and matrices (2D grids). But look at any real deep learning code and you won't see "matrix" — you'll see **tensor**.
+
+A tensor is simply a generalization to any number of dimensions. A 1D tensor is a vector. A 2D tensor is a matrix. A 3D tensor is a cube of numbers. And in deep learning, we work with 3D tensors constantly.
+
+Why? Because training a model one example at a time is painfully slow. To leverage the massive parallel processing power of GPUs, we process data in **batches**. In a Transformer, the primary tensor has three dimensions:
+
+- **Batch Size** (e.g., 32) — how many independent sequences we process simultaneously
+- **Sequence Length** (e.g., 512) — how many tokens in each sequence
+- **Embedding Dimension** (e.g., 768) — the size of each token's vector representation
+
+When you see a matrix multiplication in a Transformer, it's actually a **batched matrix multiplication** — the GPU multiplies that 768-dimensional vector for all 512 tokens, across all 32 sequences, at the same time.
+
+<div className="not-prose my-8">
+  <TensorVisualizer />
+</div>
+
+
+## The Neuron — A Dot Product with a Twist
+
+Now that you understand dot products, the **neuron** is simple: it computes the dot product of its inputs with its weights, adds a bias term, and passes the result through an **activation function**.
+
+`output = activation(w₁x₁ + w₂x₂ + ... + bias)`
+
+The weighted sum `w₁x₁ + w₂x₂` is literally a dot product: `weights · inputs`. The bias shifts the result up or down. The activation function adds non-linearity.
+
+The concept of the artificial neuron dates back to McCulloch & Pitts, 1943, who proposed the first mathematical model of a neuron. Rosenblatt, 1958 built on this with the **Perceptron** — the first trainable neuron — though it could only learn linearly separable functions.
+
+### Activation functions
+
+Why do we need activation functions? Because stacking linear operations (dot products) gives you another linear operation — no matter how many layers you add. Activation functions break this linearity, letting networks learn complex, non-linear patterns.
+
+The common ones:
+
+- **ReLU** — `max(0, x)`. Dead simple: pass positive values through, zero out negatives. Proposed by Nair & Hinton, 2010, it's the default in modern networks because it's fast and doesn't suffer from vanishing gradients as badly as sigmoid.
+- **Sigmoid** — `1 / (1 + exp(-x))`. Squashes any input to the range (0, 1). Useful when you need a probability.
+- **Tanh** — Squashes to (-1, 1). Centered at zero, which helps gradient flow.
+
+<div className="not-prose my-8">
+  <NeuronPlayground />
+</div>
+
+
+## Deep Neural Networks — Stacking Matrix Multiplications
+
+A single neuron can only learn simple functions. The power comes from **stacking neurons into layers**, and stacking layers into deep networks. Each layer takes the previous layer's output as input, applies a matrix multiplication (the weights), adds biases, and runs through an activation function.
+
+A "fully connected" or "dense" layer with 3 inputs and 4 outputs is just a matrix multiplication: a (3)-dimensional vector times a (3 × 4) weight matrix, producing a (4)-dimensional output. Add a bias vector of length 4, apply ReLU, and you have one layer.
+
+<div className="not-prose my-8">
+  <NetworkDiagram />
+</div>
+
+
+### Counting parameters
+
+Every connection between two nodes is a **weight** (a learned number). Every node in a hidden or output layer has a **bias** (another learned number). For the network above:
+
+- **Layer 1** (input → hidden 1): 3 × 5 + 5 = **20 parameters**
+- **Layer 2** (hidden 1 → hidden 2): 5 × 5 + 5 = **30 parameters**
+- **Layer 3** (hidden 2 → output): 5 × 2 + 2 = **12 parameters**
+- **Total: 62 parameters**
+
+GPT-3 has 175 billion parameters. GPT-4 reportedly has over a trillion. But the principle is the same — weights and biases, organized in layers.
+
+### Why depth matters
+
+Cybenko, 1989 proved the **universal approximation theorem**: a network with a single hidden layer can approximate any continuous function, given enough neurons. But in practice, **deeper** networks (more layers) learn much more efficiently than wide, shallow ones. They build hierarchical representations — early layers detect simple patterns, later layers combine them into complex concepts.
+
+The **Feed-Forward Network** inside every Transformer block is exactly this: two dense layers with a ReLU activation in between. Now you know exactly what that means.
+
+## The Softmax Function
+
+After a neural network computes raw output values (called **logits**), we often need to convert them into a **probability distribution** — all values positive, summing to 1.
+
+**Softmax** does this by exponentiating each value (making everything positive), then dividing by the total:
+
+`softmax(xᵢ) = exp(xᵢ) / Σ exp(xⱼ)`
+
+The exponential function amplifies differences. A raw score of 5 vs 3 becomes exp(5) = 148 vs exp(3) = 20 — a much larger gap. This makes the distribution **peaked**, concentrating probability on the highest scores.
+
+### Temperature
+
+Dividing logits by a **temperature** parameter before softmax controls the peak:
+
+- **Low temperature** (e.g., 0.1) — nearly all probability on the highest score. Very confident.
+- **High temperature** (e.g., 5.0) — probability spread evenly. Less decisive.
+
+In Transformers, the `1/sqrt(d_k)` scaling in attention is effectively a temperature parameter — it prevents dot products from growing too large in high dimensions.
+
+<div className="not-prose my-8">
+  <SoftmaxVisualizer />
+</div>
+
+
+
+## How Neural Networks Learn
+
+### Loss functions: measuring how wrong you are
+
+The network makes a prediction — a probability distribution over possible answers. The true answer is known during training. **How bad is the prediction?**
+
+**Cross-entropy loss** answers this: `L = -log(p_correct)`
+
+If the model assigns probability 0.9 to the correct answer, loss is `-log(0.9) = 0.105` — very low. If it assigns 0.01, loss is `-log(0.01) = 4.6` — very high. Cross-entropy **heavily penalizes confident wrong answers**. This is the exact loss function used to train Transformers.
+
+
+### Gradient descent: rolling downhill
+
+The loss is a function of all the weights in the network. We want to find weights that **minimize** the loss. **Gradient descent** (Robbins & Monro, 1951) does this iteratively:
+
+1. **Forward pass** — run input through the network, get a prediction
+2. **Compute loss** — compare prediction to the true answer
+3. **Compute gradient** — the direction of steepest increase in loss
+4. **Update weights** — move a small step in the *opposite* direction
+
+The **learning rate** controls step size. Too large and you overshoot the minimum. Too small and training takes forever.
+
+<div className="not-prose my-8">
+  <GradientDescentLandscape />
+</div>
+
+
+### Backpropagation: computing gradients efficiently
+
+How do you compute the gradient of the loss with respect to billions of weights? The **chain rule** from calculus:
+
+If `y = f(g(x))`, then `dy/dx = df/dg × dg/dx`
+
+**Backpropagation** (Rumelhart, Hinton & Williams, 1986) applies the chain rule layer by layer, from the output back to the input. Each layer computes its local gradient and passes it backward. One backward pass computes all gradients simultaneously — this is what makes training deep networks practical.
+
+## Regularization — The Art of Forgetting
+
+When training a neural network with millions of parameters, it's easy for the model to simply **memorize** the training data rather than learning generalizable patterns. This is called **overfitting** — perfect performance on data it has seen, complete failure on anything new.
+
+**Dropout** (Srivastava et al., 2014) is a deceptively simple fix: during each training step, randomly turn off a percentage of neurons (typically 10-20%) by setting their outputs to zero.
+
+This feels counterintuitive — why cripple the network while it's trying to learn? Because it forces **redundancy**. If a neuron knows it might randomly disappear, it can't rely on any single neighbor to carry critical information. The network distributes learning broadly across all its weights, producing more robust representations.
+
+When training is finished, dropout is turned off. The full network is used for inference.
+
+<div className="not-prose my-8">
+  <DropoutDemo />
+</div>
+
+
+## The Vanishing Gradient Problem
+
+### Gradients through deep networks
+
+Backpropagation multiplies gradients layer by layer. When those numbers are less than 1, the product shrinks exponentially. After 20 or 50 layers, the gradient reaching the first layer is effectively **zero**. Early layers stop learning.
+
+This is the fundamental problem that made deep networks impractical for decades, and it's what killed early RNNs for long sequences — processing 500 tokens means 500 layers of gradient multiplication.
+
+### Residual connections: the highway
+
+The fix, introduced by He et al., 2015 in their landmark **ResNet** paper: **add the input of each layer directly to its output.**
+
+`output = layer(x) + x`
+
+The gradient now has two paths: through the layer (where it might shrink) and through the addition (where it passes unchanged). The addition is a **gradient highway** that lets signal flow directly from output to input.
+
+This is the "Add" in every "Add & Norm" block in the Transformer.
+
+### Layer normalization
+
+Even with residual connections, activations can drift to extreme values. **Layer normalization** (Ba et al., 2016) fixes this by normalizing activations to have mean 0 and variance 1 at each layer, then applying learned scale and shift.
+
+This is the "Norm" in "Add & Norm." Together, they let Transformers stack 6, 12, or 96 layers deep without gradient degradation.
+
+<div className="not-prose my-8">
+  <VanishingGradient />
+</div>
+
+
+## Tokenization — Slicing Text into Pieces
+
+Before we can turn words into number vectors, we need to define what a "word" actually is. Splitting by spaces seems obvious, but what about punctuation? Compound words? Languages without spaces? And if we assign a unique vector to every exact word in English, our vocabulary explodes to millions — and a typo like "catt" crashes the model entirely.
+
+**Subword tokenization** solves this. Modern models don't process whole words — they process **tokens**, which are statistically optimized chunks of text. **Byte Pair Encoding (BPE)** (Sennrich et al., 2016) starts with individual characters and iteratively merges the most frequent pairs until it builds an efficient vocabulary of 30,000–100,000 tokens.
+
+Common words stay whole. Rare words get split into reusable pieces:
+
+`"The unbelievable refrigerator"` → `["The", "un", "believ", "able", "refrig", "erator"]`
+
+By breaking language into these statistical building blocks, Transformers can handle any text — even words they've never seen before — by composing subword vectors.
+
+<div className="not-prose my-8">
+  <TokenizerDemo />
+</div>
+
+
+
+## From Text to Numbers — Embeddings
+
+Now that you understand vectors, similarity, and learning, we can tackle the fundamental challenge of natural language processing: **how do you turn words into numbers?**
+
+### One-hot encoding: the naive approach
+
+Assign each word a unique index. "Cat" becomes a 10,000-dimensional vector with a 1 at position 3,742 and zeros everywhere else. Two fatal problems: the dot product of any two one-hot vectors is zero (no similarity information), and each vector has 10,000 dimensions but carries only 1 bit of information.
+
+### Dense embeddings: meaning as geometry
+
+Instead, we use **dense embeddings** — short vectors (256 to 768 dimensions) where similar words end up near each other. The key insight: **meaning is geometry**. "Cat" and "dog" should be close together. "Cat" and "refrigerator" should be far apart.
+
+This idea was popularized by Mikolov et al., 2013 with **Word2Vec**, which showed that embeddings trained on large text corpora capture remarkable semantic relationships. The famous example: `vector("king") - vector("man") + vector("woman") ≈ vector("queen")`.
+
+Let's visualize this with just two dimensions. In reality you'd need hundreds, but even two dimensions reveal clear semantic structure:
+
+<div className="not-prose my-8">
+  <EmbeddingSpace />
+</div>
+
+
+Two dimensions capture basic groupings, but real language needs more. The word "bank" means both a financial institution and a river's edge — you need more dimensions to separate those meanings. Modern models use 768+ dimensions, giving each word a rich fingerprint that encodes synonymy, analogy, sentiment, part-of-speech, and more.
+
+
+## The Sequential Bottleneck — Why We Needed a New Architecture
+
+Before Transformers arrived in 2017, the dominant models for processing sequences were **Recurrent Neural Networks (RNNs)** and their improved variants, **LSTMs** (Hochreiter & Schmidhuber, 1997). They processed text exactly how humans read: left to right, one word at a time, maintaining an internal "hidden state" as memory.
+
+To understand word 50, an RNN had to process words 1 through 49 first, updating its hidden state at each step. This created two fatal problems:
+
+**The information bottleneck.** By word 500, the signal from word 1 had been overwritten so many times it was effectively forgotten. The entire history of the sequence was compressed into a single fixed-size vector — a brutal bottleneck.
+
+**The processing bottleneck.** Word 50 can't be processed until word 49 finishes. The computation is strictly sequential. You can't parallelize it across GPU cores. For a 1,000-token document, you wait 1,000 sequential steps.
+
+The Transformer's breakthrough was **abandoning recurrence entirely**. Instead of reading left to right, it looks at the entire sequence simultaneously, using attention to draw connections between every pair of tokens in one massive, parallelized matrix multiplication.
+
+It traded sequential memory for spatial geometry. But this created a new problem: if you process everything at once, how does the model know what order the words are in?
+
+## Sequence Modeling — Why Order Matters
+
+Consider two sentences:
+
+- "dog bites man"
+- "man bites dog"
+
+Same words. Completely different meanings. Any model that ignores word order — treating the sentence as a "bag of words" — cannot distinguish them.
+
+<div className="not-prose my-8">
+  <SequenceOrderDemo />
+</div>
+
+
+The dot product — the core operation of attention — is **position-blind**. It only cares about the *content* of two vectors, not where they appear in the sequence. This is exactly why Transformers need **positional encodings**, which we cover in the [next post](/blog/transformers).
+
+You now have every building block. Read the full story of how they come together in [Attention Is All You Need — A Visual Story](/blog/transformers).

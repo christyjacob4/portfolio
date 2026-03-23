@@ -2,6 +2,13 @@ import "./global.css";
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { Lora } from "next/font/google";
+
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+  display: "swap",
+});
 import { Navbar } from "../components/nav";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -69,9 +76,10 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       className={cx(
-        "dark min-h-screen bg-background font-sans",
+        "dark min-h-screen bg-background font-sans overflow-x-hidden",
         GeistSans.variable,
         GeistMono.variable,
+        lora.variable,
       )}
     >
       <body className="antialiased bg-background text-foreground">
