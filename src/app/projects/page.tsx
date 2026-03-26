@@ -2,6 +2,14 @@ import { ProjectItem, Project } from "@/components/ProjectItem";
 
 const projects: Project[] = [
   {
+    title: "Orion Labs",
+    description:
+      "A software development studio specializing in AI development, full-stack engineering, and custom software solutions. Built for clients ranging from seed-stage startups to Fortune 500 enterprises.",
+    coverText: "Orion Labs",
+    projectUrl: "https://orionlabs.work",
+    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion", "Vercel"],
+  },
+  {
     title: "mcat",
     description:
       "A drop-in cat replacement that understands Parquet, Avro, CSV, JSONL, and streams from remote sources like S3, GCS, and HTTP. Includes schema inspection, column selection, grep, sort, stats, and diff.",
