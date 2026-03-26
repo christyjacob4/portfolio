@@ -156,7 +156,7 @@ export default function DropoutDemo() {
               x={LAYER_X_POSITIONS[i]}
               y={LABEL_Y}
               textAnchor="middle"
-              fill="rgba(255,255,255,0.3)"
+              fill="rgba(255,255,255,0.5)"
               fontSize={11}
               letterSpacing="0.1em"
               style={{ textTransform: "uppercase" }}
@@ -192,7 +192,7 @@ export default function DropoutDemo() {
                 <circle
                   cx={node.x} cy={node.y} r={NODE_RADIUS}
                   fill={off ? "rgba(255,255,255,0.01)" : "rgba(255,255,255,0.06)"}
-                  stroke={off ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.15)"}
+                  stroke={off ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.25)"}
                   strokeWidth={1}
                   style={{ transition: "fill 0.5s ease, stroke 0.5s ease" }}
                 />

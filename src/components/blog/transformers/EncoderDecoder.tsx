@@ -357,7 +357,7 @@ function PlusCircle({ cx, cy }: { cx: number; cy: number }) {
         cy={cy}
         r={11}
         fill="rgba(255,255,255,0.04)"
-        stroke="rgba(255,255,255,0.2)"
+        stroke="rgba(255,255,255,0.35)"
         strokeWidth={1}
       />
       <text
@@ -416,7 +416,7 @@ function NxBracket({
       <path
         d={path}
         fill="none"
-        stroke="rgba(255,255,255,0.25)"
+        stroke="rgba(255,255,255,0.4)"
         strokeWidth={1.2}
       />
       <text
@@ -552,7 +552,7 @@ function CrossAttentionArrow({
 
   const path = `M ${startX} ${startY} C ${midX} ${controlY1}, ${midX} ${controlY2}, ${endX} ${endY}`
 
-  const strokeColor = isHighlighted ? ACCENT : "rgba(255,255,255,0.25)"
+  const strokeColor = isHighlighted ? ACCENT : "rgba(255,255,255,0.4)"
   const strokeW = isHighlighted ? 2 : 1.2
 
   // Label position at the peak of the curve

@@ -135,7 +135,7 @@ function AxisLabels() {
         x={SVG_SIZE / 2}
         y={SVG_SIZE - 8}
         textAnchor="middle"
-        fill="rgba(255,255,255,0.3)"
+        fill="rgba(255,255,255,0.5)"
         fontSize={10}
         fontFamily={FONT_MONO}
       >
@@ -145,7 +145,7 @@ function AxisLabels() {
         x={14}
         y={SVG_SIZE / 2}
         textAnchor="middle"
-        fill="rgba(255,255,255,0.3)"
+        fill="rgba(255,255,255,0.5)"
         fontSize={10}
         fontFamily={FONT_MONO}
         transform={`rotate(-90, 14, ${SVG_SIZE / 2})`}
@@ -394,7 +394,7 @@ export default function EmbeddingSpace() {
                   x={sx + 10}
                   y={sy + 1}
                   dominantBaseline="central"
-                  fill={isHovered ? "white" : isNeighbor ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.3)"}
+                  fill={isHovered ? "white" : isNeighbor ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.5)"}
                   fontSize={11}
                   fontFamily={FONT_MONO}
                   opacity={isDimmed ? 0.2 : 1}

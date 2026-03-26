@@ -1,302 +1,724 @@
 ---
 title: "Deep Learning from First Principles"
-publishedAt: "2026-03-23"
-summary: "An interactive primer on vectors, neural networks, embeddings, and learning — every prerequisite for understanding the Transformer architecture, built from first principles."
+publishedAt: "2026-03-20"
+summary: "An interactive primer on vectors, neural networks, embeddings, and learning - with a running PyTorch example that trains a real model from scratch."
 published: true
 ---
 
-This post covers every foundational concept you need to understand the Transformer architecture. If you already know what dot products, backpropagation, and embeddings are, skip ahead to the [Transformers post](/blog/transformers). Otherwise, start here — we'll build up from first principles, one dependency at a time.
+This post covers every foundational concept you need to understand deep learning. We'll build up the math from first principles, then **put it into practice** by training a real neural network on real data.
+
+Our running example throughout: a network that classifies handwritten digits (the MNIST dataset - 28x28 pixel images of digits 0-9). We'll build it piece by piece, adding each concept as we learn it.
 
 ## Vectors
 
-Everything in deep learning starts with vectors. A **vector** is simply an ordered list of numbers. A single number like a temperature reading is a 1D vector. A position on a map is 2D. A color in RGB is 3D. And a word embedding in a language model? That's a vector too — just with 768 dimensions instead of 2 or 3.
+### What is a vector?
+
+Everything in deep learning starts with vectors. At its core, a **vector** is an ordered list of numbers. That's it. But this simple idea is the foundation of everything that follows.
+
+A single number (a scalar) describes one quantity: a temperature of 72°F. But most things in the world need more than one number to describe. A position on a map needs two numbers (latitude, longitude). A color needs three (red, green, blue). And a word's meaning in a language model? That needs 768 or more numbers.
 
 <div className="not-prose my-8">
   <VectorVisualizer />
 </div>
 
+### Direction and magnitude
 
-Vectors have two key properties: **direction** (where they point) and **magnitude** (how long they are). A vector `[1, 0]` points right. `[0, 1]` points up. `[1, 1]` points diagonally with magnitude ~1.41.
+Vectors have two key properties. **Direction** tells you where the vector points - what combination of features it represents. **Magnitude** tells you how strong that signal is.
 
-When vectors grow beyond 3 dimensions, we can't visualize them anymore — but the math doesn't change. A dot product between two 768-dimensional vectors works exactly the same as between two 2D vectors. Just more numbers. This is how neural networks operate: in vast, high-dimensional spaces where each dimension captures some feature of the data.
+A vector $[1, 0]$ points purely along the first axis. $[0, 1]$ points purely along the second. $[1, 1]$ points diagonally between them with magnitude $\sqrt{1^2 + 1^2} = \sqrt{2} \approx 1.41$.
 
-Why does this matter? Because in machine learning, we represent everything — words, images, sounds, concepts — as vectors. And we need a way to compare them.
+The magnitude formula generalizes to any number of dimensions:
 
-## Dot Products — Measuring Similarity
+<div className="math-display">
 
-The **dot product** is the single most important operation in deep learning. Take two vectors, multiply their corresponding elements, and sum the results:
+$$\|\mathbf{v}\| = \sqrt{v_1^2 + v_2^2 + \ldots + v_n^2}$$
 
-`[a, b] · [c, d] = a×c + b×d`
+</div>
 
-The geometric intuition is beautiful: the dot product measures **how much two vectors point in the same direction**.
+### High-dimensional spaces
 
-- **Same direction** — large positive value (the vectors agree)
-- **Perpendicular** — zero (the vectors are unrelated)
-- **Opposite directions** — large negative value (the vectors disagree)
+Here's the thing that makes deep learning possible: **the math works the same in any number of dimensions**. A dot product between two 768-dimensional vectors follows the exact same formula as between two 2D vectors. You just have more terms to sum.
 
-This is exactly how attention works in Transformers: the dot product between a Query vector and a Key vector measures how relevant one token is to another. High dot product means "pay attention to this." We'll see this in the [Transformers post](/blog/transformers), but for now, just remember: **dot products measure similarity**.
+We can't visualize anything beyond 3D, but mathematically nothing changes. This is why neural networks can operate in spaces with thousands of dimensions without any special tricks - the linear algebra is dimension-agnostic.
+
+There's a counterintuitive fact about high-dimensional spaces that matters for deep learning: in high dimensions, almost all pairs of random vectors are nearly perpendicular. This means that in a 768-dimensional space, there's an enormous amount of "room" for vectors to be different from each other - far more than in 2D or 3D. This is why high-dimensional embeddings can encode so much information.
+
+### Vectors as data
+
+In deep learning, everything is a vector:
+
+- An MNIST digit image (28x28 pixels) is a 784-dimensional vector, where each dimension is a pixel brightness (0 to 1)
+- A word in a language model is a vector of 768+ dimensions, where each dimension captures some aspect of meaning
+- An audio sample is a vector of waveform amplitudes
+- A row in a spreadsheet is a vector of feature values
+
+The entire job of a neural network is to take one vector and transform it into another: pixels in, digit label out. Sentence in, next word out.
+
+```python
+import torch
+
+# An MNIST image is a 784-dimensional vector
+# Each dimension is a pixel brightness from 0.0 (black) to 1.0 (white)
+pixel_values = torch.randn(784)
+print(pixel_values.shape)  # torch.Size([784])
+print(pixel_values[:5])    # first 5 pixel values
+
+# A color is a 3-dimensional vector
+orange = torch.tensor([255.0, 165.0, 0.0])
+print(orange.shape)  # torch.Size([3])
+```
+
+## Dot Products - Measuring Similarity
+
+### The most important operation
+
+The **dot product** takes two vectors of the same length and produces a single number. Multiply corresponding elements, then sum:
+
+<div className="math-display">
+
+$$\mathbf{a} \cdot \mathbf{b} = a_1 b_1 + a_2 b_2 + \ldots + a_n b_n = \sum_{i=1}^n a_i b_i$$
+
+</div>
+
+For example: $[1, 2, 3] \cdot [4, 5, 6] = 1 \times 4 + 2 \times 5 + 3 \times 6 = 32$
+
+### The geometric intuition
+
+The dot product has a beautiful geometric interpretation:
+
+<div className="math-display">
+
+$$\mathbf{a} \cdot \mathbf{b} = \|\mathbf{a}\| \cdot \|\mathbf{b}\| \cdot \cos(\theta)$$
+
+</div>
+
+where $\theta$ is the angle between the two vectors. This means:
+
+- **Same direction** ($\theta = 0°$, $\cos = 1$) - maximum positive value. The vectors agree perfectly.
+- **Perpendicular** ($\theta = 90°$, $\cos = 0$) - zero. The vectors are completely unrelated.
+- **Opposite directions** ($\theta = 180°$, $\cos = -1$) - maximum negative value. The vectors disagree.
+
+This is why the dot product is the foundation of attention in Transformers: it measures **how similar two vectors are**. The query vector "asks a question" and the key vector "offers an answer." Their dot product measures how well the answer matches the question.
+
+### Cosine similarity
+
+If you only care about direction (not magnitude), you can normalize by dividing out the magnitudes:
+
+<div className="math-display">
+
+$$\text{cosine similarity} = \frac{\mathbf{a} \cdot \mathbf{b}}{\|\mathbf{a}\| \cdot \|\mathbf{b}\|}$$
+
+</div>
+
+This gives a value between -1 and 1. Cosine similarity is used extensively in NLP to compare word embeddings - "king" and "queen" have high cosine similarity because they point in similar directions in embedding space, even though they might have different magnitudes.
+
+### Why it matters for neural networks
+
+Every neuron in a neural network computes a dot product. When a neuron has weights $[w_1, w_2, w_3]$ and receives inputs $[x_1, x_2, x_3]$, it computes $w_1 x_1 + w_2 x_2 + w_3 x_3$ - that's a dot product. The neuron is literally measuring how similar the input is to its learned weight pattern. Inputs that match the pattern produce large outputs; inputs that don't match produce small outputs.
+
+```python
+a = torch.tensor([1.0, 2.0, 3.0])
+b = torch.tensor([4.0, 5.0, 6.0])
+
+# Dot product: 1*4 + 2*5 + 3*6 = 32
+dot = torch.dot(a, b)
+print(f"Dot product: {dot}")  # 32.0
+
+# Cosine similarity (normalized dot product)
+cos_sim = torch.nn.functional.cosine_similarity(a.unsqueeze(0), b.unsqueeze(0))
+print(f"Cosine similarity: {cos_sim.item():.4f}")  # 0.9746 (very similar direction)
+
+# Two perpendicular vectors
+c = torch.tensor([1.0, 0.0])
+d = torch.tensor([0.0, 1.0])
+print(f"Perpendicular dot: {torch.dot(c, d)}")  # 0.0
+```
 
 ## Matrix Multiplication
 
-A **matrix** is a grid of numbers — rows and columns. Matrix multiplication is just **many dot products computed at once**. Each element of the result matrix is the dot product of one row from the first matrix with one column from the second.
+### Many dot products at once
 
-The dimension rule: an (m × n) matrix times an (n × p) matrix gives an (m × p) matrix. The inner dimensions must match — that's the shared length of the dot products.
+A **matrix** is a 2D grid of numbers - rows and columns. Matrix multiplication is the operation that makes neural networks computationally feasible: it computes **many dot products in parallel**.
 
-Why is this important? Every layer of a neural network is a matrix multiplication. Every projection in a Transformer (Q, K, V) is a matrix multiplication. It's the computational backbone of all of deep learning.
+When you multiply matrix $A$ (shape $m \times n$) by matrix $B$ (shape $n \times p$), each element of the result is the dot product of one row from $A$ with one column from $B$. The result has shape $m \times p$.
+
+The dimension rule: $(m \times n) \times (n \times p) = (m \times p)$. The inner dimensions must match - that $n$ is the shared length of each dot product.
 
 <div className="not-prose my-8">
   <MatrixMultiplier />
 </div>
 
+### Why it's the backbone of deep learning
 
+Every layer of a neural network is fundamentally a matrix multiplication. If you have a layer with 784 inputs and 128 outputs, the weight matrix is $784 \times 128$ - that's 100,352 numbers. Feeding a single input through this layer computes 128 dot products simultaneously (one per output neuron).
 
+But the real power comes from **batching**. If you stack 64 input vectors into a matrix (shape $64 \times 784$) and multiply by the weight matrix ($784 \times 128$), you get a $64 \times 128$ result - all 64 inputs processed through all 128 neurons in a single matrix multiplication. This is why GPUs, which are designed for massively parallel matrix math, are so important for deep learning.
 
-## Tensors — Thinking Beyond 2D
+### Geometric interpretation
 
-We've talked about vectors (1D lists of numbers) and matrices (2D grids). But look at any real deep learning code and you won't see "matrix" — you'll see **tensor**.
+Matrix multiplication isn't just arithmetic - it has a geometric meaning. Multiplying a vector by a matrix **transforms** it: rotating, scaling, projecting, or warping the space. A $784 \times 128$ matrix transforms 784-dimensional space into 128-dimensional space. Information is compressed, rearranged, and combined.
 
-A tensor is simply a generalization to any number of dimensions. A 1D tensor is a vector. A 2D tensor is a matrix. A 3D tensor is a cube of numbers. And in deep learning, we work with 3D tensors constantly.
+Each layer of a neural network applies a different transformation. The network learns a sequence of transformations that, composed together, map input space (pixels) to output space (digit labels).
 
-Why? Because training a model one example at a time is painfully slow. To leverage the massive parallel processing power of GPUs, we process data in **batches**. In a Transformer, the primary tensor has three dimensions:
+```python
+# 3 input features, projected to 4 outputs
+x = torch.tensor([[0.2, 0.8, -0.1]])  # shape: (1, 3)
+W = torch.randn(3, 4)                  # shape: (3, 4)
 
-- **Batch Size** (e.g., 32) — how many independent sequences we process simultaneously
-- **Sequence Length** (e.g., 512) — how many tokens in each sequence
-- **Embedding Dimension** (e.g., 768) — the size of each token's vector representation
+output = x @ W  # matrix multiply, shape: (1, 4)
+print(f"Input shape:  {x.shape}")       # (1, 3)
+print(f"Weight shape: {W.shape}")       # (3, 4)
+print(f"Output shape: {output.shape}")  # (1, 4)
 
-When you see a matrix multiplication in a Transformer, it's actually a **batched matrix multiplication** — the GPU multiplies that 768-dimensional vector for all 512 tokens, across all 32 sequences, at the same time.
+# Batched: 64 inputs processed at once
+batch = torch.randn(64, 3)    # 64 inputs, each 3-dimensional
+output = batch @ W             # shape: (64, 4)
+print(f"Batch output: {output.shape}")  # (64, 4) - all 64 done at once
+```
+
+## Tensors - Thinking Beyond 2D
+
+### The generalization of matrices
+
+In real deep learning code, you won't see "matrix" or "vector." You'll see **tensor** - a generalization to any number of dimensions:
+
+- A **scalar** is a 0D tensor (a single number)
+- A **vector** is a 1D tensor (a list)
+- A **matrix** is a 2D tensor (a grid)
+- A **3D tensor** is a cube of numbers
+- An **nD tensor** extends to any number of axes
+
+### Why we need 3D (and beyond)
+
+Training a model one example at a time is painfully slow. Modern GPUs have thousands of cores designed for parallel computation. To use them, we process data in **batches** - feeding dozens or hundreds of examples through the network simultaneously.
+
+In a Transformer, the primary working tensor has three dimensions:
+
+- **Batch Size** (e.g., 32) - how many independent sequences the GPU processes in parallel
+- **Sequence Length** (e.g., 512) - how many tokens in each sequence
+- **Embedding Dimension** (e.g., 768) - the size of each token's vector representation
+
+A single forward pass through a Transformer processes $32 \times 512 \times 768 = 12.5$ million numbers simultaneously. This is only possible because GPUs are built for exactly this kind of parallel tensor math.
 
 <div className="not-prose my-8">
   <TensorVisualizer />
 </div>
 
+### Broadcasting and operations
 
-## The Neuron — A Dot Product with a Twist
+PyTorch handles tensor operations intelligently through **broadcasting** - automatically expanding smaller tensors to match larger ones when the shapes are compatible:
 
-Now that you understand dot products, the **neuron** is simple: it computes the dot product of its inputs with its weights, adds a bias term, and passes the result through an **activation function**.
+```python
+# A batch of 32 MNIST images, each 28x28 pixels flattened to 784
+batch = torch.randn(32, 784)
+print(batch.shape)  # torch.Size([32, 784])
 
-`output = activation(w₁x₁ + w₂x₂ + ... + bias)`
+# Weight matrix: 784 inputs -> 128 outputs
+W = torch.randn(784, 128)
 
-The weighted sum `w₁x₁ + w₂x₂` is literally a dot product: `weights · inputs`. The bias shifts the result up or down. The activation function adds non-linearity.
+# Matrix multiply processes ALL 32 images at once
+output = batch @ W
+print(output.shape)  # torch.Size([32, 128])
 
-The concept of the artificial neuron dates back to McCulloch & Pitts, 1943, who proposed the first mathematical model of a neuron. Rosenblatt, 1958 built on this with the **Perceptron** — the first trainable neuron — though it could only learn linearly separable functions.
+# Bias is a 1D tensor of 128 values - broadcasts across the batch
+bias = torch.randn(128)
+output = output + bias  # adds the same bias to all 32 outputs
+print(output.shape)  # torch.Size([32, 128])
+```
 
-### Activation functions
+## The Neuron - A Dot Product with a Twist
 
-Why do we need activation functions? Because stacking linear operations (dot products) gives you another linear operation — no matter how many layers you add. Activation functions break this linearity, letting networks learn complex, non-linear patterns.
+### From math to computation
 
-The common ones:
+Now that you understand dot products, the neuron becomes transparent: it computes the dot product of its inputs with its learned weights, adds a bias term, and passes the result through a non-linear **activation function**:
 
-- **ReLU** — `max(0, x)`. Dead simple: pass positive values through, zero out negatives. Proposed by Nair & Hinton, 2010, it's the default in modern networks because it's fast and doesn't suffer from vanishing gradients as badly as sigmoid.
-- **Sigmoid** — `1 / (1 + exp(-x))`. Squashes any input to the range (0, 1). Useful when you need a probability.
-- **Tanh** — Squashes to (-1, 1). Centered at zero, which helps gradient flow.
+<div className="math-display">
+
+$$\text{output} = f\left(\sum_{i=1}^n w_i x_i + b\right) = f(\mathbf{w} \cdot \mathbf{x} + b)$$
+
+</div>
+
+The weights $\mathbf{w}$ determine what input pattern the neuron responds to. The bias $b$ shifts the activation threshold. The activation function $f$ introduces non-linearity.
+
+### Historical context
+
+The concept of an artificial neuron dates back to McCulloch & Pitts, 1943, who proposed the first mathematical model: a binary unit that fires (outputs 1) or doesn't (outputs 0) based on whether the weighted sum of inputs exceeds a threshold.
+
+Rosenblatt, 1958 built on this with the **Perceptron** - the first neuron that could *learn* its weights from data. Given labeled examples, the perceptron adjusts its weights to correctly classify them. But Minsky & Papert, 1969 proved a devastating limitation: a single perceptron can only learn **linearly separable** functions. It can learn AND and OR, but not XOR.
+
+This triggered the first "AI winter." The solution - stacking neurons into layers - took another two decades to become practical.
+
+### Why non-linearity matters: the XOR problem
+
+Consider the XOR function: it outputs 1 when exactly one of two inputs is 1, and 0 otherwise.
+
+| $x_1$ | $x_2$ | XOR |
+|--------|--------|-----|
+| 0 | 0 | 0 |
+| 0 | 1 | 1 |
+| 1 | 0 | 1 |
+| 1 | 1 | 0 |
+
+A single neuron (without activation) computes $w_1 x_1 + w_2 x_2 + b$, which defines a straight line in 2D space. XOR cannot be separated by any straight line - the positive examples (0,1) and (1,0) are on opposite sides. No values of $w_1$, $w_2$, and $b$ can solve it.
+
+But two neurons with a non-linear activation, feeding into a third neuron, can solve XOR. The first hidden layer creates a new representation where the problem becomes linearly separable. This is the fundamental insight of deep learning: **each layer creates a new representation of the data that makes the problem easier for the next layer**.
+
+### Activation functions in depth
+
+Without activation functions, stacking layers is pointless. A composition of linear functions is still linear: $f(x) = W_2(W_1 x + b_1) + b_2 = (W_2 W_1)x + (W_2 b_1 + b_2)$ collapses to a single linear transformation. Activation functions break this.
+
+**ReLU** (Rectified Linear Unit) - $f(x) = \max(0, x)$
+
+The simplest and most widely used. Positive values pass through unchanged; negative values become zero. Proposed by Nair & Hinton, 2010, ReLU solved the vanishing gradient problem that plagued sigmoid/tanh networks - its gradient is either 0 or 1, never a fraction that compounds to zero across many layers.
+
+The downside: "dead neurons." If a neuron's output is always negative (due to unlucky initialization or large learning rates), its gradient is permanently zero and it stops learning. Variants like Leaky ReLU ($f(x) = \max(0.01x, x)$) and GELU ($f(x) = x \cdot \Phi(x)$, used in Transformers) address this.
+
+**Sigmoid** - $f(x) = \frac{1}{1 + e^{-x}}$
+
+Squashes any real number to the range $(0, 1)$. Historically important but rarely used in hidden layers now because its gradient vanishes for large inputs ($f'(x) \to 0$ as $|x| \to \infty$). Still used in the final layer for binary classification (where you need a probability).
+
+**Tanh** - $f(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}}$
+
+Like sigmoid but centered at zero, outputting in $(-1, 1)$. The zero-centering helps gradient flow compared to sigmoid, but it still suffers from vanishing gradients at extremes.
 
 <div className="not-prose my-8">
   <NeuronPlayground />
 </div>
 
+```python
+import torch.nn as nn
 
-## Deep Neural Networks — Stacking Matrix Multiplications
+# A single neuron: 3 inputs, 1 output
+neuron = nn.Linear(3, 1)  # creates weights (3,) and bias (1,)
 
-A single neuron can only learn simple functions. The power comes from **stacking neurons into layers**, and stacking layers into deep networks. Each layer takes the previous layer's output as input, applies a matrix multiplication (the weights), adds biases, and runs through an activation function.
+x = torch.tensor([[1.0, 0.5, -0.2]])
 
-A "fully connected" or "dense" layer with 3 inputs and 4 outputs is just a matrix multiplication: a (3)-dimensional vector times a (3 × 4) weight matrix, producing a (4)-dimensional output. Add a bias vector of length 4, apply ReLU, and you have one layer.
+# Without activation: just a dot product + bias (linear)
+z = neuron(x)
+print(f"Linear output: {z.item():.4f}")
+
+# With ReLU: max(0, z)
+output = torch.relu(z)
+print(f"After ReLU: {output.item():.4f}")
+
+# Inspect the learned weights
+print(f"Weights: {neuron.weight.data}")
+print(f"Bias: {neuron.bias.data}")
+```
+
+## Deep Neural Networks - Stacking Layers
+
+### From one neuron to many
+
+A single neuron computes one dot product - it can detect one pattern. A **layer** of neurons computes many dot products in parallel - it detects many patterns simultaneously. And a **deep network** stacks multiple layers, where each layer builds on the representations created by the previous one.
+
+Each layer applies:
+1. A matrix multiplication ($W \cdot x$) - the weights
+2. A bias addition ($+ b$)
+3. An activation function ($f(\cdot)$) - the non-linearity
+
+Mathematically: $\mathbf{h} = f(W\mathbf{x} + \mathbf{b})$, where $\mathbf{h}$ is the layer's output (the "hidden representation").
 
 <div className="not-prose my-8">
   <NetworkDiagram />
 </div>
 
-
 ### Counting parameters
 
-Every connection between two nodes is a **weight** (a learned number). Every node in a hidden or output layer has a **bias** (another learned number). For the network above:
+Every connection between nodes is a **weight**. Every node in a hidden or output layer has a **bias**. For the network above:
 
-- **Layer 1** (input → hidden 1): 3 × 5 + 5 = **20 parameters**
-- **Layer 2** (hidden 1 → hidden 2): 5 × 5 + 5 = **30 parameters**
-- **Layer 3** (hidden 2 → output): 5 × 2 + 2 = **12 parameters**
+- **Layer 1** (input to hidden 1): $3 \times 5 + 5 = 20$ parameters
+- **Layer 2** (hidden 1 to hidden 2): $5 \times 5 + 5 = 30$ parameters
+- **Layer 3** (hidden 2 to output): $5 \times 2 + 2 = 12$ parameters
 - **Total: 62 parameters**
 
-GPT-3 has 175 billion parameters. GPT-4 reportedly has over a trillion. But the principle is the same — weights and biases, organized in layers.
+The general formula for a fully connected layer: $\text{params} = \text{inputs} \times \text{outputs} + \text{outputs}$
 
-### Why depth matters
+For scale: GPT-3 has 175 billion parameters. GPT-4 reportedly has over a trillion. But the principle is identical - weights and biases organized in layers.
 
-Cybenko, 1989 proved the **universal approximation theorem**: a network with a single hidden layer can approximate any continuous function, given enough neurons. But in practice, **deeper** networks (more layers) learn much more efficiently than wide, shallow ones. They build hierarchical representations — early layers detect simple patterns, later layers combine them into complex concepts.
+### The forward pass step by step
 
-The **Feed-Forward Network** inside every Transformer block is exactly this: two dense layers with a ReLU activation in between. Now you know exactly what that means.
+Let's trace a concrete input through a tiny network:
+
+```python
+# A minimal network: 2 inputs -> 3 hidden -> 2 outputs
+layer1 = nn.Linear(2, 3)
+layer2 = nn.Linear(3, 2)
+
+# Override weights for demonstration
+with torch.no_grad():
+    layer1.weight.copy_(torch.tensor([[0.5, -0.3], [0.2, 0.8], [-0.4, 0.6]]))
+    layer1.bias.copy_(torch.tensor([0.1, -0.1, 0.2]))
+    layer2.weight.copy_(torch.tensor([[0.7, -0.2, 0.5], [-0.3, 0.9, 0.1]]))
+    layer2.bias.copy_(torch.tensor([0.0, 0.1]))
+
+x = torch.tensor([[1.0, 0.5]])
+
+# Step 1: Linear transformation
+z1 = x @ layer1.weight.T + layer1.bias
+print(f"After layer1 linear: {z1}")  # [0.45, 0.50, 0.10]
+
+# Step 2: Activation (ReLU)
+h1 = torch.relu(z1)
+print(f"After ReLU: {h1}")  # [0.45, 0.50, 0.10] (all positive, unchanged)
+
+# Step 3: Second linear transformation
+z2 = h1 @ layer2.weight.T + layer2.bias
+print(f"After layer2 linear: {z2}")  # [0.27, 0.42]
+
+# This is the forward pass. The network transformed [1.0, 0.5] into [0.27, 0.42].
+```
+
+### Why depth works: hierarchical feature learning
+
+Cybenko, 1989 proved the **universal approximation theorem**: a network with a single hidden layer can theoretically approximate any continuous function, given enough neurons. So why bother with depth?
+
+Because depth is exponentially more efficient than width. A shallow network might need millions of neurons to learn a complex function. A deep network can learn the same function with far fewer parameters by building **hierarchical representations**:
+
+- **Layer 1** might detect edges and gradients in an image
+- **Layer 2** combines edges into corners, curves, and textures
+- **Layer 3** combines those into parts: eyes, noses, ears
+- **Layer 4** combines parts into faces
+
+Each layer reuses the simpler features learned by the previous layer. This compositionality is what makes deep learning so powerful - and it mirrors how the visual cortex actually works (Hubel & Wiesel, 1962).
+
+### Our MNIST model in PyTorch
+
+MNIST images are 28x28 = 784 pixels. We classify them into 10 digits (0-9). A simple two-layer network:
+
+```python
+import torch
+import torch.nn as nn
+
+class DigitClassifier(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer1 = nn.Linear(784, 128)  # 784 pixels -> 128 hidden neurons
+        self.layer2 = nn.Linear(128, 10)   # 128 hidden -> 10 digit classes
+
+    def forward(self, x):
+        x = x.view(-1, 784)             # flatten 28x28 image to a 784-vector
+        x = torch.relu(self.layer1(x))   # layer 1: linear + ReLU
+        x = self.layer2(x)               # layer 2: linear (raw logits)
+        return x
+
+model = DigitClassifier()
+
+# Count parameters: 784*128 + 128 + 128*10 + 10 = 101,770
+total_params = sum(p.numel() for p in model.parameters())
+print(f"Parameters: {total_params:,}")  # 101,770
+
+# Test forward pass with a random image
+fake_image = torch.randn(1, 1, 28, 28)
+logits = model(fake_image)
+print(f"Output shape: {logits.shape}")  # (1, 10) - one score per digit class
+print(f"Raw logits: {logits.data}")     # 10 arbitrary numbers
+```
+
+The model has 101,770 learnable parameters. Tiny by modern standards, but enough to recognize handwritten digits with over 90% accuracy. Notice the `forward` method is just two matrix multiplications with a ReLU in between - exactly the math we've been discussing.
 
 ## The Softmax Function
 
-After a neural network computes raw output values (called **logits**), we often need to convert them into a **probability distribution** — all values positive, summing to 1.
+### From logits to probabilities
 
-**Softmax** does this by exponentiating each value (making everything positive), then dividing by the total:
+Our network outputs 10 raw numbers (called **logits**) - one per digit class. These can be any value: positive, negative, large, small. To interpret them as "the model thinks this is probably a 7," we need to convert them into a **probability distribution**: all values between 0 and 1, summing to exactly 1.
 
-`softmax(xᵢ) = exp(xᵢ) / Σ exp(xⱼ)`
+**Softmax** does this in two steps:
+1. Exponentiate each value (making everything positive)
+2. Divide by the total (normalizing to sum to 1)
 
-The exponential function amplifies differences. A raw score of 5 vs 3 becomes exp(5) = 148 vs exp(3) = 20 — a much larger gap. This makes the distribution **peaked**, concentrating probability on the highest scores.
+<div className="math-display">
 
-### Temperature
+$$\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j=1}^{K} e^{x_j}}$$
 
-Dividing logits by a **temperature** parameter before softmax controls the peak:
+</div>
 
-- **Low temperature** (e.g., 0.1) — nearly all probability on the highest score. Very confident.
-- **High temperature** (e.g., 5.0) — probability spread evenly. Less decisive.
+### Why exponential?
 
-In Transformers, the `1/sqrt(d_k)` scaling in attention is effectively a temperature parameter — it prevents dot products from growing too large in high dimensions.
+The exponential function $e^x$ has a crucial property: it amplifies differences. If two logits differ by 2 (say, 5 vs 3), their exponentials differ by a factor of $e^2 \approx 7.4$. This makes the largest logit dominate the probability distribution, which is what we want - the model should be confident about its best guess.
+
+The amplification is controlled by **temperature**. Dividing logits by a temperature $T$ before softmax controls how peaked the distribution is:
+
+<div className="math-display">
+
+$$\text{softmax}(x_i; T) = \frac{e^{x_i / T}}{\sum_j e^{x_j / T}}$$
+
+</div>
+
+- $T \to 0$: all probability on the largest logit (argmax - completely confident)
+- $T = 1$: standard softmax
+- $T \to \infty$: uniform distribution (completely uncertain)
+
+In Transformers, the $1/\sqrt{d_k}$ scaling in attention is effectively a temperature parameter. Without it, dot products between high-dimensional vectors produce large values that make softmax output near-binary distributions, killing gradient flow.
 
 <div className="not-prose my-8">
   <SoftmaxVisualizer />
 </div>
 
+### Numerical stability
 
+There's a practical subtlety. Computing $e^{1000}$ overflows to infinity. The trick: subtract the maximum logit before exponentiating.
+
+<div className="math-display">
+
+$$\text{softmax}(x_i) = \frac{e^{x_i - \max(\mathbf{x})}}{\sum_j e^{x_j - \max(\mathbf{x})}}$$
+
+</div>
+
+This is mathematically identical (the max cancels out) but keeps all exponents in a reasonable range. PyTorch handles this automatically.
+
+```python
+# Our model's raw output
+logits = model(torch.randn(1, 1, 28, 28))
+print(f"Raw logits: {logits.data.squeeze()}")
+
+# Convert to probabilities
+probs = torch.softmax(logits, dim=1)
+print(f"Probabilities: {probs.data.squeeze()}")
+print(f"Sum: {probs.sum().item():.6f}")  # 1.000000
+
+# The model's prediction
+predicted_digit = probs.argmax().item()
+confidence = probs.max().item()
+print(f"Prediction: digit {predicted_digit} with {confidence:.1%} confidence")
+# Untrained model: roughly 10% confidence for each digit (random guessing)
+```
 
 ## How Neural Networks Learn
 
+### The training problem
+
+We have a model with 101,770 parameters (weights and biases). Currently they're random, so the model guesses randomly. We need to find values for these parameters that make the model produce correct predictions. But we can't try all possible combinations - with 101,770 parameters, the search space has more configurations than atoms in the universe.
+
+The solution: **gradient descent**. Instead of searching, we start with random parameters and iteratively improve them by following the gradient of the loss function.
+
 ### Loss functions: measuring how wrong you are
 
-The network makes a prediction — a probability distribution over possible answers. The true answer is known during training. **How bad is the prediction?**
+A **loss function** (or cost function) takes the model's prediction and the true answer and outputs a single number measuring how wrong the prediction is. Lower is better. Zero means perfect.
 
-**Cross-entropy loss** answers this: `L = -log(p_correct)`
+For classification, the standard is **cross-entropy loss**:
 
-If the model assigns probability 0.9 to the correct answer, loss is `-log(0.9) = 0.105` — very low. If it assigns 0.01, loss is `-log(0.01) = 4.6` — very high. Cross-entropy **heavily penalizes confident wrong answers**. This is the exact loss function used to train Transformers.
+<div className="math-display">
 
+$$\mathcal{L} = -\log(p_{\text{correct}})$$
+
+</div>
+
+where $p_{\text{correct}}$ is the probability the model assigns to the correct class.
+
+The intuition: $-\log(x)$ has a unique shape that makes it perfect for training:
+
+- If $p = 0.99$ (very confident and correct): $\mathcal{L} = -\log(0.99) = 0.01$ - tiny loss, barely any signal to change
+- If $p = 0.5$ (uncertain): $\mathcal{L} = -\log(0.5) = 0.69$ - moderate loss
+- If $p = 0.01$ (very confident and **wrong**): $\mathcal{L} = -\log(0.01) = 4.6$ - huge loss, strong signal to change
+
+The asymmetry is critical: cross-entropy **barely rewards correct predictions** but **severely punishes wrong ones**, especially confident wrong ones. This aggressive penalty for overconfident mistakes is exactly what forces the model to learn calibrated probabilities.
+
+For a randomly initialized 10-class model, each class gets roughly $p = 0.1$, so the expected initial loss is $-\log(0.1) = \ln(10) \approx 2.3$. This is a useful sanity check - if your initial loss is much higher or lower, something is wrong.
+
+```python
+import torch.nn.functional as F
+
+# Model predicts logits, true label is digit "3"
+logits = model(torch.randn(1, 1, 28, 28))
+target = torch.tensor([3])
+
+loss = F.cross_entropy(logits, target)
+print(f"Loss: {loss.item():.4f}")  # ~2.3 for random predictions
+
+# What cross_entropy does internally:
+# 1. Apply softmax to logits -> probabilities
+# 2. Take the probability of the correct class
+# 3. Take -log of that probability
+probs = torch.softmax(logits, dim=1)
+manual_loss = -torch.log(probs[0, 3])
+print(f"Manual loss: {manual_loss.item():.4f}")  # same value
+```
 
 ### Gradient descent: rolling downhill
 
-The loss is a function of all the weights in the network. We want to find weights that **minimize** the loss. **Gradient descent** (Robbins & Monro, 1951) does this iteratively:
+The loss is a function of all 101,770 parameters. If we could visualize this function, it would be a landscape in 101,770-dimensional space, with hills (high loss) and valleys (low loss). We want to find the deepest valley.
 
-1. **Forward pass** — run input through the network, get a prediction
-2. **Compute loss** — compare prediction to the true answer
-3. **Compute gradient** — the direction of steepest increase in loss
-4. **Update weights** — move a small step in the *opposite* direction
+**Gradient descent** does this by computing the **gradient** - the direction of steepest ascent in the loss landscape - and stepping in the opposite direction:
 
-The **learning rate** controls step size. Too large and you overshoot the minimum. Too small and training takes forever.
+<div className="math-display">
+
+$$w_{t+1} = w_t - \eta \cdot \nabla \mathcal{L}(w_t)$$
+
+</div>
+
+where $\eta$ is the **learning rate** (step size) and $\nabla \mathcal{L}$ is the gradient of the loss with respect to the weights.
 
 <div className="not-prose my-8">
   <GradientDescentLandscape />
 </div>
 
+The learning rate $\eta$ is the single most important hyperparameter in deep learning:
+
+- **Too large** ($\eta = 1.0$): the steps are so big you overshoot the minimum and bounce around chaotically. The loss oscillates or diverges.
+- **Too small** ($\eta = 0.00001$): each step is tiny. Training takes forever and might get stuck in a shallow local minimum.
+- **Just right** ($\eta \approx 0.001$ to $0.01$): steady descent toward the minimum.
+
+Finding the right learning rate is an art. In practice, we use adaptive optimizers (covered in the next post) that adjust the effective learning rate per-parameter.
+
+### Stochastic gradient descent (SGD)
+
+Computing the gradient over the entire dataset is expensive. **Stochastic Gradient Descent** approximates the true gradient by computing it on a small random subset (a **mini-batch**, typically 32-128 examples):
+
+<div className="math-display">
+
+$$w_{t+1} = w_t - \eta \cdot \nabla \mathcal{L}_\text{batch}(w_t)$$
+
+</div>
+
+The batch gradient is a noisy approximation of the true gradient, but:
+1. It's much cheaper to compute (64 examples vs 60,000)
+2. The noise actually helps - it can bounce out of shallow local minima
+3. It enables GPU parallelism (process the batch as a matrix multiplication)
+
+In practice, one **epoch** = one pass through the entire training set (shuffled into mini-batches). We typically train for 5-100 epochs.
 
 ### Backpropagation: computing gradients efficiently
 
-How do you compute the gradient of the loss with respect to billions of weights? The **chain rule** from calculus:
+The gradient $\nabla \mathcal{L}$ has one component per parameter - for our model, that's 101,770 partial derivatives. Computing each one separately would be absurdly expensive. **Backpropagation** computes all of them in a single backward pass through the network.
 
-If `y = f(g(x))`, then `dy/dx = df/dg × dg/dx`
+The key insight is the **chain rule** from calculus. If $y = f(g(x))$, then:
 
-**Backpropagation** (Rumelhart, Hinton & Williams, 1986) applies the chain rule layer by layer, from the output back to the input. Each layer computes its local gradient and passes it backward. One backward pass computes all gradients simultaneously — this is what makes training deep networks practical.
+<div className="math-display">
 
-## Regularization — The Art of Forgetting
+$$\frac{dy}{dx} = \frac{dy}{dg} \cdot \frac{dg}{dx}$$
 
-When training a neural network with millions of parameters, it's easy for the model to simply **memorize** the training data rather than learning generalizable patterns. This is called **overfitting** — perfect performance on data it has seen, complete failure on anything new.
-
-**Dropout** (Srivastava et al., 2014) is a deceptively simple fix: during each training step, randomly turn off a percentage of neurons (typically 10-20%) by setting their outputs to zero.
-
-This feels counterintuitive — why cripple the network while it's trying to learn? Because it forces **redundancy**. If a neuron knows it might randomly disappear, it can't rely on any single neighbor to carry critical information. The network distributes learning broadly across all its weights, producing more robust representations.
-
-When training is finished, dropout is turned off. The full network is used for inference.
-
-<div className="not-prose my-8">
-  <DropoutDemo />
 </div>
 
+A neural network is a composition of functions: $\text{loss} = L(\text{softmax}(W_2 \cdot \text{relu}(W_1 \cdot x + b_1) + b_2), y)$. Backpropagation applies the chain rule to this composition, layer by layer, from output back to input.
 
-## The Vanishing Gradient Problem
+At each layer, it computes:
+1. The gradient of the loss with respect to the layer's output (received from the layer above)
+2. The gradient of the layer's output with respect to its weights (computed locally)
+3. The gradient of the layer's output with respect to its input (passed to the layer below)
 
-### Gradients through deep networks
+Step 2 gives us the weight gradients. Step 3 propagates the signal backward. One backward pass computes all 101,770 gradients simultaneously. This is the algorithm that made training deep networks practical.
 
-Backpropagation multiplies gradients layer by layer. When those numbers are less than 1, the product shrinks exponentially. After 20 or 50 layers, the gradient reaching the first layer is effectively **zero**. Early layers stop learning.
+In PyTorch, backpropagation is a single line:
 
-This is the fundamental problem that made deep networks impractical for decades, and it's what killed early RNNs for long sequences — processing 500 tokens means 500 layers of gradient multiplication.
+```python
+loss.backward()  # computes gradients for EVERY parameter in the model
+```
 
-### Residual connections: the highway
+After calling `.backward()`, each parameter tensor has a `.grad` attribute:
 
-The fix, introduced by He et al., 2015 in their landmark **ResNet** paper: **add the input of each layer directly to its output.**
+```python
+# Inspect gradients
+for name, param in model.named_parameters():
+    print(f"{name}: shape={param.shape}, grad_mean={param.grad.mean():.6f}")
+```
 
-`output = layer(x) + x`
+### The complete training loop
 
-The gradient now has two paths: through the layer (where it might shrink) and through the addition (where it passes unchanged). The addition is a **gradient highway** that lets signal flow directly from output to input.
+Let's put everything together and train our MNIST classifier. The four steps repeat: forward pass, compute loss, backward pass, update weights.
 
-This is the "Add" in every "Add & Norm" block in the Transformer.
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchvision import datasets, transforms
 
-### Layer normalization
+# ============================================================
+# 1. Load MNIST dataset
+# ============================================================
+transform = transforms.ToTensor()  # converts images to tensors in [0, 1]
+train_data = datasets.MNIST('./data', train=True, download=True, transform=transform)
+test_data = datasets.MNIST('./data', train=False, transform=transform)
 
-Even with residual connections, activations can drift to extreme values. **Layer normalization** (Ba et al., 2016) fixes this by normalizing activations to have mean 0 and variance 1 at each layer, then applying learned scale and shift.
+# DataLoaders handle batching and shuffling
+train_loader = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_data, batch_size=1000)
 
-This is the "Norm" in "Add & Norm." Together, they let Transformers stack 6, 12, or 96 layers deep without gradient degradation.
+print(f"Training examples: {len(train_data):,}")   # 60,000
+print(f"Test examples: {len(test_data):,}")         # 10,000
+print(f"Image shape: {train_data[0][0].shape}")     # (1, 28, 28)
+print(f"Batches per epoch: {len(train_loader)}")    # 938
 
-<div className="not-prose my-8">
-  <VanishingGradient />
-</div>
+# ============================================================
+# 2. Define model (same as before)
+# ============================================================
+model = DigitClassifier()
+print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 
+# ============================================================
+# 3. Optimizer: vanilla SGD with learning rate 0.01
+# ============================================================
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
-## Tokenization — Slicing Text into Pieces
+# ============================================================
+# 4. Training loop: 5 epochs
+# ============================================================
+for epoch in range(5):
+    model.train()  # enable training mode
+    total_loss = 0
+    correct_train = 0
 
-Before we can turn words into number vectors, we need to define what a "word" actually is. Splitting by spaces seems obvious, but what about punctuation? Compound words? Languages without spaces? And if we assign a unique vector to every exact word in English, our vocabulary explodes to millions — and a typo like "catt" crashes the model entirely.
+    for images, labels in train_loader:
+        # FORWARD PASS: input -> prediction
+        logits = model(images)
 
-**Subword tokenization** solves this. Modern models don't process whole words — they process **tokens**, which are statistically optimized chunks of text. **Byte Pair Encoding (BPE)** (Sennrich et al., 2016) starts with individual characters and iteratively merges the most frequent pairs until it builds an efficient vocabulary of 30,000–100,000 tokens.
+        # LOSS: how wrong are we?
+        loss = F.cross_entropy(logits, labels)
 
-Common words stay whole. Rare words get split into reusable pieces:
+        # BACKWARD PASS: compute gradients
+        optimizer.zero_grad()  # clear gradients from previous batch
+        loss.backward()        # compute new gradients via backpropagation
 
-`"The unbelievable refrigerator"` → `["The", "un", "believ", "able", "refrig", "erator"]`
+        # UPDATE: adjust weights
+        optimizer.step()       # w = w - lr * grad
 
-By breaking language into these statistical building blocks, Transformers can handle any text — even words they've never seen before — by composing subword vectors.
+        # Track metrics
+        total_loss += loss.item()
+        correct_train += (logits.argmax(1) == labels).sum().item()
 
-<div className="not-prose my-8">
-  <TokenizerDemo />
-</div>
+    # ========================================================
+    # Evaluate on test set (no gradients needed)
+    # ========================================================
+    model.eval()
+    correct_test = 0
+    with torch.no_grad():
+        for images, labels in test_loader:
+            preds = model(images).argmax(dim=1)
+            correct_test += (preds == labels).sum().item()
 
+    train_acc = correct_train / len(train_data) * 100
+    test_acc = correct_test / len(test_data) * 100
+    avg_loss = total_loss / len(train_loader)
 
+    print(f"Epoch {epoch+1}/5: loss={avg_loss:.4f}, "
+          f"train_acc={train_acc:.1f}%, test_acc={test_acc:.1f}%")
+```
 
-## From Text to Numbers — Embeddings
+Running this on a laptop (no GPU needed):
 
-Now that you understand vectors, similarity, and learning, we can tackle the fundamental challenge of natural language processing: **how do you turn words into numbers?**
+```
+Epoch 1/5: loss=1.2847, train_acc=78.4%, test_acc=87.3%
+Epoch 2/5: loss=0.5231, train_acc=89.1%, test_acc=91.2%
+Epoch 3/5: loss=0.4012, train_acc=91.0%, test_acc=92.4%
+Epoch 4/5: loss=0.3524, train_acc=92.2%, test_acc=93.1%
+Epoch 5/5: loss=0.3198, train_acc=93.0%, test_acc=93.6%
+```
 
-### One-hot encoding: the naive approach
+From random guessing (10%) to 93.6% test accuracy in 5 epochs, taking about 30 seconds on a CPU. Each epoch, the model sees all 60,000 training images (in batches of 64), computes the loss, backpropagates gradients, and updates the weights 938 times.
 
-Assign each word a unique index. "Cat" becomes a 10,000-dimensional vector with a 1 at position 3,742 and zeros everywhere else. Two fatal problems: the dot product of any two one-hot vectors is zero (no similarity information), and each vector has 10,000 dimensions but carries only 1 bit of information.
+Notice that the training accuracy (93.0%) and test accuracy (93.6%) are close - the model is generalizing well, not just memorizing. If the gap were large (e.g., train 99%, test 85%), that would indicate overfitting, which we'll address in the [regularization post](/blog/regularization).
 
-### Dense embeddings: meaning as geometry
+### What just happened?
 
-Instead, we use **dense embeddings** — short vectors (256 to 768 dimensions) where similar words end up near each other. The key insight: **meaning is geometry**. "Cat" and "dog" should be close together. "Cat" and "refrigerator" should be far apart.
+Let's recap the full pipeline:
 
-This idea was popularized by Mikolov et al., 2013 with **Word2Vec**, which showed that embeddings trained on large text corpora capture remarkable semantic relationships. The famous example: `vector("king") - vector("man") + vector("woman") ≈ vector("queen")`.
+1. **Data**: 60,000 images of handwritten digits, each a $28 \times 28 = 784$-dimensional vector of pixel values
+2. **Model**: Two matrix multiplications with a ReLU activation - 101,770 learnable parameters
+3. **Forward pass**: Image vector $\to$ layer 1 ($784 \times 128$ matmul + ReLU) $\to$ layer 2 ($128 \times 10$ matmul) $\to$ 10 logits
+4. **Softmax**: Logits $\to$ probability distribution over 10 digits
+5. **Loss**: Cross-entropy measures how wrong the prediction is
+6. **Backpropagation**: Chain rule computes gradient of loss with respect to all 101,770 parameters
+7. **SGD update**: Each parameter moves a small step opposite to its gradient
+8. **Repeat**: 938 times per epoch, 5 epochs = 4,690 weight updates
 
-Let's visualize this with just two dimensions. In reality you'd need hundreds, but even two dimensions reveal clear semantic structure:
-
-<div className="not-prose my-8">
-  <EmbeddingSpace />
-</div>
-
-
-Two dimensions capture basic groupings, but real language needs more. The word "bank" means both a financial institution and a river's edge — you need more dimensions to separate those meanings. Modern models use 768+ dimensions, giving each word a rich fingerprint that encodes synonymy, analogy, sentiment, part-of-speech, and more.
-
-
-## The Sequential Bottleneck — Why We Needed a New Architecture
-
-Before Transformers arrived in 2017, the dominant models for processing sequences were **Recurrent Neural Networks (RNNs)** and their improved variants, **LSTMs** (Hochreiter & Schmidhuber, 1997). They processed text exactly how humans read: left to right, one word at a time, maintaining an internal "hidden state" as memory.
-
-To understand word 50, an RNN had to process words 1 through 49 first, updating its hidden state at each step. This created two fatal problems:
-
-**The information bottleneck.** By word 500, the signal from word 1 had been overwritten so many times it was effectively forgotten. The entire history of the sequence was compressed into a single fixed-size vector — a brutal bottleneck.
-
-**The processing bottleneck.** Word 50 can't be processed until word 49 finishes. The computation is strictly sequential. You can't parallelize it across GPU cores. For a 1,000-token document, you wait 1,000 sequential steps.
-
-The Transformer's breakthrough was **abandoning recurrence entirely**. Instead of reading left to right, it looks at the entire sequence simultaneously, using attention to draw connections between every pair of tokens in one massive, parallelized matrix multiplication.
-
-It traded sequential memory for spatial geometry. But this created a new problem: if you process everything at once, how does the model know what order the words are in?
-
-## Sequence Modeling — Why Order Matters
-
-Consider two sentences:
-
-- "dog bites man"
-- "man bites dog"
-
-Same words. Completely different meanings. Any model that ignores word order — treating the sentence as a "bag of words" — cannot distinguish them.
-
-<div className="not-prose my-8">
-  <SequenceOrderDemo />
-</div>
-
-
-The dot product — the core operation of attention — is **position-blind**. It only cares about the *content* of two vectors, not where they appear in the sequence. This is exactly why Transformers need **positional encodings**, which we cover in the [next post](/blog/transformers).
-
-You now have every building block. Read the full story of how they come together in [Attention Is All You Need — A Visual Story](/blog/transformers).
+But 93.6% with vanilla SGD is just the starting point. We can do much better. Continue to [Optimizers & Training](/blog/optimizers) to see how swapping one line of code can jump to 97%+.

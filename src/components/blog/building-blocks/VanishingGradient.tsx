@@ -238,7 +238,7 @@ function LayerChain({
               y1={centerY}
               x2={x2}
               y2={centerY}
-              stroke="rgba(255,255,255,0.15)"
+              stroke="rgba(255,255,255,0.25)"
               strokeWidth={1}
             />
           );
@@ -302,7 +302,7 @@ function LayerChain({
           x={layerCenterX(2) + (LAYER_WIDTH + LAYER_GAP) / 2}
           y={SVG_PADDING_Y + LAYER_HEIGHT + 16}
           textAnchor="middle"
-          fill="rgba(255,255,255,0.25)"
+          fill="rgba(255,255,255,0.4)"
           fontSize={9}
           fontFamily={FONT_MONO}
         >

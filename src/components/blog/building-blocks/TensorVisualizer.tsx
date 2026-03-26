@@ -98,8 +98,7 @@ export default function TensorVisualizer() {
     }
   }
 
-  // Axis label positions and angles — text runs along each edge
-  // Bottom edge (embedding): from (0,0,0) to (W,0,0)
+  // Axis label positions and angles
   const embStart = iso(0, 0, 0);
   const embEnd = iso(W, 0, 0);
   const embAngle = Math.atan2(embEnd[1] - embStart[1], embEnd[0] - embStart[0]) * (180 / Math.PI);
@@ -107,7 +106,6 @@ export default function TensorVisualizer() {
   const embLabelX = cx + embMid[0];
   const embLabelY = cy + embMid[1] + 10;
 
-  // Left edge (sequence): from (0,0,0) to (0,H,0) — vertical in 3D, angled in iso
   const seqStart = iso(0, 0, 0);
   const seqEnd = iso(0, H, 0);
   const seqAngle = Math.atan2(seqEnd[1] - seqStart[1], seqEnd[0] - seqStart[0]) * (180 / Math.PI);
@@ -115,7 +113,6 @@ export default function TensorVisualizer() {
   const seqLabelX = cx + seqMid[0] - 8;
   const seqLabelY = cy + seqMid[1];
 
-  // Top-right edge (batch): from (W,H,0) to (W,H,D)
   const batchStart = iso(W, H, 0);
   const batchEnd = iso(W, H, D);
   const batchAngle = Math.atan2(batchEnd[1] - batchStart[1], batchEnd[0] - batchStart[0]) * (180 / Math.PI) + 180;

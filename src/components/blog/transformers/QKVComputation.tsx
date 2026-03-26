@@ -257,7 +257,7 @@ function StepInputEmbeddings() {
               y1={tokenY + 28}
               x2={cx}
               y2={embeddingY - 4}
-              stroke="rgba(255,255,255,0.2)"
+              stroke="rgba(255,255,255,0.35)"
               strokeWidth={1}
             />
             {/* Embedding vector */}
@@ -288,7 +288,7 @@ function StepInputEmbeddings() {
         x={startX - 70}
         y={embeddingY + 38}
         textAnchor="middle"
-        fill="rgba(255,255,255,0.25)"
+        fill="rgba(255,255,255,0.4)"
         fontSize={9}
         fontFamily={FONT_MONO}
       >
@@ -430,7 +430,7 @@ function StepQKVProjection() {
         x={SVG_WIDTH / 2}
         y={tokenY + 50}
         textAnchor="middle"
-        fill="rgba(255,255,255,0.2)"
+        fill="rgba(255,255,255,0.35)"
         fontSize={8}
         fontFamily={FONT_MONO}
       >
@@ -617,7 +617,7 @@ function StepAttentionScores() {
         x={SVG_WIDTH / 2}
         y={gridY + TOKEN_COUNT * cellSize + 30}
         textAnchor="middle"
-        fill="rgba(255,255,255,0.3)"
+        fill="rgba(255,255,255,0.5)"
         fontSize={9}
         fontFamily={FONT_MONO}
       >
@@ -706,7 +706,7 @@ function StepSoftmax() {
         x={SVG_WIDTH / 2}
         y={gridY + TOKEN_COUNT * cellSize + 30}
         textAnchor="middle"
-        fill="rgba(255,255,255,0.3)"
+        fill="rgba(255,255,255,0.5)"
         fontSize={9}
         fontFamily={FONT_MONO}
       >
@@ -719,7 +719,7 @@ function StepSoftmax() {
           x={gridX - 70}
           y={gridY + (TOKEN_COUNT * cellSize) / 2 - 10}
           textAnchor="middle"
-          fill="rgba(255,255,255,0.25)"
+          fill="rgba(255,255,255,0.4)"
           fontSize={9}
           fontFamily={FONT_MONO}
         >
@@ -729,7 +729,7 @@ function StepSoftmax() {
           x={gridX - 70}
           y={gridY + (TOKEN_COUNT * cellSize) / 2 + 4}
           textAnchor="middle"
-          fill="rgba(255,255,255,0.25)"
+          fill="rgba(255,255,255,0.4)"
           fontSize={9}
           fontFamily={FONT_MONO}
         >
@@ -946,7 +946,7 @@ function StepWeightedSum() {
               x={outputX + 50}
               y={outputY + i * 50 + 22}
               textAnchor="middle"
-              fill="rgba(255,255,255,0.3)"
+              fill="rgba(255,255,255,0.5)"
               fontSize={8}
               fontFamily={FONT_MONO}
             >
@@ -975,7 +975,7 @@ function StepWeightedSum() {
         x={SVG_WIDTH / 2}
         y={SVG_HEIGHT - 30}
         textAnchor="middle"
-        fill="rgba(255,255,255,0.25)"
+        fill="rgba(255,255,255,0.4)"
         fontSize={9}
         fontFamily={FONT_MONO}
       >

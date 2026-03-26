@@ -1,13 +1,13 @@
 ---
-title: "Attention Is All You Need — A Visual Story"
-publishedAt: "2026-03-22"
-summary: "An interactive, visual deep-dive into the Transformer architecture. From RNNs to self-attention, encoders to decoders — play with every diagram to build real intuition."
-published: false
+title: "Attention Is All You Need - A Visual Story"
+publishedAt: "2026-03-25"
+summary: "An interactive, visual deep-dive into the Transformer architecture. From RNNs to self-attention, encoders to decoders - play with every diagram to build real intuition."
+published: true
 ---
 
 In 2017, a team at Google published a paper that quietly changed everything. It was called *"Attention Is All You Need"*, and it introduced an architecture called the **Transformer**. Within two years, it had displaced RNNs, LSTMs, and CNNs across virtually every domain in deep learning.
 
-This post tells the story of how we got there — and explains every piece of the architecture with interactive diagrams you can play with.
+This post tells the story of how we got there - and explains every piece of the architecture with interactive diagrams you can play with.
 
 ## Part I: The Problem
 
@@ -25,7 +25,7 @@ The fundamental problem with RNNs is that token N cannot be processed until toke
 
 **2. No parallelism.** Each step depends on the previous step's output. You can't split the work across GPU cores. For a 512-token sequence, you wait 512 sequential steps. This made training painfully slow.
 
-LSTMs and GRUs mitigated the gradient problem with gating mechanisms — dedicated "forget" and "update" gates that control information flow. But they couldn't fix the parallelism problem. Training remained sequential.
+LSTMs and GRUs mitigated the gradient problem with gating mechanisms - dedicated "forget" and "update" gates that control information flow. But they couldn't fix the parallelism problem. Training remained sequential.
 
 The diagram below illustrates the difference. Watch the RNN process tokens one-by-one, while the Transformer handles all tokens simultaneously.
 
@@ -45,9 +45,9 @@ This is attention. For each token in a sequence, we compute a set of weights ove
 
 The mechanism works through three learned projections. Every input token embedding gets transformed into three vectors:
 
-- **Query (Q)** — "What am I looking for?" This represents the current token's question to the rest of the sequence.
-- **Key (K)** — "What do I contain?" This represents what each token offers as a match.
-- **Value (V)** — "What information do I carry?" This is the actual content that gets aggregated.
+- **Query (Q)** - "What am I looking for?" This represents the current token's question to the rest of the sequence.
+- **Key (K)** - "What do I contain?" This represents what each token offers as a match.
+- **Value (V)** - "What information do I carry?" This is the actual content that gets aggregated.
 
 The attention weight between token *i* and token *j* is the dot product of Q_i and K_j, scaled by the square root of the key dimension, then passed through softmax. The output for each token is the weighted sum of all Value vectors.
 
@@ -57,31 +57,31 @@ Why three separate projections? Because what a token is *searching for* (Query) 
 
 Let's trace through the full attention computation for a short sequence: **"I love ML !"**
 
-**Step 1 — Input Embeddings.** Each token is converted into a dense vector. These are the raw representations the model starts with.
+**Step 1 - Input Embeddings.** Each token is converted into a dense vector. These are the raw representations the model starts with.
 
 <div className="not-prose my-8">
   <QKVComputation step={0} />
 </div>
 
-**Step 2 — Q, K, V Projection.** Each embedding is multiplied by three learned weight matrices (W_Q, W_K, W_V) to produce Query, Key, and Value vectors. These live in separate subspaces optimized for matching (Q, K) and carrying information (V).
+**Step 2 - Q, K, V Projection.** Each embedding is multiplied by three learned weight matrices (W_Q, W_K, W_V) to produce Query, Key, and Value vectors. These live in separate subspaces optimized for matching (Q, K) and carrying information (V).
 
 <div className="not-prose my-8">
   <QKVComputation step={1} />
 </div>
 
-**Step 3 — Attention Scores.** We compute the dot product between every Query and every Key, then scale by the square root of the key dimension. High scores mean a strong match between what the Query is looking for and what the Key offers.
+**Step 3 - Attention Scores.** We compute the dot product between every Query and every Key, then scale by the square root of the key dimension. High scores mean a strong match between what the Query is looking for and what the Key offers.
 
 <div className="not-prose my-8">
   <QKVComputation step={2} />
 </div>
 
-**Step 4 — Softmax.** The raw scores are passed through softmax row-wise, converting them to probabilities. Each row now sums to 1.0 — these are the attention weights.
+**Step 4 - Softmax.** The raw scores are passed through softmax row-wise, converting them to probabilities. Each row now sums to 1.0 - these are the attention weights.
 
 <div className="not-prose my-8">
   <QKVComputation step={3} />
 </div>
 
-**Step 5 — Weighted Sum.** Finally, we multiply the attention weights by the Value vectors. Each token's output is a weighted combination of all Value vectors, with weights determined by how relevant each token is.
+**Step 5 - Weighted Sum.** Finally, we multiply the attention weights by the Value vectors. Each token's output is a weighted combination of all Value vectors, with weights determined by how relevant each token is.
 
 <div className="not-prose my-8">
   <QKVComputation step={4} />
@@ -97,16 +97,16 @@ Hover over cells to inspect weights, or hover over a row label to see what that 
   <AttentionMatrix />
 </div>
 
-Notice the patterns: "cat" attends heavily to "sat" (syntactic dependency — subject-verb). "mat" attends to "on" and "the" (local context). The diagonal shows self-attention — each token maintains some focus on itself. These patterns emerge purely from training, not from any explicit linguistic rules.
+Notice the patterns: "cat" attends heavily to "sat" (syntactic dependency - subject-verb). "mat" attends to "on" and "the" (local context). The diagonal shows self-attention - each token maintains some focus on itself. These patterns emerge purely from training, not from any explicit linguistic rules.
 
 ## Part III: Multi-Head Attention
 
 A single attention computation captures one type of relationship. But language encodes many relationships simultaneously:
 
-- **Syntactic** — subject-verb agreement, modifier attachment
-- **Semantic** — meaning similarity, coreference (what does "it" refer to?)
-- **Positional** — nearby words are often more relevant
-- **Long-range** — a pronoun on page 3 might refer to a character introduced on page 1
+- **Syntactic** - subject-verb agreement, modifier attachment
+- **Semantic** - meaning similarity, coreference (what does "it" refer to?)
+- **Positional** - nearby words are often more relevant
+- **Long-range** - a pronoun on page 3 might refer to a character introduced on page 1
 
 **Multi-head attention** addresses this by running multiple attention computations in parallel, each with its own learned Q, K, V projection matrices. If we have *h* heads, each head gets its own W_Q, W_K, W_V of reduced dimension (d_model / h). The heads operate independently, then their outputs are concatenated and projected through a final weight matrix.
 
@@ -118,7 +118,7 @@ The original Transformer uses 8 attention heads with d_model = 512, giving each 
 
 ### The order problem
 
-Attention treats its input as a *set*, not a sequence. The dot product between Q and K is symmetric with respect to position — "cat sat" and "sat cat" would produce identical attention weights. But word order matters enormously in language.
+Attention treats its input as a *set*, not a sequence. The dot product between Q and K is symmetric with respect to position - "cat sat" and "sat cat" would produce identical attention weights. But word order matters enormously in language.
 
 The solution: **add positional information to the input embeddings** before feeding them to the transformer.
 
@@ -140,18 +140,18 @@ A key property: the encoding for position *p+k* can be expressed as a linear fun
 
 ## Part V: The Encoder
 
-The Transformer encoder processes the entire input sequence in parallel and produces a set of contextual representations — one vector per token, enriched with information from every other token.
+The Transformer encoder processes the entire input sequence in parallel and produces a set of contextual representations - one vector per token, enriched with information from every other token.
 
 ### Encoder block structure
 
 Each encoder block contains two sub-layers:
 
-1. **Multi-Head Self-Attention** — every token attends to every other token in the input
-2. **Position-wise Feed-Forward Network** — two linear transformations with a ReLU activation, applied independently to each position
+1. **Multi-Head Self-Attention** - every token attends to every other token in the input
+2. **Position-wise Feed-Forward Network** - two linear transformations with a ReLU activation, applied independently to each position
 
 Each sub-layer is wrapped with:
-- A **residual connection** — the input to the sub-layer is added to its output, so gradients flow directly backward without degradation
-- **Layer normalization** — stabilizes training by normalizing activations
+- A **residual connection** - the input to the sub-layer is added to its output, so gradients flow directly backward without degradation
+- **Layer normalization** - stabilizes training by normalizing activations
 
 The encoder stacks N of these blocks (N=6 in the original paper). Each block refines the representations further. By the final layer, each token's vector captures rich contextual information from the entire sequence.
 
@@ -163,11 +163,11 @@ Hover over each component to understand its role:
 
 ## Part VI: The Decoder
 
-The decoder generates output tokens one at a time, autoregressively — each new token is predicted based on the encoder output and all previously generated tokens.
+The decoder generates output tokens one at a time, autoregressively - each new token is predicted based on the encoder output and all previously generated tokens.
 
 ### Masked self-attention
 
-The decoder has a critical constraint: when generating token N, it must not attend to tokens N+1, N+2, etc., because those tokens **don't exist yet** at generation time. This is enforced by **masking** — setting attention weights to negative infinity (before softmax) for all future positions, which zeros them out after softmax.
+The decoder has a critical constraint: when generating token N, it must not attend to tokens N+1, N+2, etc., because those tokens **don't exist yet** at generation time. This is enforced by **masking** - setting attention weights to negative infinity (before softmax) for all future positions, which zeros them out after softmax.
 
 The diagram below compares encoder self-attention (full visibility) with decoder masked self-attention (causal mask). Click "Generate" to watch tokens appear one by one, with the mask growing as each token is produced:
 
@@ -177,7 +177,7 @@ The diagram below compares encoder self-attention (full visibility) with decoder
 
 ### Cross-attention
 
-The decoder's second attention sub-layer is **cross-attention** — it attends to the encoder's output. Here, the Queries come from the decoder's current state, but the Keys and Values come from the encoder. This is how the decoder "reads" the source sequence.
+The decoder's second attention sub-layer is **cross-attention** - it attends to the encoder's output. Here, the Queries come from the decoder's current state, but the Keys and Values come from the encoder. This is how the decoder "reads" the source sequence.
 
 For machine translation, this means: the decoder generating French tokens sends Queries asking "what part of the English input is relevant for the next French word?" and gets back weighted combinations of the English representations.
 
@@ -185,9 +185,9 @@ For machine translation, this means: the decoder generating French tokens sends 
 
 Each decoder block has three sub-layers:
 
-1. **Masked Multi-Head Self-Attention** — attends to previously generated tokens only
-2. **Multi-Head Cross-Attention** — attends to encoder output (K, V from encoder)
-3. **Position-wise Feed-Forward Network** — same as in the encoder
+1. **Masked Multi-Head Self-Attention** - attends to previously generated tokens only
+2. **Multi-Head Cross-Attention** - attends to encoder output (K, V from encoder)
+3. **Position-wise Feed-Forward Network** - same as in the encoder
 
 Each with residual connections and layer normalization. The decoder also stacks N blocks.
 
@@ -195,9 +195,9 @@ After the final decoder block, a linear projection maps to vocabulary size, foll
 
 ## Part VII: The Full Architecture
 
-Now we can see the complete picture — encoder and decoder working together. The encoder processes the full input sequence in parallel. Its output feeds into every decoder block via cross-attention. The decoder generates output tokens autoregressively, attending to both its own previous outputs and the encoder's representations.
+Now we can see the complete picture - encoder and decoder working together. The encoder processes the full input sequence in parallel. Its output feeds into every decoder block via cross-attention. The decoder generates output tokens autoregressively, attending to both its own previous outputs and the encoder's representations.
 
-Hover over any component to learn what it does. Notice the cross-attention arrow — this is the bridge between understanding the input and generating the output:
+Hover over any component to learn what it does. Notice the cross-attention arrow - this is the bridge between understanding the input and generating the output:
 
 <div className="not-prose my-12">
   <EncoderDecoder />
@@ -207,7 +207,7 @@ Hover over any component to learn what it does. Notice the cross-attention arrow
 
 ### Teacher forcing
 
-During training, the decoder doesn't generate tokens autoregressively. Instead, it receives the correct target sequence (shifted right by one position) as input — a technique called **teacher forcing**. This means every decoder position is trained in parallel, just like the encoder.
+During training, the decoder doesn't generate tokens autoregressively. Instead, it receives the correct target sequence (shifted right by one position) as input - a technique called **teacher forcing**. This means every decoder position is trained in parallel, just like the encoder.
 
 The mask ensures that position *i* only sees target tokens 0 through *i-1*, maintaining the autoregressive constraint even during parallel training.
 
@@ -221,21 +221,21 @@ The original Transformer uses a custom learning rate schedule: linear warmup for
 
 ## Part IX: Why It Changed Everything
 
-The Transformer didn't just improve on RNNs — it made an entirely new paradigm possible.
+The Transformer didn't just improve on RNNs - it made an entirely new paradigm possible.
 
 **Parallelism.** Every token is processed simultaneously. Training a Transformer on 8 GPUs is straightforward. Training an RNN on 8 GPUs requires careful engineering to handle the sequential dependency. This parallelism enabled training on vastly more data.
 
 **Scalability.** The architecture scales gracefully. Double the parameters, double the data, and performance improves predictably. This "scaling law" property doesn't hold as cleanly for RNNs.
 
-**Transfer learning.** Pre-train a large Transformer on massive text corpora, then fine-tune on specific tasks with minimal data. This pattern — pioneered by BERT (encoder-only) and GPT (decoder-only) — became the dominant paradigm in NLP.
+**Transfer learning.** Pre-train a large Transformer on massive text corpora, then fine-tune on specific tasks with minimal data. This pattern - pioneered by BERT (encoder-only) and GPT (decoder-only) - became the dominant paradigm in NLP.
 
 ### The family tree
 
 The original encoder-decoder Transformer was designed for machine translation. But the architecture's components proved more versatile:
 
-- **Encoder-only** (BERT, 2018) — Pre-trained with masked language modeling. Excels at understanding tasks: classification, named entity recognition, question answering.
-- **Decoder-only** (GPT series, 2018–2025) — Pre-trained with next-token prediction. Excels at generation: text completion, dialogue, code, reasoning. This is the architecture behind ChatGPT and Claude.
-- **Encoder-decoder** (T5, BART) — The full original architecture. Excels at sequence-to-sequence tasks: translation, summarization.
-- **Vision Transformers** (ViT, 2020) — Applying the same architecture to image patches instead of text tokens. Matched or beat CNNs on image classification.
+- **Encoder-only** (BERT, 2018) - Pre-trained with masked language modeling. Excels at understanding tasks: classification, named entity recognition, question answering.
+- **Decoder-only** (GPT series, 2018–2025) - Pre-trained with next-token prediction. Excels at generation: text completion, dialogue, code, reasoning. This is the architecture behind ChatGPT and Claude.
+- **Encoder-decoder** (T5, BART) - The full original architecture. Excels at sequence-to-sequence tasks: translation, summarization.
+- **Vision Transformers** (ViT, 2020) - Applying the same architecture to image patches instead of text tokens. Matched or beat CNNs on image classification.
 
 The story of transformers is a story about removing bottlenecks. Sequential processing bottlenecks. Gradient flow bottlenecks. Hardware utilization bottlenecks. By solving all three with a single, elegant architecture, attention truly became all we needed.

@@ -25,23 +25,23 @@ export default function VectorVisualizer() {
 
           {/* ===== 1D — Number line ===== */}
           <g transform={`translate(${qx(0)}, ${qy(0)})`}>
-            <text x={QW/2} y={0} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={9} letterSpacing="0.1em">1D</text>
+            <text x={QW/2} y={0} textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize={9} letterSpacing="0.1em">1D</text>
             <line x1={20} y1={QH/2} x2={QW-10} y2={QH/2} stroke={AXIS} strokeWidth={1} markerEnd="url(#varrow)" />
             {[0,1,2,3,4,5].map(i => {
               const x = 20 + i * (QW-40)/5;
               return <g key={i}>
                 <line x1={x} y1={QH/2-5} x2={x} y2={QH/2+5} stroke="rgba(255,255,255,0.08)" strokeWidth={0.5} />
-                <text x={x} y={QH/2+14} textAnchor="middle" fill="rgba(255,255,255,0.15)" fontSize={6}>{i}</text>
+                <text x={x} y={QH/2+14} textAnchor="middle" fill="rgba(255,255,255,0.25)" fontSize={6}>{i}</text>
               </g>;
             })}
             <circle cx={20 + 3*(QW-40)/5} cy={QH/2} r={DOT_R} fill={ACCENT} />
             <text x={QW/2} y={QH+16} textAnchor="middle" fill={ACCENT} fontSize={10}>[3]</text>
-            <text x={QW/2} y={QH+28} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize={8} fontStyle="italic">temperature</text>
+            <text x={QW/2} y={QH+28} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize={8} fontStyle="italic">temperature</text>
           </g>
 
           {/* ===== 2D — Coordinate plane ===== */}
           <g transform={`translate(${qx(1)}, ${qy(0)})`}>
-            <text x={QW/2} y={0} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={9} letterSpacing="0.1em">2D</text>
+            <text x={QW/2} y={0} textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize={9} letterSpacing="0.1em">2D</text>
             {[1,2,3,4,5,6,7,8].map(i => {
               const x = 30 + i * (QW-40)/9;
               const y = QH - 10 - i * (QH-20)/9;
@@ -61,12 +61,12 @@ export default function VectorVisualizer() {
               </>;
             })()}
             <text x={QW/2} y={QH+16} textAnchor="middle" fill={ACCENT} fontSize={10}>[3, 7]</text>
-            <text x={QW/2} y={QH+28} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize={8} fontStyle="italic">position on a map</text>
+            <text x={QW/2} y={QH+28} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize={8} fontStyle="italic">position on a map</text>
           </g>
 
           {/* ===== 3D — Isometric axes ===== */}
           <g transform={`translate(${qx(0)}, ${qy(1)})`}>
-            <text x={QW/2} y={0} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={9} letterSpacing="0.1em">3D</text>
+            <text x={QW/2} y={0} textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize={9} letterSpacing="0.1em">3D</text>
             {(() => {
               const ox = QW/2;
               const oy = QH * 0.6;
@@ -84,9 +84,9 @@ export default function VectorVisualizer() {
                 <line x1={ox} y1={oy} x2={xEnd[0]} y2={xEnd[1]} stroke={AXIS} strokeWidth={1} markerEnd="url(#varrow)" />
                 <line x1={ox} y1={oy} x2={yEnd[0]} y2={yEnd[1]} stroke={AXIS} strokeWidth={1} markerEnd="url(#varrow)" />
                 <line x1={ox} y1={oy} x2={zEnd[0]} y2={zEnd[1]} stroke={AXIS} strokeWidth={1} markerEnd="url(#varrow)" />
-                <text x={xEnd[0]+6} y={xEnd[1]+2} fill="rgba(255,255,255,0.2)" fontSize={7}>x</text>
-                <text x={yEnd[0]-2} y={yEnd[1]-4} fill="rgba(255,255,255,0.2)" fontSize={7} textAnchor="middle">y</text>
-                <text x={zEnd[0]-6} y={zEnd[1]+2} fill="rgba(255,255,255,0.2)" fontSize={7} textAnchor="end">z</text>
+                <text x={xEnd[0]+6} y={xEnd[1]+2} fill="rgba(255,255,255,0.35)" fontSize={7}>x</text>
+                <text x={yEnd[0]-2} y={yEnd[1]-4} fill="rgba(255,255,255,0.35)" fontSize={7} textAnchor="middle">y</text>
+                <text x={zEnd[0]-6} y={zEnd[1]+2} fill="rgba(255,255,255,0.35)" fontSize={7} textAnchor="end">z</text>
                 {/* Dashed projections for clarity */}
                 <line x1={ox} y1={oy} x2={ox + 5*s*cos30} y2={oy + 5*s*sin30} stroke={ACCENT} strokeWidth={0.5} strokeDasharray="2 2" opacity={0.2} />
                 <line x1={ox + 5*s*cos30} y1={oy + 5*s*sin30} x2={px} y2={oy + 5*s*sin30 + 2*s*sin30} stroke={ACCENT} strokeWidth={0.5} strokeDasharray="2 2" opacity={0.2} />
@@ -96,12 +96,12 @@ export default function VectorVisualizer() {
               </>;
             })()}
             <text x={QW/2} y={QH+16} textAnchor="middle" fill={ACCENT} fontSize={10}>[5, 3, 2]</text>
-            <text x={QW/2} y={QH+28} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize={8} fontStyle="italic">color (RGB)</text>
+            <text x={QW/2} y={QH+28} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize={8} fontStyle="italic">color (RGB)</text>
           </g>
 
           {/* ===== 768D — Abstract cells ===== */}
           <g transform={`translate(${qx(1)}, ${qy(1)})`}>
-            <text x={QW/2} y={0} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={9} letterSpacing="0.1em">768D</text>
+            <text x={QW/2} y={0} textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize={9} letterSpacing="0.1em">768D</text>
             {(() => {
               const cellSize = 9;
               const cellGap = 2;
@@ -137,7 +137,7 @@ export default function VectorVisualizer() {
                 <text
                   x={startX + totalW + 8}
                   y={startY + totalH / 2}
-                  fill="rgba(255,255,255,0.2)"
+                  fill="rgba(255,255,255,0.35)"
                   fontSize={10}
                   dominantBaseline="central"
                 >
@@ -146,7 +146,7 @@ export default function VectorVisualizer() {
               </>;
             })()}
             <text x={QW/2} y={QH+16} textAnchor="middle" fill={ACCENT} fontSize={10}>[0.2, 0.8, -0.1, ..., 0.5]</text>
-            <text x={QW/2} y={QH+28} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize={8} fontStyle="italic">word embedding</text>
+            <text x={QW/2} y={QH+28} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize={8} fontStyle="italic">word embedding</text>
           </g>
 
           <defs>

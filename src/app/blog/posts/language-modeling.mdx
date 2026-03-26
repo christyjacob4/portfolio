@@ -1,0 +1,307 @@
+---
+title: "Language Modeling & Recurrent Networks"
+publishedAt: "2026-03-24"
+summary: "From text to tokens to embeddings to RNNs - how classical sequence models tried to understand language, why they failed, and what came next."
+published: true
+---
+
+This post picks up where [Deep Learning from First Principles](/blog/building-blocks) left off. You now understand vectors, dot products, neural networks, and how they learn. The question is: how do we apply all of that to language?
+
+## Tokenization - Slicing Text into Pieces
+
+Before we can turn words into number vectors, we need to define what a "word" actually is. Splitting by spaces seems obvious, but what about punctuation? Compound words? Languages that don't use spaces at all? And if we assign a unique vector to every exact word in English, our vocabulary explodes to millions - and a typo like "catt" crashes the model entirely.
+
+**Subword tokenization** solves this. Modern models don't process whole words - they process **tokens**, which are statistically optimized chunks of text. **Byte Pair Encoding (BPE)** (Sennrich et al., 2016) starts with individual characters and iteratively merges the most frequent pairs until it builds an efficient vocabulary of 30,000–100,000 tokens.
+
+Common words stay whole. Rare words get split into reusable pieces:
+
+`"The unbelievable refrigerator"` → `["The", "un", "believ", "able", "refrig", "erator"]`
+
+By breaking language into these statistical building blocks, models can handle any text - even words they've never seen before - by composing subword vectors.
+
+<div className="not-prose my-8">
+  <TokenizerDemo />
+</div>
+
+## From Text to Numbers - Embeddings
+
+Now that text is split into tokens, each token needs a numerical representation. The naive approach - **one-hot encoding** - assigns each token a unique index in a sparse vector. "Cat" becomes a 50,000-dimensional vector with a single 1. Two fatal problems: the dot product of any two one-hot vectors is zero (no similarity), and each vector carries only 1 bit of information across 50,000 dimensions.
+
+The real approach: **dense embeddings**. Short vectors (256 to 768 dimensions) where similar words end up near each other. The key insight: **meaning is geometry**. "Cat" and "dog" should be close together. "Cat" and "refrigerator" should be far apart.
+
+This idea was popularized by Mikolov et al., 2013 with **Word2Vec**, which showed that embeddings trained on large text corpora capture remarkable semantic relationships. The famous example: $\vec{king} - \vec{man} + \vec{woman} \approx \vec{queen}$.
+
+<div className="not-prose my-8">
+  <EmbeddingSpace />
+</div>
+
+Two dimensions capture basic groupings, but real language needs more. The word "bank" means both a financial institution and a river's edge - you need more dimensions to separate those meanings. Modern models use 768+ dimensions, giving each word a rich fingerprint that encodes synonymy, analogy, sentiment, and part-of-speech.
+
+## The Problem of Variable Length & Order
+
+We now have a way to turn each token into a vector. Can we just feed these vectors into the dense neural networks from the previous post?
+
+No. Two fundamental problems:
+
+**Fixed input size.** A dense layer with 3 inputs can only process exactly 3 numbers. But sentences have variable length - "Hi" has 1 token, this paragraph has dozens. Dense networks can't handle that.
+
+**No sense of order.** Even if we padded every sentence to the same length, a dense network treats each input position independently. It has no way to know that "dog bites man" and "man bites dog" are different - the same words in the same input slots, just rearranged.
+
+<div className="not-prose my-8">
+  <SequenceOrderDemo />
+</div>
+
+We need an architecture that can process sequences of **any length** and understand that **order matters**.
+
+## Recurrent Neural Networks - Reading Left to Right
+
+The **Recurrent Neural Network (RNN)** (Elman, 1990) solves both problems with an elegant idea: process tokens one at a time, maintaining a **hidden state** that carries information forward.
+
+### The core mechanism
+
+At each time step $t$, the RNN does three things:
+
+1. Takes the current input token's embedding $x_t$
+2. Takes the previous hidden state $h_{t-1}$ (the "memory" so far)
+3. Computes a new hidden state by combining them:
+
+<div className="math-display">
+
+$$h_t = \tanh(W_h \cdot h_{t-1} + W_x \cdot x_t + b)$$
+
+</div>
+
+That's it. Two matrix multiplications, an addition, and a $\tanh$ activation. The same weights $W_h$ and $W_x$ are reused at every time step - this is what makes RNNs work on sequences of any length. The network literally loops over itself, applying the same transformation at each step.
+
+The hidden state $h_t$ is the network's running summary of everything it has seen from $x_1$ through $x_t$. Think of it as a fixed-size notepad that gets rewritten at every step.
+
+### Unrolling through time
+
+To understand an RNN, it helps to "unroll" it - visualize each time step as a separate copy of the same network, connected by the hidden state:
+
+<div className="not-prose my-8">
+  <UnrolledRNN />
+</div>
+
+Watch the hidden state pass from step to step. Each word updates the memory. The green pulse shows how information flows strictly left to right - token 3 can only be influenced by tokens 1 and 2, never by token 4.
+
+### What the hidden state captures
+
+At each step, $h_t$ encodes a compressed representation of the sequence so far. Early in the sequence, $h_1$ captures just the first word. By the end, $h_T$ (the final hidden state) theoretically contains the meaning of the entire sequence.
+
+In practice, $h_T$ is used for:
+- **Classification** - is this review positive or negative?
+- **Next-token prediction** - what word comes next?
+- **Encoding** - pass $h_T$ to a decoder for translation
+
+But "theoretically" is doing a lot of heavy lifting. The fixed-size hidden state is a brutal bottleneck.
+
+### The weight sharing problem
+
+Because the same $W_h$ matrix is multiplied at every step, the dynamics of the hidden state are highly constrained. If the eigenvalues of $W_h$ are less than 1, the hidden state shrinks exponentially with each step. If greater than 1, it explodes. The network walks a razor's edge between forgetting everything and blowing up.
+
+This isn't an implementation bug - it's a fundamental mathematical property of iterated matrix multiplication. And it leads directly to the biggest problem with RNNs.
+
+## Backpropagation Through Time
+
+### How RNNs learn
+
+Training an RNN follows the same recipe as any neural network: forward pass, compute loss, backward pass to compute gradients, update weights. But because the computation is spread across time steps, the backward pass must travel through every step in reverse. This is called **Backpropagation Through Time (BPTT)**.
+
+The gradient of the loss with respect to the hidden state at step $t$ involves a product of Jacobian matrices:
+
+<div className="math-display">
+
+$$\frac{\partial h_T}{\partial h_t} = \prod_{k=t}^{T-1} \frac{\partial h_{k+1}}{\partial h_k}$$
+
+</div>
+
+Each factor in this product involves the weight matrix $W_h$ and the derivative of $\tanh$. When this product spans hundreds of steps, two things happen:
+
+### Vanishing gradients
+
+If $\|W_h\|$ is small (eigenvalues < 1), each multiplication shrinks the gradient. After 100 steps: $0.9^{100} \approx 0.00003$. After 500 steps: effectively zero.
+
+The gradient signal from the end of the sentence never reaches the beginning. The network **can't learn** that the subject at the start of a paragraph determines the verb at the end. Long-range dependencies become invisible to training.
+
+### Exploding gradients
+
+If $\|W_h\|$ is large (eigenvalues > 1), gradients grow exponentially. After 100 steps: $1.1^{100} \approx 13{,}781$. The weight updates become enormous, and training becomes numerically unstable - loss shoots to infinity.
+
+The standard fix is **gradient clipping** (Pascanu et al., 2013): if the gradient norm exceeds a threshold, scale it down. This prevents explosions but does nothing for vanishing gradients.
+
+### Practical consequences
+
+These aren't theoretical concerns - they define what RNNs can and cannot learn:
+
+- **Short-range patterns** (3-10 tokens): RNNs learn well. Subject-verb agreement within a clause, simple bigram/trigram patterns.
+- **Medium-range** (10-50 tokens): Degraded but possible. Requires careful initialization and gradient clipping.
+- **Long-range** (50+ tokens): Essentially impossible for vanilla RNNs. Coreference across paragraphs, document-level coherence, long conversations - all beyond reach.
+
+This is why, by the mid-1990s, researchers knew they needed something better.
+
+## The Band-Aid: LSTMs
+
+In 1997, Hochreiter & Schmidhuber proposed the **Long Short-Term Memory (LSTM)** - a fundamentally redesigned RNN cell built to solve the vanishing gradient problem.
+
+### The key idea: a cell state highway
+
+The LSTM introduces a **cell state** $c_t$ - a separate memory channel that runs through the entire sequence like a conveyor belt. Unlike the hidden state, which gets transformed at every step, the cell state can pass through unchanged. Information can be added or removed, but the default path is preservation.
+
+This is the crucial insight: **the gradient flows through the cell state with minimal degradation**, because the default operation is an element-wise multiplication by a value close to 1 (the forget gate output).
+
+### Three gates control information flow
+
+The LSTM has three learned gates, each a small neural network that outputs values between 0 and 1:
+
+<div className="not-prose my-8">
+  <LSTMCell />
+</div>
+
+**The forget gate** decides what to throw away from the cell state:
+
+<div className="math-display">
+
+$$f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f)$$
+
+</div>
+
+When $f_t \approx 1$, the memory is preserved. When $f_t \approx 0$, the memory is erased. The network *learns* when to forget - for example, forgetting the previous subject when a new clause begins.
+
+**The input gate** decides what new information to store:
+
+<div className="math-display">
+
+$$i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i)$$
+
+</div>
+<div className="math-display">
+
+$$\tilde{c}_t = \tanh(W_c \cdot [h_{t-1}, x_t] + b_c)$$
+
+</div>
+
+The input gate $i_t$ controls how much of the candidate memory $\tilde{c}_t$ to write. A new entity mentioned in the text might be written strongly; filler words might be ignored.
+
+Watch each step in action - the animation cycles through all four LSTM operations, highlighting the active gate and data flow:
+
+<div className="not-prose my-8">
+  <LSTMWalkthrough />
+</div>
+
+**The cell state update** combines forgetting and input:
+
+<div className="math-display">
+
+$$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$$
+
+</div>
+
+This is where the magic happens. The cell state is a linear interpolation - old memory times the forget gate, plus new memory times the input gate. The gradient can flow through $f_t \odot c_{t-1}$ without passing through a $\tanh$ squashing function, which is why LSTMs can maintain information across much longer sequences.
+
+**The output gate** decides what to expose:
+
+<div className="math-display">
+
+$$o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o)$$
+
+</div>
+<div className="math-display">
+
+$$h_t = o_t \odot \tanh(c_t)$$
+
+</div>
+
+Not everything in the cell state is relevant for the current prediction. The output gate selects which parts of the memory to surface as the hidden state.
+
+### Why it works (and when it doesn't)
+
+The LSTM's gradient flows through the cell state update equation. Because $c_t = f_t \odot c_{t-1} + \ldots$, the gradient with respect to $c_{t-1}$ is simply $f_t$ - a value between 0 and 1, not a matrix product. No compounding multiplication. The gradient highway stays open.
+
+In practice, LSTMs extended the effective memory range from ~10 tokens (vanilla RNN) to ~100-200 tokens. This was enough to power:
+
+- **Machine translation** - Sutskever et al., 2014 (Google's sequence-to-sequence model)
+- **Speech recognition** - Graves et al., 2013 (CTC loss + bidirectional LSTMs)
+- **Language modeling** - Merity et al., 2018 (AWD-LSTM, competitive for years)
+- **Text generation** - the basis for early chatbots and autocomplete
+
+### GRUs: the simplified variant
+
+The **Gated Recurrent Unit (GRU)** (Cho et al., 2014) combines the forget and input gates into a single "update gate" and merges the cell state and hidden state. Fewer parameters, faster training, comparable performance:
+
+<div className="math-display">
+
+$$z_t = \sigma(W_z \cdot [h_{t-1}, x_t])$$
+
+</div>
+<div className="math-display">
+
+$$r_t = \sigma(W_r \cdot [h_{t-1}, x_t])$$
+
+</div>
+<div className="math-display">
+
+$$h_t = (1 - z_t) \odot h_{t-1} + z_t \odot \tanh(W \cdot [r_t \odot h_{t-1}, x_t])$$
+
+</div>
+
+The update gate $z_t$ acts as both forget and input - when it's 0, the hidden state is preserved; when it's 1, it's replaced with new information. The reset gate $r_t$ controls how much of the previous state to use when computing the candidate.
+
+### The limits of gating
+
+Despite their improvements, LSTMs and GRUs still have fundamental limitations:
+
+**Memory is finite.** The cell state is a fixed-size vector (typically 256-1024 dimensions). For a 10,000-token document, all information must fit in that vector. Something has to be forgotten.
+
+**Memory is fragile.** Even with gating, the forget gate is rarely exactly 1.0. Over hundreds of steps, the multiplicative decay $\prod f_t$ still trends toward zero. A fact from paragraph 1 is usually gone by paragraph 10.
+
+**No random access.** To retrieve information from the beginning of a sequence, the signal must propagate through every intermediate step. There's no way to "look back" directly at token 5 when processing token 500.
+
+This last limitation is the most fundamental - and it's exactly what attention solves.
+
+## The Sequential Bottleneck
+
+Even if LSTMs had perfect memory, they'd still be crippled by their architecture's most basic constraint: **they are sequential**.
+
+### The information bottleneck
+
+In a standard sequence-to-sequence model (Sutskever et al., 2014), the encoder reads the entire source sentence and compresses it into a single vector - the final hidden state. The decoder then generates the output from that vector alone.
+
+<div className="not-prose my-8">
+  <Seq2SeqDiagram />
+</div>
+
+For the sentence "The quick brown fox jumped over the lazy dog," the entire meaning - subject, action, object, modifiers, relationships - must fit in one vector. This works for short sentences. For a paragraph? A page? A chapter? The vector can't hold it all.
+
+Bahdanau et al., 2015 partially addressed this with **attention over encoder states** (allowing the decoder to look back at all encoder positions), but the encoder itself still processed sequentially.
+
+### The processing bottleneck
+
+Token $t$ cannot be processed until tokens $1$ through $t-1$ are finished. This is inherent to the recurrence relation $h_t = f(h_{t-1}, x_t)$. You can't parallelize it.
+
+For a 1,000-token document on a GPU with 10,000 CUDA cores, 9,999 cores sit idle at each time step. The sequential nature of RNNs wastes nearly all of the GPU's computational capacity.
+
+Concrete numbers: training an LSTM-based translation model on WMT'14 English-German took 3.5 days on 8 GPUs (Sutskever et al., 2014). The original Transformer achieved better results in 12 hours on 8 GPUs (Vaswani et al., 2017) - a 7× speedup, driven almost entirely by parallelization.
+
+### The bidirectionality hack
+
+Vanilla RNNs only read left to right. But understanding often requires right-to-left context too. "I went to the bank to deposit money" - you need to see "deposit money" to know "bank" means financial institution, not riverbank.
+
+**Bidirectional RNNs** (Schuster & Paliwal, 1997) run two separate RNNs - one forward, one backward - and concatenate their hidden states. This doubles the parameters and still doesn't solve the sequential bottleneck (you now have two sequential passes instead of one).
+
+### Why the Transformer was inevitable
+
+By 2016, the limitations of recurrent architectures were clear:
+
+1. **Vanishing gradients** limited effective context to ~200 tokens, even with LSTM gates
+2. **Sequential processing** prevented efficient GPU utilization
+3. **Fixed-size hidden states** couldn't represent long documents
+4. **No direct connections** between distant tokens - everything was mediated by intermediate states
+
+What if we could build a network where every token can directly attend to every other token, in parallel, with no recurrence at all?
+
+That architecture is the **Transformer** (Vaswani et al., 2017). It replaces recurrence with **self-attention** - a mechanism where each token computes a weighted combination of all tokens in the sequence, in a single parallelizable matrix multiplication.
+
+No sequential bottleneck. No hidden state degradation. No memory limit (beyond the fixed context window). Just attention.
+
+Continue to [Attention Is All You Need - A Visual Story](/blog/transformers).

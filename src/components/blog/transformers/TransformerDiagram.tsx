@@ -154,7 +154,7 @@ function PlusSymbol({ y }: { y: number }) {
         cy={y}
         r={12}
         fill="rgba(255,255,255,0.05)"
-        stroke="rgba(255,255,255,0.2)"
+        stroke="rgba(255,255,255,0.35)"
         strokeWidth={1}
       />
       <text

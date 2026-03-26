@@ -219,10 +219,10 @@ function NetworkNodes({
           : "rgba(255,255,255,0.06)";
         const stroke = isThisHovered
           ? ACCENT
-          : "rgba(255,255,255,0.15)";
+          : "rgba(255,255,255,0.25)";
         const labelFill = isThisHovered
           ? "rgba(255,255,255,1)"
-          : "rgba(255,255,255,0.5)";
+          : "rgba(255,255,255,0.7)";
 
         return (
           <g
@@ -283,7 +283,7 @@ function LayerLabels() {
           x={LAYER_X_POSITIONS[i]}
           y={LABEL_Y}
           textAnchor="middle"
-          fill="rgba(255,255,255,0.3)"
+          fill="rgba(255,255,255,0.5)"
           fontSize={11}
           letterSpacing="0.1em"
           style={{ textTransform: "uppercase" }}
@@ -311,9 +311,9 @@ function ParameterBadges({ hovered }: { hovered: HoveredNode }) {
         const x = (LAYER_X_POSITIONS[i] + LAYER_X_POSITIONS[i + 1]) / 2;
         const y = NODE_AREA_BOTTOM + 24;
         const isHighlighted = activeConnections.has(i);
-        const weightColor = isHighlighted ? ACCENT : "rgba(255,255,255,0.3)";
+        const weightColor = isHighlighted ? ACCENT : "rgba(255,255,255,0.5)";
         const biasColor = isHighlighted ? BIAS_COLOR : "rgba(180,160,220,0.25)";
-        const eqColor = isHighlighted ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)";
+        const eqColor = isHighlighted ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.35)";
 
         return (
           <g key={i} style={{ transition: "opacity 0.3s ease" }} opacity={hovered && !isHighlighted ? 0.15 : 1}>
@@ -338,7 +338,7 @@ function ParameterBadges({ hovered }: { hovered: HoveredNode }) {
         x={SVG_WIDTH / 2}
         y={NODE_AREA_BOTTOM + 62}
         textAnchor="middle"
-        fill="rgba(255,255,255,0.25)"
+        fill="rgba(255,255,255,0.4)"
         fontSize={12}
         fontFamily={FONT_MONO}
       >

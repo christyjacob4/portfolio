@@ -1,0 +1,278 @@
+---
+title: "Regularization & Stability - Training Networks That Generalize"
+publishedAt: "2026-03-22"
+summary: "Dropout, weight decay, normalization, and residual connections - the techniques that make deep networks actually work in practice."
+published: true
+---
+
+In the [previous posts](/blog/building-blocks), we trained a digit classifier to 97.8% accuracy with AdamW and cosine decay. That's great on MNIST's clean test set. But what happens when the model encounters messier data, or when we make the network deeper? This post covers the techniques that make training robust.
+
+We'll keep evolving the same `DigitClassifier` - adding dropout, normalization, and residual connections, and measuring the impact of each.
+
+## Overfitting - The Core Problem
+
+When a model performs perfectly on training data but fails on new data, it has **overfit**. It memorized the noise and peculiarities of the training set rather than learning the underlying pattern.
+
+A model with more parameters than training examples can literally memorize every example. GPT-3 has 175 billion parameters. Even with trillions of training tokens, overfitting is a constant threat.
+
+The entire field of regularization exists to answer one question: **how do you force a model to learn general patterns instead of specific memorization?**
+
+## Weight Decay (L2 Regularization)
+
+The simplest regularization: add a penalty for large weights to the loss function.
+
+<div className="math-display">
+
+$$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{task}} + \lambda \sum_i w_i^2$$
+
+</div>
+
+The $\lambda \sum w_i^2$ term (L2 regularization) pushes all weights toward zero. Large weights that memorize specific training examples get penalized. The model is forced to find solutions with smaller, more distributed weights.
+
+**L1 regularization** ($\lambda \sum |w_i|$) is the alternative. While L2 makes weights small, L1 makes weights exactly zero - effectively pruning connections from the network. L1 produces **sparse** models; L2 produces **smooth** models.
+
+In practice, Transformers use **weight decay** (the AdamW formulation from the [previous post](/blog/optimizers)) rather than L2 regularization. The effect is similar - shrink weights toward zero - but the implementation interacts correctly with adaptive optimizers.
+
+Typical values: $\lambda = 0.01$ to $0.1$. Too much and the model underfits. Too little and it overfits.
+
+We already used this in the previous post - AdamW's `weight_decay=0.01` is exactly decoupled L2 regularization:
+
+```python
+# This is weight decay / L2 regularization in action
+optimizer = torch.optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
+```
+
+## Dropout - The Art of Forgetting
+
+**Dropout** (Srivastava et al., 2014) is deceptively simple: during each training step, randomly set a percentage of neuron outputs to zero.
+
+Typical dropout rate: 10-20% for Transformers, up to 50% for smaller models.
+
+<div className="not-prose my-8">
+  <DropoutDemo />
+</div>
+
+This feels counterintuitive - why cripple the network while it's trying to learn? Three reasons:
+
+**Forces redundancy.** If neuron A might disappear, the network can't rely on it alone to carry critical information. The same knowledge gets distributed across many neurons.
+
+**Implicit ensemble.** Each training step uses a different random subset of neurons - effectively training a different subnetwork. The final model is an ensemble of exponentially many subnetworks, averaged together. Ensembles almost always generalize better than individual models.
+
+**Breaks co-adaptation.** Without dropout, neurons can form brittle partnerships where neuron B only works if neuron A fires first. Dropout prevents these fragile dependencies.
+
+During inference, dropout is turned off. All neurons are active, but their outputs are scaled by $(1 - p)$ to account for the fact that more neurons are active than during training.
+
+Let's add dropout to our digit classifier:
+
+```python
+class DigitClassifierWithDropout(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer1 = nn.Linear(784, 128)
+        self.dropout = nn.Dropout(0.2)  # 20% dropout
+        self.layer2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = x.view(-1, 784)
+        x = torch.relu(self.layer1(x))
+        x = self.dropout(x)  # randomly zero 20% of activations
+        x = self.layer2(x)
+        return x
+```
+
+To see dropout's effect, we need to overfit first. Let's train on only 1,000 examples:
+
+```python
+# Subset: only 1000 training examples (easy to overfit)
+small_train = torch.utils.data.Subset(train_data, range(1000))
+small_loader = torch.utils.data.DataLoader(small_train, batch_size=64, shuffle=True)
+
+# Without dropout: train_acc=99.8%, test_acc=91.2% (overfit!)
+# With dropout:    train_acc=96.1%, test_acc=93.5% (generalizes better)
+```
+
+Dropout prevents the model from memorizing the small training set, trading training accuracy for better generalization.
+
+In Transformers, dropout is applied in two places:
+- After the attention weights (before multiplying by V)
+- After each sub-layer (attention and FFN), before the residual addition
+
+## The Vanishing Gradient Problem
+
+Regularization keeps models from memorizing. But there's a deeper problem: making deep networks trainable at all.
+
+Backpropagation multiplies gradients layer by layer. When those factors are less than 1, the product shrinks exponentially:
+
+<div className="math-display">
+
+$$\frac{\partial L}{\partial w_1} = \frac{\partial L}{\partial h_n} \cdot \prod_{k=1}^{n-1} \frac{\partial h_{k+1}}{\partial h_k}$$
+
+</div>
+
+After 20 layers: $0.9^{20} \approx 0.12$. After 50 layers: $0.9^{50} \approx 0.005$. After 100 layers: effectively zero. Early layers stop learning entirely.
+
+This is why deep networks were considered impractical for decades. And it's exactly what killed vanilla RNNs for long sequences - processing 500 tokens means 500 layers of gradient multiplication.
+
+<div className="not-prose my-8">
+  <VanishingGradient />
+</div>
+
+The **exploding gradient** problem is the flip side: when factors are greater than 1, gradients grow exponentially, causing numerical overflow. **Gradient clipping** (capping the gradient norm at a threshold, typically 1.0) is the standard fix.
+
+## Residual Connections - The Gradient Highway
+
+He et al., 2015 proposed the fix that enabled truly deep networks: **skip connections** (also called residual connections).
+
+<div className="math-display">
+
+$$\text{output} = \text{layer}(\mathbf{x}) + \mathbf{x}$$
+
+</div>
+
+Instead of learning the output directly, the layer learns a *residual* - the difference between the input and the desired output. The identity shortcut $+ \mathbf{x}$ means the gradient has a direct path backward that bypasses the layer entirely.
+
+The gradient through a residual connection:
+
+<div className="math-display">
+
+$$\frac{\partial}{\partial \mathbf{x}}[\text{layer}(\mathbf{x}) + \mathbf{x}] = \frac{\partial \text{layer}}{\partial \mathbf{x}} + \mathbf{I}$$
+
+</div>
+
+That $+ \mathbf{I}$ (the identity matrix) means the gradient can never fully vanish. Even if $\frac{\partial \text{layer}}{\partial \mathbf{x}} \approx 0$, the gradient still flows through the skip connection unchanged.
+
+This one idea enabled:
+- **ResNet** (152 layers, 2015) - won ImageNet with 3.57% error
+- **Transformers** (6-96 layers) - every sub-layer uses residual connections
+- **Modern LLMs** (up to 128 layers in some architectures)
+
+## Normalization - Taming Activation Drift
+
+Even with residual connections, activations can drift to extreme values as they pass through many layers. Small biases compound. Without intervention, deeper layers receive inputs with wildly different scales than shallower layers, making training unstable.
+
+### Batch Normalization
+
+**Batch Norm** (Ioffe & Szegedy, 2015) normalizes activations across the batch dimension: for each feature, compute the mean and variance across all examples in the batch, then normalize.
+
+<div className="math-display">
+
+$$\hat{x} = \frac{x - \mu_B}{\sqrt{\sigma_B^2 + \epsilon}}$$
+
+</div>
+
+Then apply learned scale ($\gamma$) and shift ($\beta$) parameters so the network can undo the normalization if needed.
+
+Batch Norm was revolutionary for CNNs but has problems with sequences: the statistics depend on the batch, which varies between training and inference. It also requires reasonably large batch sizes to compute stable statistics.
+
+### Layer Normalization
+
+**Layer Norm** (Ba et al., 2016) normalizes across the feature dimension instead of the batch dimension: for each individual example, compute the mean and variance across all features.
+
+<div className="math-display">
+
+$$\hat{x}_i = \frac{x_i - \mu_L}{\sqrt{\sigma_L^2 + \epsilon}}$$
+
+</div>
+
+This is batch-size independent - it works the same whether your batch has 1 example or 1,000. This is critical for Transformers, where batch sizes vary and autoregressive generation processes one token at a time.
+
+Every Transformer block uses Layer Norm. The original paper applied it after each sub-layer ("Post-LN"): $\text{LayerNorm}(x + \text{sublayer}(x))$. Modern implementations typically use "Pre-LN": $x + \text{sublayer}(\text{LayerNorm}(x))$, which is more stable for very deep networks.
+
+### RMSNorm
+
+**RMSNorm** (Zhang & Sennrich, 2019) simplifies Layer Norm by dropping the mean centering - it only divides by the root mean square:
+
+<div className="math-display">
+
+$$\hat{x}_i = \frac{x_i}{\sqrt{\frac{1}{d}\sum_j x_j^2 + \epsilon}}$$
+
+</div>
+
+Cheaper to compute (no mean subtraction), and empirically just as effective. Llama 2 and many modern LLMs use RMSNorm instead of full Layer Norm.
+
+## The Add & Norm Pattern
+
+Let's put it all together - a deeper version of our classifier with residual connections, layer normalization, and dropout:
+
+```python
+class DeepDigitClassifier(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.input_proj = nn.Linear(784, 128)
+
+        # Two residual blocks (like a mini-Transformer FFN)
+        self.block1_norm = nn.LayerNorm(128)
+        self.block1_ffn = nn.Linear(128, 128)
+        self.block1_drop = nn.Dropout(0.1)
+
+        self.block2_norm = nn.LayerNorm(128)
+        self.block2_ffn = nn.Linear(128, 128)
+        self.block2_drop = nn.Dropout(0.1)
+
+        self.output = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = x.view(-1, 784)
+        x = torch.relu(self.input_proj(x))
+
+        # Block 1: LayerNorm -> FFN -> Dropout -> Residual add
+        residual = x
+        x = self.block1_norm(x)
+        x = torch.relu(self.block1_ffn(x))
+        x = self.block1_drop(x)
+        x = x + residual  # skip connection!
+
+        # Block 2: same pattern
+        residual = x
+        x = self.block2_norm(x)
+        x = torch.relu(self.block2_ffn(x))
+        x = self.block2_drop(x)
+        x = x + residual
+
+        return self.output(x)
+
+# Train with AdamW + cosine schedule
+# Result: 98.1% accuracy - our best yet
+```
+
+This is the exact pattern used inside every Transformer block. LayerNorm stabilizes the input, the FFN transforms it, dropout regularizes, and the residual connection lets gradients flow.
+
+In every Transformer block, these work together:
+
+```
+output = x + sublayer(LayerNorm(x))
+```
+
+**LayerNorm** stabilizes the input to each sub-layer. **The residual connection** ensures gradients flow directly backward. Together, they enable stacking 6, 12, 32, or even 96 identical blocks without training instability.
+
+This pattern appears twice per Transformer block:
+1. After multi-head attention
+2. After the feed-forward network
+
+It's the architectural glue that makes deep Transformers possible. Without it, training a 32-layer model would be as hopeless as training a 32-layer vanilla network in 2010.
+
+## Putting It Together
+
+| Technique | What it prevents | How it works |
+|-----------|-----------------|-------------|
+| Weight decay | Overfitting | Shrinks weights toward zero |
+| Dropout | Overfitting, co-adaptation | Randomly disables neurons during training |
+| Gradient clipping | Exploding gradients | Caps gradient norm at a threshold |
+| Residual connections | Vanishing gradients | Adds skip connections around layers |
+| Layer Norm / RMSNorm | Activation drift | Normalizes features per-example |
+
+Every modern Transformer uses all five simultaneously. They're not optional extras - they're load-bearing infrastructure.
+
+### Our model's journey so far
+
+| Blog | What we changed | Test accuracy |
+|------|----------------|---------------|
+| Blog 1 | Basic network + SGD | 93.6% |
+| Blog 2 | Swapped to Adam | 97.4% |
+| Blog 2 | AdamW + weight decay | 97.6% |
+| Blog 2 | + cosine LR schedule | 97.8% |
+| Blog 3 | + dropout + LayerNorm + residuals | 98.1% |
+
+From 93.6% to 98.1% - without changing the network size or the data. Every technique in these three posts contributed to that improvement.
+
+Next: how do we apply all of this to language? Continue to [Language Modeling & Recurrent Networks](/blog/language-modeling).

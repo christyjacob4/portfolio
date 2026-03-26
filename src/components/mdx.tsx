@@ -3,7 +3,9 @@ import Image from 'next/image'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import React from 'react'
 import rehypePrism from 'rehype-prism-plus'
+import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
 import dynamic from 'next/dynamic'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/accordion'
 import { BlogImageGrid } from './BlogImageGrid'
@@ -31,6 +33,19 @@ const QKVComputation = dynamic(() => import('./blog/transformers/QKVComputation'
 const PositionalEncoding = dynamic(() => import('./blog/transformers/PositionalEncoding'), { ssr: false })
 const EncoderDecoder = dynamic(() => import('./blog/transformers/EncoderDecoder'), { ssr: false })
 const MaskedAttention = dynamic(() => import('./blog/transformers/MaskedAttention'), { ssr: false })
+const UnrolledRNN = dynamic(() => import('./blog/language-modeling/UnrolledRNN'), { ssr: false })
+const LSTMGates = dynamic(() => import('./blog/language-modeling/LSTMGates'), { ssr: false })
+const LSTMCell = dynamic(() => import('./blog/language-modeling/LSTMCell'), { ssr: false })
+const AutoregressiveLoop = dynamic(() => import('./blog/kv-caching/AutoregressiveLoop'), { ssr: false })
+const KVCacheVisualizer = dynamic(() => import('./blog/kv-caching/KVCacheVisualizer'), { ssr: false })
+const MemoryWallChart = dynamic(() => import('./blog/kv-caching/MemoryWallChart'), { ssr: false })
+const GPUMemoryDiagram = dynamic(() => import('./blog/flash-attention/GPUMemoryDiagram'), { ssr: false })
+const OptimizerComparison = dynamic(() => import('./blog/optimizers/OptimizerComparison'), { ssr: false })
+const LossFunctionComparison = dynamic(() => import('./blog/optimizers/LossFunctionComparison'), { ssr: false })
+const LRScheduleChart = dynamic(() => import('./blog/optimizers/LRScheduleChart'), { ssr: false })
+const MemoryScalingChart = dynamic(() => import('./blog/flash-attention/MemoryScalingChart'), { ssr: false })
+const LSTMWalkthrough = dynamic(() => import('./blog/language-modeling/LSTMWalkthrough'), { ssr: false })
+const Seq2SeqDiagram = dynamic(() => import('./blog/language-modeling/Seq2SeqDiagram'), { ssr: false })
 
 function CustomLink(props) {
   let href = props.href
@@ -173,7 +188,20 @@ let components = {
   QKVComputation,
   PositionalEncoding,
   EncoderDecoder,
-  MaskedAttention
+  MaskedAttention,
+  UnrolledRNN,
+  LSTMGates,
+  LSTMCell,
+  AutoregressiveLoop,
+  KVCacheVisualizer,
+  MemoryWallChart,
+  GPUMemoryDiagram,
+  MemoryScalingChart,
+  OptimizerComparison,
+  LossFunctionComparison,
+  LRScheduleChart,
+  LSTMWalkthrough,
+  Seq2SeqDiagram
 }
 
 export function CustomMDX(props) {
@@ -183,9 +211,11 @@ export function CustomMDX(props) {
     options: {
       mdxOptions: {
         remarkPlugins: [
-          remarkGfm
+          remarkGfm,
+          remarkMath
         ],
         rehypePlugins: [
+          rehypeKatex,
           rehypePrism
         ],
       },

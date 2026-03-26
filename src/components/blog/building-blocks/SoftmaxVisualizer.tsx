@@ -141,7 +141,7 @@ function LogitBar({
           className="absolute bottom-0 w-full rounded-sm"
           style={{
             height: Math.max(0, normalizedHeight),
-            backgroundColor: active ? ACCENT : "rgba(255,255,255,0.25)",
+            backgroundColor: active ? ACCENT : "rgba(255,255,255,0.4)",
             opacity: active ? 0.5 : 1,
             transition: "height 0.1s ease, background-color 0.15s ease",
             pointerEvents: "none",

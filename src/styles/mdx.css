@@ -220,3 +220,19 @@
   border-color: rgba(255, 255, 255, 0.04);
   margin: 2rem 0;
 }
+
+/* KaTeX math styling */
+.prose .katex {
+  color: #c4c0ba;
+  font-size: 1.1em;
+}
+
+/* Display math: use .math-display wrapper in MDX */
+.prose .math-display {
+  text-align: center !important;
+  margin: 1.5rem 0 !important;
+}
+
+.prose .math-display .katex {
+  font-size: 1.25em;
+}

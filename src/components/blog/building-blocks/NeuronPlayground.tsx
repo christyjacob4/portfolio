@@ -114,7 +114,7 @@ function NeuronDiagram({
         cy={input1Y}
         r={20}
         fill="rgba(255,255,255,0.04)"
-        stroke="rgba(255,255,255,0.2)"
+        stroke="rgba(255,255,255,0.35)"
         strokeWidth={1}
       />
       <text
@@ -142,7 +142,7 @@ function NeuronDiagram({
         cy={input2Y}
         r={20}
         fill="rgba(255,255,255,0.04)"
-        stroke="rgba(255,255,255,0.2)"
+        stroke="rgba(255,255,255,0.35)"
         strokeWidth={1}
       />
       <text
@@ -192,12 +192,12 @@ function NeuronDiagram({
         y1={neuronY}
         x2={activationX - 28}
         y2={activationY}
-        stroke="rgba(255,255,255,0.25)"
+        stroke="rgba(255,255,255,0.4)"
         strokeWidth={1}
       />
       <polygon
         points={`${activationX - 28},${activationY - 4} ${activationX - 28},${activationY + 4} ${activationX - 22},${activationY}`}
-        fill="rgba(255,255,255,0.25)"
+        fill="rgba(255,255,255,0.4)"
       />
 
       {/* Activation function box */}
@@ -229,12 +229,12 @@ function NeuronDiagram({
         y1={activationY}
         x2={outputX - 10}
         y2={activationY}
-        stroke="rgba(255,255,255,0.25)"
+        stroke="rgba(255,255,255,0.4)"
         strokeWidth={1}
       />
       <polygon
         points={`${outputX - 10},${activationY - 4} ${outputX - 10},${activationY + 4} ${outputX - 4},${activationY}`}
-        fill="rgba(255,255,255,0.25)"
+        fill="rgba(255,255,255,0.4)"
       />
 
       {/* Output value */}
