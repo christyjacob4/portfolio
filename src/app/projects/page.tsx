@@ -2,10 +2,10 @@ import { ProjectItem, Project } from "@/components/ProjectItem";
 
 const projects: Project[] = [
   {
-    title: "Orion Labs",
+    title: "orionlabs",
     description:
       "A software development studio specializing in AI development, full-stack engineering, and custom software solutions. Built for clients ranging from seed-stage startups to Fortune 500 enterprises.",
-    coverText: "Orion Labs",
+    coverText: "orionlabs",
     projectUrl: "https://orionlabs.work",
     techStack: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion", "Vercel"],
   },
