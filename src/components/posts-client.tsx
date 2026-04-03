@@ -105,25 +105,47 @@ export function BlogPostsClient({ posts }: BlogPostsClientProps) {
         {sortedBlogs.map((post) => (
           <Link
             key={post.slug}
-            className="group block overflow-hidden rounded-lg transition-all duration-200 hover:scale-[1.02]"
+            className="group block overflow-hidden rounded-lg transition-opacity duration-200 hover:opacity-80"
             href={`/blog/${post.slug}`}
           >
-            {/* Header Image */}
+            {/* Header Image or generated cover */}
             <div className="relative aspect-video overflow-hidden rounded-lg">
-              <Image
-                src={post.metadata.image || "/placeholder.svg"}
-                alt={`${post.metadata.title} header image`}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
+              {post.metadata.image ? (
+                <Image
+                  src={post.metadata.image}
+                  alt={`${post.metadata.title} header image`}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              ) : (
+                <div
+                  className="absolute inset-0 flex flex-col justify-between p-5"
+                  style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #141414 50%, #0a0a0a 100%)' }}
+                >
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 opacity-[0.04]"
+                    style={{
+                      backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+                      backgroundSize: '32px 32px',
+                    }}
+                  />
+                  <span className="relative text-[10px] font-mono text-neutral-600 tracking-[0.2em] uppercase">
+                    {formatDate(post.metadata.publishedAt, false)}
+                  </span>
+                  <p className="relative text-lg font-medium text-neutral-200 leading-snug tracking-tight line-clamp-3" style={{ fontFamily: 'var(--font-lora), Georgia, serif' }}>
+                    {post.metadata.title}
+                  </p>
+                </div>
+              )}
             </div>
-            
+
             {/* Card Content */}
-            <div className="pt-4">
-              <time className="text-sm text-gray-500 dark:text-gray-400 mb-2 block">
+            <div className="pt-3">
+              <time className="text-xs text-muted-foreground mb-1.5 block tracking-wide">
                 {formatDate(post.metadata.publishedAt, false)}
               </time>
-              <h3 className="text-base font-medium text-gray-900 dark:text-gray-100 group-hover:text-primary transition-colors">
+              <h3 className="text-sm font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-150 leading-snug">
                 {post.metadata.title}
               </h3>
             </div>

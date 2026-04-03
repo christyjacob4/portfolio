@@ -83,6 +83,7 @@ export default function RootLayout({
       )}
     >
       <body className="antialiased bg-background text-foreground">
+        <div aria-hidden="true" className="grain" />
         <div className="max-w-2xl mx-auto px-4 md:px-6 lg:px-4">
           <main className="flex flex-col min-h-screen">
             <Navbar />

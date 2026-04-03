@@ -14,6 +14,31 @@ import { CodeBlock } from './CodeBlock'
 // Dynamically import the Mermaid component with SSR disabled
 const Mermaid = dynamic(() => import('./Mermaid'), { ssr: false })
 const AnimatedGauge = dynamic(() => import('./craft/AnimatedGauge'), { ssr: false })
+const EQVisualizer = dynamic(() => import('./craft/EQVisualizer'), { ssr: false })
+const LineChart = dynamic(() => import('./craft/LineChart'), { ssr: false })
+const ActivityRings = dynamic(() => import('./craft/ActivityRings'), { ssr: false })
+const BinaryClock = dynamic(() => import('./craft/BinaryClock'), { ssr: false })
+const DotMatrixClock = dynamic(() => import('./craft/DotMatrixClock'), { ssr: false })
+const Typewriter = dynamic(() => import('./craft/Typewriter'), { ssr: false })
+const Oscilloscope = dynamic(() => import('./craft/Oscilloscope'), { ssr: false })
+const RadarSweep = dynamic(() => import('./craft/RadarSweep'), { ssr: false })
+const Heartbeat = dynamic(() => import('./craft/Heartbeat'), { ssr: false })
+const SortingVisualizer = dynamic(() => import('./craft/SortingVisualizer'), { ssr: false })
+const MatrixRain = dynamic(() => import('./craft/MatrixRain'), { ssr: false })
+const MazeGenerator = dynamic(() => import('./craft/MazeGenerator'), { ssr: false })
+const NoiseField = dynamic(() => import('./craft/NoiseField'), { ssr: false })
+const ParticleNetwork = dynamic(() => import('./craft/ParticleNetwork'), { ssr: false })
+const SineWaves = dynamic(() => import('./craft/SineWaves'), { ssr: false })
+const FibonacciSpiral = dynamic(() => import('./craft/FibonacciSpiral'), { ssr: false })
+const CPUMonitor = dynamic(() => import('./craft/CPUMonitor'), { ssr: false })
+const HexGrid = dynamic(() => import('./craft/HexGrid'), { ssr: false })
+const MorseCode = dynamic(() => import('./craft/MorseCode'), { ssr: false })
+const PixelCanvas = dynamic(() => import('./craft/PixelCanvas'), { ssr: false })
+const Pendulum = dynamic(() => import('./craft/Pendulum'), { ssr: false })
+const BarcodeClock = dynamic(() => import('./craft/BarcodeClock'), { ssr: false })
+const Spirograph = dynamic(() => import('./craft/Spirograph'), { ssr: false })
+const BinaryRain = dynamic(() => import('./craft/BinaryRain'), { ssr: false })
+const CircularProgress = dynamic(() => import('./craft/CircularProgress'), { ssr: false })
 const EmbeddingSpace = dynamic(() => import('./blog/building-blocks/EmbeddingSpace'), { ssr: false })
 const NeuronPlayground = dynamic(() => import('./blog/building-blocks/NeuronPlayground'), { ssr: false })
 const MatrixMultiplier = dynamic(() => import('./blog/building-blocks/MatrixMultiplier'), { ssr: false })
@@ -46,6 +71,36 @@ const LRScheduleChart = dynamic(() => import('./blog/optimizers/LRScheduleChart'
 const MemoryScalingChart = dynamic(() => import('./blog/flash-attention/MemoryScalingChart'), { ssr: false })
 const LSTMWalkthrough = dynamic(() => import('./blog/language-modeling/LSTMWalkthrough'), { ssr: false })
 const Seq2SeqDiagram = dynamic(() => import('./blog/language-modeling/Seq2SeqDiagram'), { ssr: false })
+
+// RLHF components
+const RLHFPipeline = dynamic(() => import('./blog/rlhf/RLHFPipeline'), { ssr: false })
+const RewardModelViz = dynamic(() => import('./blog/rlhf/RewardModelViz'), { ssr: false })
+const PPOTrainingLoop = dynamic(() => import('./blog/rlhf/PPOTrainingLoop'), { ssr: false })
+const DPOComparison = dynamic(() => import('./blog/rlhf/DPOComparison'), { ssr: false })
+
+// Mixture of Experts components
+const RouterVisualization = dynamic(() => import('./blog/moe/RouterVisualization'), { ssr: false })
+const ExpertCapacity = dynamic(() => import('./blog/moe/ExpertCapacity'), { ssr: false })
+const MoEArchitecture = dynamic(() => import('./blog/moe/MoEArchitecture'), { ssr: false })
+const DenseVsSparse = dynamic(() => import('./blog/moe/DenseVsSparse'), { ssr: false })
+
+// Quantization components
+const NumberFormatExplorer = dynamic(() => import('./blog/quantization/NumberFormatExplorer'), { ssr: false })
+const QuantizationDemo = dynamic(() => import('./blog/quantization/QuantizationDemo'), { ssr: false })
+const MemoryCalculator = dynamic(() => import('./blog/quantization/MemoryCalculator'), { ssr: false })
+const PerplexityVsBits = dynamic(() => import('./blog/quantization/PerplexityVsBits'), { ssr: false })
+
+// LoRA components
+const LowRankDecomposition = dynamic(() => import('./blog/lora/LowRankDecomposition'), { ssr: false })
+const LoRAForwardPass = dynamic(() => import('./blog/lora/LoRAForwardPass'), { ssr: false })
+const MemorySavings = dynamic(() => import('./blog/lora/MemorySavings'), { ssr: false })
+const RankExplorer = dynamic(() => import('./blog/lora/RankExplorer'), { ssr: false })
+
+// Speculative Decoding components
+const SpeculativeDecodingDemo = dynamic(() => import('./blog/speculative-decoding/SpeculativeDecodingDemo'), { ssr: false })
+const AcceptanceRate = dynamic(() => import('./blog/speculative-decoding/AcceptanceRate'), { ssr: false })
+const SpeedupCalculator = dynamic(() => import('./blog/speculative-decoding/SpeedupCalculator'), { ssr: false })
+const TreeAttention = dynamic(() => import('./blog/speculative-decoding/TreeAttention'), { ssr: false })
 
 function CustomLink(props) {
   let href = props.href
@@ -170,6 +225,31 @@ let components = {
   AccordionContent,
   BlogImageGrid,
   AnimatedGauge,
+  EQVisualizer,
+  LineChart,
+  ActivityRings,
+  BinaryClock,
+  DotMatrixClock,
+  Typewriter,
+  Oscilloscope,
+  RadarSweep,
+  Heartbeat,
+  SortingVisualizer,
+  MatrixRain,
+  MazeGenerator,
+  NoiseField,
+  ParticleNetwork,
+  SineWaves,
+  FibonacciSpiral,
+  CPUMonitor,
+  HexGrid,
+  MorseCode,
+  PixelCanvas,
+  Pendulum,
+  BarcodeClock,
+  Spirograph,
+  BinaryRain,
+  CircularProgress,
   EmbeddingSpace,
   NeuronPlayground,
   MatrixMultiplier,
@@ -201,7 +281,32 @@ let components = {
   LossFunctionComparison,
   LRScheduleChart,
   LSTMWalkthrough,
-  Seq2SeqDiagram
+  Seq2SeqDiagram,
+  // RLHF
+  RLHFPipeline,
+  RewardModelViz,
+  PPOTrainingLoop,
+  DPOComparison,
+  // Mixture of Experts
+  RouterVisualization,
+  ExpertCapacity,
+  MoEArchitecture,
+  DenseVsSparse,
+  // Quantization
+  NumberFormatExplorer,
+  QuantizationDemo,
+  MemoryCalculator,
+  PerplexityVsBits,
+  // LoRA
+  LowRankDecomposition,
+  LoRAForwardPass,
+  MemorySavings,
+  RankExplorer,
+  // Speculative Decoding
+  SpeculativeDecodingDemo,
+  AcceptanceRate,
+  SpeedupCalculator,
+  TreeAttention
 }
 
 export function CustomMDX(props) {
