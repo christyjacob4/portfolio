@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { CoverImage } from "@/components/CoverImage";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -81,7 +82,7 @@ export function BlogPostsClient({ posts }: BlogPostsClientProps) {
 
   return (
     <div>
-      <div className="flex items-baseline justify-between mb-6">
+      <div className="flex items-baseline justify-between mb-6 animate-fade-up delay-75">
         <h2 className="title">Recent Posts</h2>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -101,7 +102,7 @@ export function BlogPostsClient({ posts }: BlogPostsClientProps) {
         </DropdownMenu>
       </div>
       
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 animate-fade-up delay-150">
         {sortedBlogs.map((post) => (
           <Link
             key={post.slug}
@@ -109,7 +110,7 @@ export function BlogPostsClient({ posts }: BlogPostsClientProps) {
             href={`/blog/${post.slug}`}
           >
             {/* Header Image or generated cover */}
-            <div className="relative aspect-video overflow-hidden rounded-lg">
+            <div className="relative aspect-video overflow-hidden rounded-lg group/image">
               {post.metadata.image ? (
                 <Image
                   src={post.metadata.image}
@@ -118,25 +119,7 @@ export function BlogPostsClient({ posts }: BlogPostsClientProps) {
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
-                <div
-                  className="absolute inset-0 flex flex-col justify-between p-5"
-                  style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #141414 50%, #0a0a0a 100%)' }}
-                >
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-0 opacity-[0.04]"
-                    style={{
-                      backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
-                      backgroundSize: '32px 32px',
-                    }}
-                  />
-                  <span className="relative text-[10px] font-mono text-neutral-600 tracking-[0.2em] uppercase">
-                    {formatDate(post.metadata.publishedAt, false)}
-                  </span>
-                  <p className="relative text-lg font-medium text-neutral-200 leading-snug tracking-tight line-clamp-3" style={{ fontFamily: 'var(--font-lora), Georgia, serif' }}>
-                    {post.metadata.title}
-                  </p>
-                </div>
+                <CoverImage title={post.slug === 'craft' ? post.metadata.title : undefined} />
               )}
             </div>
 
