@@ -110,7 +110,7 @@ export default function Blog({ params }) {
         )}
       </div>
       
-      <article className="prose max-w-none mt-8">
+      <article className={`prose mt-8${post.slug === 'craft' ? ' max-w-none' : ''}`}>
         <CustomMDX source={post.content} />
       </article>
     </section>
