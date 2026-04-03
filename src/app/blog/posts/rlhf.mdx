@@ -6,18 +6,18 @@ image: "/blog/rlhf/cover.jpg"
 published: true
 ---
 
-A language model trained on the internet can write poetry, generate code, and answer trivia. But ask it a simple question like "How do I pick a lock?" and it will cheerfully explain — because its training objective was *predict the next token*, not *be helpful and safe*.
+A language model trained on the internet can write poetry, generate code, and answer trivia. But ask it a simple question like "How do I pick a lock?" and it will cheerfully explain, because its training objective was *predict the next token*, not *be helpful and safe*.
 
 The gap between "good at predicting text" and "good at following human intent" is the **alignment problem**. Closing that gap is what RLHF (Reinforcement Learning from Human Feedback) is about, and it's arguably the most consequential technique in modern AI. It transformed GPT-3 (impressive but unreliable) into ChatGPT (useful and mostly safe). It turned a text completion engine into an assistant.
 
-This post walks through the entire RLHF pipeline — from the math to the code — with interactive diagrams at every stage. We'll cover:
+This post walks through the entire RLHF pipeline, from the math to the code, with interactive diagrams at every stage. We'll cover:
 
 1. Why pre-training alone isn't enough
-2. Supervised Fine-Tuning (SFT) — learning from demonstrations
-3. Reward Modeling — learning human preferences
-4. PPO — the RL optimization loop
-5. DPO — skipping the reward model entirely
-6. Constitutional AI — using AI feedback instead of human feedback
+2. Supervised Fine-Tuning (SFT): learning from demonstrations
+3. Reward Modeling: learning human preferences
+4. PPO: the RL optimization loop
+5. DPO: skipping the reward model entirely
+6. Constitutional AI: using AI feedback instead of human feedback
 7. The practical challenges that make alignment hard
 
 Let's begin.
@@ -44,7 +44,7 @@ This objective has no notion of "helpful," "harmless," or "honest." The model le
 
 **2. Safety failure.** The model might provide detailed instructions for dangerous activities. The internet contains such information, so the model learned to produce it.
 
-**3. Honesty failure.** The model might hallucinate facts with perfect confidence. It was never trained to say "I don't know" — that phrase rarely appears in its training data as a response to questions.
+**3. Honesty failure.** The model might hallucinate facts with perfect confidence. It was never trained to say "I don't know"; that phrase rarely appears in its training data as a response to questions.
 
 ### The solution: learn from human feedback
 
@@ -66,7 +66,7 @@ The pipeline was introduced by Ouyang et al. (2022) in the InstructGPT paper and
 
 Before any RL happens, we need a model that can at least follow basic instructions. SFT achieves this by fine-tuning the pre-trained model on a dataset of **(prompt, high-quality response)** pairs written by human demonstrators.
 
-The loss function is identical to pre-training — next-token prediction — but the data is curated:
+The loss function is identical to pre-training (next-token prediction), but the data is curated:
 
 <div className="math-display">
 
@@ -131,7 +131,7 @@ def train_sft(model, dataset, epochs=3, lr=1e-5):
 
 SFT has a fundamental ceiling: it can only be as good as the demonstrations. Human demonstrators disagree on what constitutes a "good" response. Some write verbose answers; others prefer concise ones. Some are experts; others make mistakes.
 
-More critically, SFT trains on a **binary signal** — this response is good enough to include in the dataset. It cannot express *degrees* of quality. It cannot say "this response is good, but this other one is better." For that, we need a reward model.
+More critically, SFT trains on a **binary signal**: this response is good enough to include in the dataset. It cannot express *degrees* of quality. It cannot say "this response is good, but this other one is better." For that, we need a reward model.
 
 ---
 
@@ -283,11 +283,11 @@ def train_reward_model(reward_model, dataset, epochs=1, lr=1e-5):
 
 The reward model is the **entire source of training signal** for the RL phase. If the reward model has systematic biases (e.g., it prefers longer responses regardless of quality), the policy will exploit those biases. This is the root cause of **reward hacking**, which we'll discuss later.
 
-In practice, InstructGPT's reward model achieved about 72% agreement with held-out human labels — far from perfect, but sufficient to guide useful RL training. The accuracy varies significantly by category: factual questions are easier to judge than creative writing.
+In practice, InstructGPT's reward model achieved about 72% agreement with held-out human labels. That's far from perfect, but sufficient to guide useful RL training. The accuracy varies significantly by category: factual questions are easier to judge than creative writing.
 
 ---
 
-## Part IV: PPO — The RL Training Loop
+## Part IV: PPO - The RL Training Loop
 
 ### The optimization objective
 
@@ -307,7 +307,7 @@ The $\beta$ coefficient controls the tradeoff. Too small, and the model exploits
 
 ### Why KL divergence?
 
-Without the KL penalty, the policy would find **degenerate solutions** — responses that trick the reward model into giving high scores without actually being good. For example:
+Without the KL penalty, the policy would find **degenerate solutions**: responses that trick the reward model into giving high scores without actually being good. For example:
 - Repeating the word "great" hundreds of times (some reward models score this highly)
 - Producing responses in a bizarre format that happens to score well
 - Mode-collapsing to a single "template" response for all prompts
@@ -344,7 +344,7 @@ $$\nabla_\phi J(\phi) = \mathbb{E}_{\tau \sim \pi_\phi} \left[\sum_{t=0}^{T} \na
 
 </div>
 
-where $A_t$ is the **advantage** — how much better action $a_t$ was compared to the expected value at state $s_t$. In the RLHF context:
+where $A_t$ is the **advantage**, measuring how much better action $a_t$ was compared to the expected value at state $s_t$. In the RLHF context:
 - "State" $s_t$ is the prompt plus tokens generated so far
 - "Action" $a_t$ is the next token chosen
 - "Advantage" $A_t$ comes from the reward model score and a learned value function
@@ -570,7 +570,7 @@ For a 7B parameter model, each copy requires ~14 GB in fp16. Four copies means ~
 
 ---
 
-## Part V: DPO — Direct Preference Optimization
+## Part V: DPO - Direct Preference Optimization
 
 ### The key insight
 
@@ -624,7 +624,7 @@ $$\mathcal{L}_{\text{DPO}}(\theta) = -\mathbb{E}_{(x, y_w, y_l)} \left[\log \sig
 
 The term $\beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)}$ is the **implicit reward**. It measures how much the current policy has diverged from the reference on this specific response. If $\pi_\theta$ assigns much higher probability to $y$ than $\pi_{\text{ref}}$ does, the implicit reward is high.
 
-The DPO loss says: increase the implicit reward for preferred responses and decrease it for dispreferred ones. The KL constraint is baked in automatically — because the implicit reward is defined relative to the reference policy.
+The DPO loss says: increase the implicit reward for preferred responses and decrease it for dispreferred ones. The KL constraint is baked in automatically, because the implicit reward is defined relative to the reference policy.
 
 ### RLHF vs DPO: side by side
 
@@ -746,13 +746,13 @@ def train_dpo(policy_model, ref_model, dataset, epochs=1, lr=5e-7, beta=0.1):
 - No reward model to train or maintain
 - No RL instabilities (PPO is notoriously finicky)
 - ~50% less GPU memory (2 models instead of 4)
-- Simpler codebase — standard supervised training loop
+- Simpler codebase; uses a standard supervised training loop
 - The loss is well-defined and easy to debug
 
 **Limitations:**
 - Requires preference data to be representative of the desired behavior
 - Less flexible than RLHF with an explicit reward model (can't easily do online learning)
-- The $\beta$ parameter is sensitive — too small leads to mode collapse, too large leads to no learning
+- The $\beta$ parameter is sensitive; too small leads to mode collapse, too large leads to no learning
 - Cannot leverage reward models for data filtering or best-of-N sampling at inference time
 - Some evidence that PPO produces stronger results at very large scale
 
@@ -760,11 +760,11 @@ def train_dpo(policy_model, ref_model, dataset, epochs=1, lr=5e-7, beta=0.1):
 
 Several follow-up works have improved on the original DPO formulation:
 
-**IPO (Identity Preference Optimization)** — Replaces the sigmoid loss with a squared loss that avoids the overfitting problems of DPO when the preference data is deterministic.
+**IPO (Identity Preference Optimization):** Replaces the sigmoid loss with a squared loss that avoids the overfitting problems of DPO when the preference data is deterministic.
 
-**KTO (Kahneman-Tversky Optimization)** — Doesn't require pairwise comparisons at all. Instead, it works with individual examples labeled as "good" or "bad." Based on prospect theory from behavioral economics.
+**KTO (Kahneman-Tversky Optimization):** Doesn't require pairwise comparisons at all. Instead, it works with individual examples labeled as "good" or "bad." Based on prospect theory from behavioral economics.
 
-**ORPO (Odds Ratio Preference Optimization)** — Combines SFT and preference optimization into a single stage by adding a preference penalty directly to the SFT loss.
+**ORPO (Odds Ratio Preference Optimization):** Combines SFT and preference optimization into a single stage by adding a preference penalty directly to the SFT loss.
 
 ---
 
@@ -803,7 +803,7 @@ The "constitution" is a set of principles like:
 - Respect privacy and consent
 - Avoid generating explicit or violent content
 
-These principles are provided to the AI critic as part of its system prompt. The specific principles can be updated without retraining — just modify the critic's prompt.
+These principles are provided to the AI critic as part of its system prompt. The specific principles can be updated without retraining; just modify the critic's prompt.
 
 ### RLAIF in practice
 
@@ -938,7 +938,7 @@ The field is moving rapidly. Some active research directions:
 
 ## Summary
 
-RLHF and its variants are the bridge between "language model" and "AI assistant." The math is elegant — the Bradley-Terry model, the closed-form DPO solution — but the engineering is where the real difficulty lies. Reward hacking, mode collapse, evaluation, and scalability remain active challenges.
+RLHF and its variants are the bridge between "language model" and "AI assistant." The math is elegant (the Bradley-Terry model, the closed-form DPO solution), but the engineering is where the real difficulty lies. Reward hacking, mode collapse, evaluation, and scalability remain active challenges.
 
 The key equations to remember:
 
