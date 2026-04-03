@@ -1,0 +1,167 @@
+---
+title: "Why LLMs Can't Count the Letters in 'Mississippi'"
+publishedAt: "2026-04-04"
+summary: "A model with a trillion parameters, trained on most of human knowledge, fails a question any eight-year-old can answer. The cause is not stupidity — it is that the model never sees individual letters at all."
+published: true
+---
+
+Ask any language model how many s's are in the word *mississippi*. There are four. A reasonable human takes about three seconds to count them. GPT-3 would tell you two. Early GPT-4 would confidently say three. Even current models get it wrong more often than you'd expect from something that can write working compilers and derive differential equations.
+
+The failure feels strange — almost insulting — given everything these models *can* do. But it is not a reasoning failure. It is not a knowledge gap. It is a consequence of a specific engineering decision made years ago that the model has no way to undo at inference time: the word *mississippi* is never processed as eleven characters. It is processed as two.
+
+## What the Model Actually Sees
+
+When you type "mississippi" into a GPT-4-family model, the first thing that happens has nothing to do with neural networks. A preprocessing step called the **tokenizer** runs before any weights are touched. The tokenizer converts your text into a sequence of integers, each corresponding to a chunk of text called a token.
+
+Here is what that looks like in practice, using OpenAI's `tiktoken` library with the `cl100k_base` encoding (the one used by GPT-4 and GPT-4o):
+
+```python
+import tiktoken
+
+enc = tiktoken.get_encoding("cl100k_base")
+
+words = ["mississippi", "strawberry", "hippopotamus", "banana", "attention"]
+for word in words:
+    tokens = enc.encode(word)
+    decoded = [enc.decode([t]) for t in tokens]
+    print(f"{word:20} -> {decoded}")
+```
+
+```
+mississippi          -> ['miss', 'issippi']
+strawberry           -> ['str', 'aw', 'berry']
+hippopotamus         -> ['hip', 'pop', 'ot', 'amus']
+banana               -> ['banana']
+attention            -> ['attention']
+```
+
+*Mississippi* becomes two tokens: `miss` and `issippi`. Not eleven characters. Two chunks, each treated as an atomic unit by every subsequent operation in the network.
+
+Try it yourself — change the word and see what the tokenizer does to it:
+
+<div className="not-prose my-8">
+  <TokenizerVisualizer targetChar="s" />
+</div>
+
+Notice a few things. `banana` is a single token — any model will count its letters correctly because there is only one thing to look at. `attention` is also one token. But `hippopotamus` becomes four tokens (`hip`, `pop`, `ot`, `amus`), which means counting the letters `p` or `o` requires the model to mentally decompose four different atomic units. That is the source of the failure.
+
+## Why Tokenization Works This Way
+
+The tokenizer was not designed to make character counting easy. It was designed to make training efficient.
+
+Processing text character by character would mean sequences hundreds of times longer than necessary. A transformer's self-attention mechanism has $O(N^2)$ complexity in sequence length — double the length, quadruple the computation. Characters also fail to encode useful linguistic structure; the letter `t` alone carries almost no information, but the token `the` carries a great deal.
+
+The solution, developed in the 1990s for data compression and adapted for NLP, is **Byte Pair Encoding (BPE)**. BPE starts with a vocabulary of individual characters and iteratively merges the most frequent adjacent pairs. After enough merges, common words and syllables become single tokens. The procedure is run on a large corpus, so the resulting vocabulary reflects the statistical structure of the training data.
+
+For English text, this produces sensible-looking splits. Common words like `the`, `and`, `for`, `attention` end up as single tokens. Rare or compound words get split at morpheme boundaries. The word `miss` is extremely common in English — it appears millions of times as a verb, a title, a prefix. `issippi` appears almost exclusively as the tail of *Mississippi*. The tokenizer learned these patterns and treats them accordingly.
+
+Neither `miss` nor `issippi` is a character sequence in the model's representation. Each is a single embedding vector — a point in a 4,096-dimensional space that the model learned to associate with all the contexts those tokens appeared in during training.
+
+## The Architecture Cannot Look Inside Tokens
+
+Here is the key constraint: the transformer's attention mechanism operates over tokens, not characters. When the model processes `['miss', 'issippi']`, the attention layers compute relationships between those two vectors. There is no mechanism to attend to the second character of the first token. The architecture does not expose sub-token structure.
+
+This is not a fixable limitation with prompt engineering — it is baked into the computation graph. Matthew Guzdial, an AI researcher at the University of Alberta, put it plainly: *"When it sees the word 'the', it has this one encoding of what 'the' means, but it does not know about 'T', 'H', 'E'."*
+
+The model's representation of `miss` encodes everything it learned about the token `miss` from training — that it can be a verb, a title, a prefix, that it appears before `you` and `out` and `the point` — but it does not structurally encode the character sequence `m-i-s-s`. That information may or may not have been implicitly learned through co-occurrence patterns, but it is not directly accessible.
+
+Counting letters in a word requires the model to do something it was never explicitly trained to do: decompose a semantic unit back into its constituent characters. For a single-token word like `banana`, this implicit decomposition is easy — the model has seen countless training examples discussing "b-a-n-a-n-a" spelling, and the token maps cleanly. For multi-token words, the model must integrate character-level information across token boundaries without any architectural support.
+
+## Real Numbers on the Failure
+
+A 2024 paper, *"Counting Ability of Large Language Models and Impact of Tokenization"* (arxiv:2410.19730), ran controlled experiments on exactly this problem using GPT-4o mini. They kept the counting task identical and varied only the tokenization format of the input.
+
+The results are stark:
+
+<div className="not-prose my-8">
+  <CountingAccuracyChart />
+</div>
+
+The same model, the same task, the same question — with accuracy ranging from 2% to 96.8% depending solely on how the input was formatted. When the input was presented as raw text, BPE grouped multiple letters into single tokens and accuracy collapsed. When each character was forced into its own token (space-delimited or comma-delimited), accuracy recovered dramatically.
+
+This is not a coincidence. It is direct confirmation that the counting failure is a tokenization artifact, not a reasoning failure. When every character has its own token, the model can count by attending sequentially across the sequence. When characters are merged into multi-character tokens, the model has to perform character-level reasoning over semantic-level units — and it cannot do this reliably.
+
+The paper also found an interesting asymmetry: rare letters like `z` (appearing in ~0.07% of training text) were counted more accurately than common letters like `e` (~12.7%). The hypothesis is that rare-letter tokens carry less embedded semantic interference — the model does not have to disentangle the character identity from layers of learned meaning.
+
+## The Workarounds That Actually Work
+
+Two techniques consistently improve performance, and they are now used automatically by frontier models:
+
+**Force character-level tokenization.** Ask the model to spell out the word first: *"Spell 'mississippi' letter by letter, then count the s's."* Spelling forces each letter to become its own token in the output, which the model can then operate on. It is essentially prompting the model to perform the same character-separation that the researchers did in their experiments.
+
+```python
+# Instead of:
+# "How many s's are in mississippi?"
+
+# Ask:
+# "Spell out 'mississippi' letter by letter, then count the s's."
+# Model output: "m-i-s-s-i-s-s-i-p-p-i. That's 4 s's."
+```
+
+**Chain-of-thought reasoning.** The paper found that CoT is necessary but not sufficient. With CoT enabled and character-separated input, accuracy reached 96.8%. With CoT disabled, even character-separated input produced poor results. The model needs both the architectural access to individual characters (via tokenization) and the reasoning steps to count them correctly.
+
+## What GPT-4o Does Differently
+
+GPT-4o uses a different tokenizer (`o200k_base`, 200,000-token vocabulary versus the 100,000 of `cl100k_base`). Running the same experiment:
+
+```python
+enc_o = tiktoken.get_encoding("o200k_base")  # GPT-4o
+enc_4 = tiktoken.get_encoding("cl100k_base")  # GPT-4
+
+for enc_name, enc in [("GPT-4o", enc_o), ("GPT-4", enc_4)]:
+    tokens = enc.encode("mississippi")
+    print(f"{enc_name}: {[enc.decode([t]) for t in tokens]}")
+```
+
+```
+GPT-4o: ['miss', 'issippi']
+GPT-4:  ['miss', 'issippi']
+```
+
+The tokenization is identical. GPT-4o did not solve the problem by changing the tokenizer. Its improved performance on character counting tasks comes from better chain-of-thought training and process supervision — the model learned to mentally decompose tokens as part of its reasoning process, which is slower and more error-prone than having character-level access built into the architecture.
+
+This is why newer models sometimes get *mississippi* right: not because they see characters, but because they have been trained on enough examples of the `spell-it-out` reasoning strategy to apply it automatically.
+
+## The Space-Separated Trick
+
+You can reproduce the paper's findings directly:
+
+```python
+import tiktoken
+
+enc = tiktoken.get_encoding("cl100k_base")
+
+word = "mississippi"
+spaced = " ".join(word)  # "m i s s i s s i p p i"
+
+natural_tokens = enc.encode(word)
+spaced_tokens = enc.encode(spaced)
+
+print(f"Natural:  {[enc.decode([t]) for t in natural_tokens]}")
+print(f"Spaced:   {[enc.decode([t]) for t in spaced_tokens]}")
+```
+
+```
+Natural:  ['miss', 'issippi']
+Spaced:   ['m', ' i', ' s', ' s', ' i', ' s', ' s', ' i', ' p', ' p', ' i']
+```
+
+In the spaced version, each character becomes its own token (with a leading space, which BPE treats as part of the token). Now when you ask the model to count s's in the space-separated string, it is counting tokens — a trivial sequential operation that transformers handle correctly.
+
+## What Would Actually Fix This
+
+The honest answer is that current tokenization is the wrong abstraction for tasks requiring character-level reasoning. Several approaches have been tried:
+
+**Character-level models** process text one character at a time. They trivially handle letter counting. The cost is that sequences become very long (a 1,000-word document becomes ~6,000 characters), and $O(N^2)$ attention becomes prohibitively expensive. These models have consistently underperformed BPE-based models on everything *except* character-level tasks.
+
+**Byte-level tokenization** processes raw UTF-8 bytes rather than character n-grams. Models like Meta's LLaMA 3 and some of Google's Gemma variants use byte fallbacks for out-of-vocabulary text. This does not solve the counting problem for common words, which still get merged into multi-byte tokens, but it handles rare and multilingual text more gracefully.
+
+**ByT5** (Xue et al., 2022) is a byte-level sequence-to-sequence model that demonstrated competitive performance on many tasks while naturally handling character-level operations. It works, but the long-sequence cost is real: ByT5 requires roughly 5x more compute per token than its BPE-equivalent.
+
+**MegaByte** (2023) proposed a hierarchical approach: process text in small fixed-size patches at the outer level, then decode each patch character by character at the inner level. This preserves character-level access while keeping sequences short. It has not been adopted at scale.
+
+The practical situation is this: BPE wins because it makes everything else faster, and everything else is more commercially important than letter counting. The workarounds — spell it out, use CoT, add spaces — work well enough that the problem does not block deployment.
+
+What makes this worth understanding is what it reveals about how language models actually work. The model does not read. It does not process your words the way you do when you read them. It operates on a compressed statistical representation of the text, and that representation makes some operations easy and some operations surprisingly hard. Letter counting is one of the surprising ones — not because of model intelligence, but because of an engineering choice made at a level most users never see.
+
+The model does not know what letters are in the word *miss*. It knows everything about what the word *miss* means.
