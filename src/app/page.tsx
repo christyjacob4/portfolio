@@ -5,6 +5,7 @@ import { ImageGallery } from "@/components/image-gallery";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpRight, Star } from "lucide-react";
 import { CoverImage } from "@/components/CoverImage";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 type Project = {
   title: string;
@@ -98,13 +99,17 @@ function formatDate(date: string) {
 }
 
 export default async function Page() {
-  // Fetch stars for projects with GitHub URLs
-  const projectsWithStars = await Promise.all(
-    projects.map(async (p) => ({
-      ...p,
-      stars: p.githubUrl ? await fetchStars(p.githubUrl) : null,
-    }))
-  );
+  // Fetch stars for projects with GitHub URLs, sort by stars, take top 4
+  const projectsWithStars = (
+    await Promise.all(
+      projects.map(async (p) => ({
+        ...p,
+        stars: p.githubUrl ? await fetchStars(p.githubUrl) : null,
+      }))
+    )
+  )
+    .sort((a, b) => (b.stars ?? 0) - (a.stars ?? 0))
+    .slice(0, 4);
 
   // Get 4 most recent blog posts
   const allPosts = getBlogPosts()
@@ -175,7 +180,7 @@ export default async function Page() {
       </p>
 
       {/* Projects */}
-      <div className="my-14 animate-fade-up delay-375">
+      <ScrollReveal className="my-14">
         <div className="flex items-baseline justify-between mb-6">
           <h2 className="title">Projects</h2>
           <Link
@@ -243,10 +248,10 @@ export default async function Page() {
             </Link>
           ))}
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* Blog */}
-      <div className="my-14 animate-fade-up delay-450">
+      <ScrollReveal className="my-14">
         <div className="flex items-baseline justify-between mb-6">
           <h2 className="title">Recent Posts</h2>
           <Link
@@ -263,7 +268,7 @@ export default async function Page() {
               className="group block overflow-hidden rounded-lg transition-opacity duration-200 hover:opacity-80"
               href={`/blog/${post.slug}`}
             >
-              <div className="relative aspect-video overflow-hidden rounded-lg">
+              <div className="relative aspect-video overflow-hidden rounded-lg group/image">
                 {post.metadata.image ? (
                   <Image
                     src={post.metadata.image}
@@ -272,34 +277,7 @@ export default async function Page() {
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
-                  <div
-                    className="absolute inset-0 flex flex-col justify-between p-5"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, #0d0d0d 0%, #141414 50%, #0a0a0a 100%)",
-                    }}
-                  >
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-0 opacity-[0.04]"
-                      style={{
-                        backgroundImage:
-                          "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-                        backgroundSize: "32px 32px",
-                      }}
-                    />
-                    <span className="relative text-[10px] font-mono text-neutral-600 tracking-[0.2em] uppercase">
-                      {formatDate(post.metadata.publishedAt)}
-                    </span>
-                    <p
-                      className="relative text-lg font-medium text-neutral-200 leading-snug tracking-tight line-clamp-3"
-                      style={{
-                        fontFamily: "var(--font-lora), Georgia, serif",
-                      }}
-                    >
-                      {post.metadata.title}
-                    </p>
-                  </div>
+                  <CoverImage title={post.slug === 'craft' ? post.metadata.title : undefined} />
                 )}
               </div>
               <div className="pt-3">
@@ -313,7 +291,7 @@ export default async function Page() {
             </Link>
           ))}
         </div>
-      </div>
+      </ScrollReveal>
     </section>
   );
 }
