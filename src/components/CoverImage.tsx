@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 interface CoverImageProps {
-  title: string;
+  title?: string;
   className?: string;
 }
 
@@ -33,24 +33,26 @@ export function CoverImage({ title, className }: CoverImageProps) {
         <div className="absolute h-full w-px border-r border-dashed border-neutral-200 dark:border-neutral-800 opacity-25 right-12"></div>
       </div>
       
-      <div className="p-8 w-full h-full flex items-center justify-center transition-transform duration-300 group-hover/image:scale-105 relative z-10">
-        <div className="relative">
-          <h3 
-            className="text-2xl md:text-3xl lg:text-4xl font-semibold text-black dark:text-white tracking-tight"
-            style={{ 
-              fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              fontWeight: 600,
-              letterSpacing: '-0.025em'
-            }}
-          >
-            {title}
-          </h3>
-          
-          {/* Small marker lines on the sides of text */}
-          <div className="absolute -left-4 top-1/2 w-2 h-px bg-neutral-400 dark:bg-neutral-600"></div>
-          <div className="absolute -right-4 top-1/2 w-2 h-px bg-neutral-400 dark:bg-neutral-600"></div>
+      {title && (
+        <div className="p-8 w-full h-full flex items-center justify-center transition-transform duration-300 group-hover/image:scale-105 relative z-10">
+          <div className="relative">
+            <h3
+              className="text-2xl md:text-3xl lg:text-4xl font-semibold text-black dark:text-white tracking-tight"
+              style={{
+                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontWeight: 600,
+                letterSpacing: '-0.025em'
+              }}
+            >
+              {title}
+            </h3>
+
+            {/* Small marker lines on the sides of text */}
+            <div className="absolute -left-4 top-1/2 w-2 h-px bg-neutral-400 dark:bg-neutral-600"></div>
+            <div className="absolute -right-4 top-1/2 w-2 h-px bg-neutral-400 dark:bg-neutral-600"></div>
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Bottom right position indicator */}
       <div className="absolute bottom-3 right-3 font-mono text-[10px] text-neutral-400 dark:text-neutral-600">
