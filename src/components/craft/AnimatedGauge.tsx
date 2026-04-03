@@ -12,6 +12,9 @@ const MINOR_TICK = 50
 const MAJOR_TICK = 80
 const MAJOR_EVERY = 10
 const NEEDLE_VALUE = 0.72
+const LABEL_R = R - 100
+
+const MARKINGS = [0, 10, 20, 30, 40, 50, 60]
 
 function toRad(deg: number) {
   return (deg * Math.PI) / 180
@@ -87,6 +90,17 @@ export default function AnimatedGauge() {
     }
   })
 
+  const labels = MARKINGS.map((val, i) => {
+    const angle = ARC_START - (i / (MARKINGS.length - 1)) * (ARC_START - ARC_END)
+    const rad = toRad(angle)
+    return {
+      x: CX + LABEL_R * Math.cos(rad),
+      y: CY - LABEL_R * Math.sin(rad),
+      text: String(val),
+      delay: i * MAJOR_EVERY * 8,
+    }
+  })
+
   const initRad = toRad(ARC_START)
 
   return (
@@ -100,6 +114,7 @@ export default function AnimatedGauge() {
         className="w-full h-full"
         preserveAspectRatio="xMidYMid meet"
       >
+        {/* Tick marks */}
         {ticks.map((tick, i) => (
           <line
             key={i}
@@ -119,6 +134,47 @@ export default function AnimatedGauge() {
           />
         ))}
 
+        {/* Number labels */}
+        {labels.map((label, i) => (
+          <text
+            key={i}
+            x={label.x}
+            y={label.y}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            style={{
+              fontFamily: "var(--font-geist-mono), monospace",
+              fontSize: "16px",
+              fontWeight: 500,
+              fill: "rgba(255,255,255,0.35)",
+              opacity: mounted ? 1 : 0,
+              transition: `opacity 0.3s ease-out ${label.delay}ms`,
+            }}
+          >
+            {label.text}
+          </text>
+        ))}
+
+        {/* Unit label */}
+        <text
+          x={CX}
+          y={CY - R + 220}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={{
+            fontFamily: "var(--font-geist-mono), monospace",
+            fontSize: "22px",
+            fontWeight: 600,
+            letterSpacing: "0.15em",
+            fill: "rgba(255,255,255,0.2)",
+            opacity: mounted ? 1 : 0,
+            transition: "opacity 0.3s ease-out 300ms",
+          }}
+        >
+          kHz
+        </text>
+
+        {/* Needle */}
         <line
           ref={needleRef}
           x1={CX}

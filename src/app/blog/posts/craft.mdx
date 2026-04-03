@@ -5,13 +5,88 @@ summary: "Interactive components and visual experiments."
 published: true
 ---
 
-<div className="relative w-screen left-1/2 -translate-x-1/2 px-4 md:px-8 not-prose">
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-7xl mx-auto">
-    <div>
-      <p className="text-sm text-white/50 font-mono mb-2">gauge</p>
-      <div className="aspect-[16/9] rounded-xl overflow-hidden bg-[#1d2027]">
-        <AnimatedGauge />
-      </div>
+<div className="not-prose" style={{ width: '100vw', position: 'relative', left: '50%', right: '50%', marginLeft: '-50vw', marginRight: '-50vw', padding: '0 24px' }}>
+  <div className="craft-grid" style={{ borderTop: '1px solid rgba(255,255,255,0.12)', borderBottom: '1px solid rgba(255,255,255,0.12)', borderLeft: '1px solid rgba(255,255,255,0.12)', borderRight: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', overflow: 'hidden' }}>
+
+    <div className="craft-gauge" style={{ borderRight: '1px solid rgba(255,255,255,0.12)', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+      <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}><span style={{ fontSize: '11px', fontFamily: 'var(--font-geist-mono), monospace', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.04em' }}>gauge · frequency</span></div>
+      <div style={{ height: '360px' }}><AnimatedGauge /></div>
     </div>
+    <div className="craft-terminal" style={{ borderRight: '1px solid rgba(255,255,255,0.12)', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+      <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}><span style={{ fontSize: '11px', fontFamily: 'var(--font-geist-mono), monospace', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.04em' }}>terminal</span></div>
+      <div style={{ height: '360px' }}><Typewriter /></div>
+    </div>
+    <div className="craft-bclock" style={{ borderRight: '1px solid rgba(255,255,255,0.12)', borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+      <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}><span style={{ fontSize: '11px', fontFamily: 'var(--font-geist-mono), monospace', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.04em' }}>clock · binary</span></div>
+      <div style={{ height: '360px' }}><BinaryClock /></div>
+    </div>
+    <div className="craft-dotclock" style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+      <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}><span style={{ fontSize: '11px', fontFamily: 'var(--font-geist-mono), monospace', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.04em' }}>clock · dot matrix</span></div>
+      <div style={{ height: '360px' }}><DotMatrixClock /></div>
+    </div>
+
+    <div className="craft-eq" style={{ borderRight: '1px solid rgba(255,255,255,0.12)' }}>
+      <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}><span style={{ fontSize: '11px', fontFamily: 'var(--font-geist-mono), monospace', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.04em' }}>eq · energy output</span></div>
+      <div style={{ height: '340px' }}><EQVisualizer /></div>
+    </div>
+    <div className="craft-linechart" style={{ borderRight: '1px solid rgba(255,255,255,0.12)' }}>
+      <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}><span style={{ fontSize: '11px', fontFamily: 'var(--font-geist-mono), monospace', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.04em' }}>chart · revenue & users</span></div>
+      <div style={{ height: '340px' }}><LineChart /></div>
+    </div>
+    <div className="craft-rings">
+      <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}><span style={{ fontSize: '11px', fontFamily: 'var(--font-geist-mono), monospace', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.04em' }}>activity rings</span></div>
+      <div style={{ height: '340px' }}><ActivityRings /></div>
+    </div>
+
   </div>
 </div>
+
+<style>{`
+  .craft-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+  }
+  .craft-gauge { grid-column: span 3; }
+  .craft-terminal { grid-column: span 3; }
+  .craft-bclock { grid-column: span 3; }
+  .craft-dotclock { grid-column: span 3; }
+  .craft-eq { grid-column: span 3; }
+  .craft-linechart { grid-column: span 6; }
+  .craft-rings { grid-column: span 3; }
+
+  @media (max-width: 1280px) {
+    .craft-grid { grid-template-columns: repeat(6, 1fr); }
+    .craft-gauge { grid-column: span 3; }
+    .craft-terminal { grid-column: span 3; }
+    .craft-bclock { grid-column: span 3; }
+    .craft-dotclock { grid-column: span 3; }
+    .craft-eq { grid-column: span 3; }
+    .craft-linechart { grid-column: span 3; }
+    .craft-rings { grid-column: span 6; }
+  }
+
+  @media (max-width: 768px) {
+    .craft-grid { grid-template-columns: repeat(2, 1fr); }
+    .craft-gauge { grid-column: span 1; }
+    .craft-terminal { grid-column: span 1; }
+    .craft-bclock { grid-column: span 1; }
+    .craft-dotclock { grid-column: span 1; }
+    .craft-eq { grid-column: span 1; }
+    .craft-linechart { grid-column: span 2; }
+    .craft-rings { grid-column: span 1; }
+  }
+
+  @media (max-width: 480px) {
+    .craft-grid { grid-template-columns: 1fr; }
+    .craft-gauge,
+    .craft-terminal,
+    .craft-bclock,
+    .craft-dotclock,
+    .craft-eq,
+    .craft-linechart,
+    .craft-rings {
+      grid-column: span 1;
+      border-right: none !important;
+    }
+  }
+`}</style>
