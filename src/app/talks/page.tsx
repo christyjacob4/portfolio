@@ -41,8 +41,8 @@ const talks = [
 export default function Page() {
   return (
     <section>
-      <h1 className="font-semibold text-2xl mb-8 tracking-tighter">Talks</h1>
-      <div className="text-muted-foreground">Coming soon...</div>
+      <h1 className="font-semibold text-2xl mb-8 tracking-tighter animate-fade-up delay-75">Talks</h1>
+      <div className="text-muted-foreground animate-fade-up delay-150">Coming soon...</div>
       <div className="space-y-4">
         {/* {talks.map((talk, index) => (
           <div key={index} className="border rounded-lg p-4 shadow-sm">

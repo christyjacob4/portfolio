@@ -123,8 +123,8 @@ export default async function Page() {
 
   return (
     <section>
-      <h1 className="font-semibold text-2xl mb-8 tracking-tighter">Projects</h1>
-      <div className="space-y-0">
+      <h1 className="font-semibold text-2xl mb-8 tracking-tighter animate-fade-up delay-75">Projects</h1>
+      <div className="space-y-0 animate-fade-up delay-150">
         {projectsWithStars.map((project, index) => (
           <ProjectItem key={index} project={project} />
         ))}

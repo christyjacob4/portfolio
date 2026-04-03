@@ -197,8 +197,8 @@ const workExperiences = [
 export default function Page() {
   return (
     <section className="max-w-2xl mb-8">
-      <h1 className="font-medium text-2xl mb-8 tracking-tighter">Work</h1>
-      <p className="text-base text-muted-foreground mb-8">
+      <h1 className="font-medium text-2xl mb-8 tracking-tighter animate-fade-up delay-75">Work</h1>
+      <p className="text-base text-muted-foreground mb-8 animate-fade-up delay-150">
         Over the past 5 years, I&apos;ve evolved from a researcher developing
         cutting-edge computer vision systems to leading engineering
         organizations at scale. I&apos;ve architected cloud infrastructures
@@ -212,7 +212,7 @@ export default function Page() {
         combine technical excellence with strategic business value.
       </p>
 
-      <div className="space-y-14">
+      <div className="space-y-14 animate-fade-up delay-225">
         {workExperiences.map((company, index) => (
           <div key={index} className="group">
             <div className="flex items-center gap-4 mb-6">
