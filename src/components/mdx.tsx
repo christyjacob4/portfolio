@@ -101,6 +101,9 @@ const SpeculativeDecodingDemo = dynamic(() => import('./blog/speculative-decodin
 const AcceptanceRate = dynamic(() => import('./blog/speculative-decoding/AcceptanceRate'), { ssr: false })
 const SpeedupCalculator = dynamic(() => import('./blog/speculative-decoding/SpeedupCalculator'), { ssr: false })
 const TreeAttention = dynamic(() => import('./blog/speculative-decoding/TreeAttention'), { ssr: false })
+// Tokenization letter counting
+const TokenizerVisualizer = dynamic(() => import('./blog/tokenization/TokenizerVisualizer'), { ssr: false })
+const CountingAccuracyChart = dynamic(() => import('./blog/tokenization/CountingAccuracyChart'), { ssr: false })
 
 function CustomLink(props) {
   let href = props.href
@@ -306,7 +309,10 @@ let components = {
   SpeculativeDecodingDemo,
   AcceptanceRate,
   SpeedupCalculator,
-  TreeAttention
+  TreeAttention,
+  // Tokenization letter counting
+  TokenizerVisualizer,
+  CountingAccuracyChart,
 }
 
 export function CustomMDX(props) {
