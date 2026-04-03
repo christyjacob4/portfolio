@@ -1,0 +1,993 @@
+---
+title: "RLHF - Teaching Language Models to Follow Human Intent"
+publishedAt: "2026-04-03"
+summary: "From raw language models to aligned assistants: supervised fine-tuning, reward modeling, PPO, DPO, and Constitutional AI - with interactive visualizations, math, and PyTorch code."
+image: "/blog/rlhf/cover.jpg"
+published: true
+---
+
+A language model trained on the internet can write poetry, generate code, and answer trivia. But ask it a simple question like "How do I pick a lock?" and it will cheerfully explain — because its training objective was *predict the next token*, not *be helpful and safe*.
+
+The gap between "good at predicting text" and "good at following human intent" is the **alignment problem**. Closing that gap is what RLHF (Reinforcement Learning from Human Feedback) is about, and it's arguably the most consequential technique in modern AI. It transformed GPT-3 (impressive but unreliable) into ChatGPT (useful and mostly safe). It turned a text completion engine into an assistant.
+
+This post walks through the entire RLHF pipeline — from the math to the code — with interactive diagrams at every stage. We'll cover:
+
+1. Why pre-training alone isn't enough
+2. Supervised Fine-Tuning (SFT) — learning from demonstrations
+3. Reward Modeling — learning human preferences
+4. PPO — the RL optimization loop
+5. DPO — skipping the reward model entirely
+6. Constitutional AI — using AI feedback instead of human feedback
+7. The practical challenges that make alignment hard
+
+Let's begin.
+
+---
+
+## Part I: The Alignment Problem
+
+### What pre-training actually optimizes
+
+A pre-trained language model maximizes the log-likelihood of the training corpus:
+
+<div className="math-display">
+
+$$\mathcal{L}_{\text{pretrain}}(\theta) = \sum_{t=1}^{T} \log p_\theta(x_t \mid x_{<t})$$
+
+</div>
+
+This objective has no notion of "helpful," "harmless," or "honest." The model learns to be a statistical parrot of its training data. If the training data contains toxic content, the model reproduces toxic content. If the data contains contradictions, the model contradicts itself. The probability of a response is determined by *how likely it is to appear on the internet*, not by *how good it is as an answer*.
+
+### Three failure modes
+
+**1. Helpfulness failure.** The model might respond to "Write me a Python function to sort a list" with a Wikipedia article about sorting algorithms instead of actual code. Both are plausible continuations of the text; the model has no preference for the useful one.
+
+**2. Safety failure.** The model might provide detailed instructions for dangerous activities. The internet contains such information, so the model learned to produce it.
+
+**3. Honesty failure.** The model might hallucinate facts with perfect confidence. It was never trained to say "I don't know" — that phrase rarely appears in its training data as a response to questions.
+
+### The solution: learn from human feedback
+
+The insight behind RLHF is simple: **if we can't write down a perfect loss function for "good behavior," we can train a model to approximate human judgment, then optimize against it.**
+
+This happens in three stages, shown in the interactive pipeline below.
+
+<div className="not-prose my-12">
+  <RLHFPipeline />
+</div>
+
+The pipeline was introduced by Ouyang et al. (2022) in the InstructGPT paper and subsequently used (with variations) by ChatGPT, Claude, Gemini, and nearly every major language model deployed today.
+
+---
+
+## Part II: Supervised Fine-Tuning (SFT)
+
+### The first alignment step
+
+Before any RL happens, we need a model that can at least follow basic instructions. SFT achieves this by fine-tuning the pre-trained model on a dataset of **(prompt, high-quality response)** pairs written by human demonstrators.
+
+The loss function is identical to pre-training — next-token prediction — but the data is curated:
+
+<div className="math-display">
+
+$$\mathcal{L}_{\text{SFT}}(\theta) = -\sum_{(x,y) \in \mathcal{D}_{\text{demo}}} \sum_{t=1}^{|y|} \log p_\theta(y_t \mid x, y_{<t})$$
+
+</div>
+
+where $x$ is the prompt and $y$ is the human-written demonstration. The key difference from pre-training: the data $\mathcal{D}_{\text{demo}}$ consists of examples that represent the *desired* behavior, not just any text from the internet.
+
+### What SFT teaches
+
+SFT teaches the model:
+- **Format**: How to structure responses (use headers, bullet points, code blocks)
+- **Tone**: Be conversational, helpful, and direct
+- **Task compliance**: Actually answer the question being asked
+- **Safety basics**: Refuse clearly harmful requests
+
+### SFT in code
+
+```python
+import torch
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+
+def sft_training_step(model, batch, optimizer):
+    """One step of supervised fine-tuning.
+
+    batch contains:
+      - input_ids: [B, T] token IDs (prompt + response concatenated)
+      - labels: [B, T] same as input_ids but with prompt tokens set to -100
+      - attention_mask: [B, T]
+    """
+    outputs = model(
+        input_ids=batch["input_ids"],
+        attention_mask=batch["attention_mask"],
+        labels=batch["labels"],  # -100 for prompt tokens (ignored in loss)
+    )
+    loss = outputs.loss  # Cross-entropy over response tokens only
+
+    optimizer.zero_grad()
+    loss.backward()
+    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+    optimizer.step()
+
+    return loss.item()
+
+# Training loop
+def train_sft(model, dataset, epochs=3, lr=1e-5):
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
+    dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
+
+    for epoch in range(epochs):
+        total_loss = 0
+        for batch in dataloader:
+            loss = sft_training_step(model, batch, optimizer)
+            total_loss += loss
+        avg_loss = total_loss / len(dataloader)
+        print(f"Epoch {epoch+1}/{epochs} | Loss: {avg_loss:.4f}")
+```
+
+### The limits of SFT
+
+SFT has a fundamental ceiling: it can only be as good as the demonstrations. Human demonstrators disagree on what constitutes a "good" response. Some write verbose answers; others prefer concise ones. Some are experts; others make mistakes.
+
+More critically, SFT trains on a **binary signal** — this response is good enough to include in the dataset. It cannot express *degrees* of quality. It cannot say "this response is good, but this other one is better." For that, we need a reward model.
+
+---
+
+## Part III: Reward Modeling
+
+### The preference learning problem
+
+Instead of asking humans to write perfect responses (expensive and inconsistent), we ask a much easier question: **given two responses, which one is better?**
+
+This is the core insight of reward modeling. Pairwise comparisons are:
+- **Cheaper**: Comparing takes seconds; writing takes minutes
+- **More consistent**: Humans agree more on relative quality than absolute quality
+- **More scalable**: One annotator can label 50+ comparisons per hour
+
+### The data format
+
+Each training example is a triple $(x, y_w, y_l)$:
+- $x$: the prompt
+- $y_w$: the **preferred** (winning) response
+- $y_l$: the **dispreferred** (losing) response
+
+The responses typically come from the SFT model itself. We sample multiple responses per prompt, then have humans rank them.
+
+### The Bradley-Terry model
+
+We model preferences using the **Bradley-Terry model**, a classic framework from the 1950s originally developed for sports rankings. The probability that response $y_w$ is preferred over $y_l$ is:
+
+<div className="math-display">
+
+$$P(y_w \succ y_l \mid x) = \sigma\big(r_\theta(x, y_w) - r_\theta(x, y_l)\big)$$
+
+</div>
+
+where $\sigma$ is the sigmoid function and $r_\theta(x, y)$ is a scalar reward that the model assigns to response $y$ given prompt $x$.
+
+The intuition: if the reward model assigns a much higher score to $y_w$ than $y_l$, the sigmoid pushes the probability close to 1 (high confidence that $y_w$ is better). If the scores are close, the probability is near 0.5 (uncertain).
+
+### The reward model loss
+
+We train the reward model by maximizing the log-likelihood of the observed preferences:
+
+<div className="math-display">
+
+$$\mathcal{L}_{\text{RM}}(\theta) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[\log \sigma\big(r_\theta(x, y_w) - r_\theta(x, y_l)\big)\right]$$
+
+</div>
+
+This is a binary cross-entropy loss. When the reward model correctly assigns a higher reward to the preferred response (large positive $r_\theta(x, y_w) - r_\theta(x, y_l)$), the loss is small. When it gets the ranking wrong, the loss is large.
+
+### Interactive: See the reward model in action
+
+Try voting on which response you think is better, then see how the reward model scores them.
+
+<div className="not-prose my-12">
+  <RewardModelViz />
+</div>
+
+### Reward model architecture
+
+The reward model is typically initialized from the SFT model. The only architectural change: replace the language modeling head (which outputs a vocabulary-sized vector) with a **scalar head** (which outputs a single number).
+
+```python
+import torch
+import torch.nn as nn
+
+class RewardModel(nn.Module):
+    """Reward model built on top of a pre-trained transformer.
+
+    Architecture: frozen/fine-tuned transformer backbone + linear scalar head.
+    Input: (prompt, response) concatenated as a single sequence.
+    Output: single scalar reward value.
+    """
+
+    def __init__(self, backbone):
+        super().__init__()
+        self.backbone = backbone  # Pre-trained transformer (e.g., from SFT)
+        hidden_size = backbone.config.hidden_size
+        self.reward_head = nn.Linear(hidden_size, 1)
+
+    def forward(self, input_ids, attention_mask=None):
+        # Get the last hidden state from the transformer
+        outputs = self.backbone(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            output_hidden_states=True,
+        )
+        # Use the last token's hidden state as the sequence representation
+        last_hidden = outputs.hidden_states[-1]
+
+        # If we have an attention mask, get the last non-padding token
+        if attention_mask is not None:
+            # Find the index of the last 1 in each row
+            seq_lengths = attention_mask.sum(dim=1) - 1  # [B]
+            batch_idx = torch.arange(input_ids.size(0), device=input_ids.device)
+            pooled = last_hidden[batch_idx, seq_lengths]  # [B, H]
+        else:
+            pooled = last_hidden[:, -1, :]  # [B, H]
+
+        reward = self.reward_head(pooled).squeeze(-1)  # [B]
+        return reward
+```
+
+### Training the reward model
+
+```python
+def reward_model_loss(reward_model, batch):
+    """Compute the Bradley-Terry preference loss.
+
+    batch contains:
+      - chosen_ids: [B, T] token IDs for preferred responses
+      - chosen_mask: [B, T] attention mask for preferred responses
+      - rejected_ids: [B, T] token IDs for dispreferred responses
+      - rejected_mask: [B, T] attention mask for dispreferred responses
+    """
+    # Score both responses
+    r_chosen = reward_model(batch["chosen_ids"], batch["chosen_mask"])    # [B]
+    r_rejected = reward_model(batch["rejected_ids"], batch["rejected_mask"])  # [B]
+
+    # Bradley-Terry loss: -log(sigmoid(r_chosen - r_rejected))
+    loss = -torch.nn.functional.logsigmoid(r_chosen - r_rejected).mean()
+
+    # Accuracy: fraction where chosen > rejected
+    accuracy = (r_chosen > r_rejected).float().mean()
+
+    return loss, accuracy
+
+def train_reward_model(reward_model, dataset, epochs=1, lr=1e-5):
+    optimizer = torch.optim.AdamW(reward_model.parameters(), lr=lr, weight_decay=0.01)
+    dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
+
+    for epoch in range(epochs):
+        total_loss, total_acc = 0, 0
+        for batch in dataloader:
+            loss, acc = reward_model_loss(reward_model, batch)
+
+            optimizer.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(reward_model.parameters(), max_norm=1.0)
+            optimizer.step()
+
+            total_loss += loss.item()
+            total_acc += acc.item()
+
+        n = len(dataloader)
+        print(f"Epoch {epoch+1} | Loss: {total_loss/n:.4f} | Accuracy: {total_acc/n:.2%}")
+```
+
+### Reward model quality matters enormously
+
+The reward model is the **entire source of training signal** for the RL phase. If the reward model has systematic biases (e.g., it prefers longer responses regardless of quality), the policy will exploit those biases. This is the root cause of **reward hacking**, which we'll discuss later.
+
+In practice, InstructGPT's reward model achieved about 72% agreement with held-out human labels — far from perfect, but sufficient to guide useful RL training. The accuracy varies significantly by category: factual questions are easier to judge than creative writing.
+
+---
+
+## Part IV: PPO — The RL Training Loop
+
+### The optimization objective
+
+With a trained reward model $r_\theta$, we can now optimize the language model's policy $\pi_\phi$ to produce responses that score highly. The objective is:
+
+<div className="math-display">
+
+$$\max_{\pi_\phi} \; \mathbb{E}_{x \sim \mathcal{D},\, y \sim \pi_\phi(\cdot|x)} \left[r_\theta(x, y)\right] - \beta \, D_{\text{KL}}\!\left[\pi_\phi(\cdot|x) \,\|\, \pi_{\text{ref}}(\cdot|x)\right]$$
+
+</div>
+
+Two terms:
+1. **Reward maximization**: Generate responses that the reward model scores highly
+2. **KL penalty**: Don't stray too far from the reference policy $\pi_{\text{ref}}$ (the SFT model)
+
+The $\beta$ coefficient controls the tradeoff. Too small, and the model exploits reward model bugs. Too large, and the model barely changes from SFT.
+
+### Why KL divergence?
+
+Without the KL penalty, the policy would find **degenerate solutions** — responses that trick the reward model into giving high scores without actually being good. For example:
+- Repeating the word "great" hundreds of times (some reward models score this highly)
+- Producing responses in a bizarre format that happens to score well
+- Mode-collapsing to a single "template" response for all prompts
+
+The KL divergence between two distributions over token sequences is:
+
+<div className="math-display">
+
+$$D_{\text{KL}}\!\left[\pi_\phi \| \pi_{\text{ref}}\right] = \mathbb{E}_{y \sim \pi_\phi} \left[\log \frac{\pi_\phi(y|x)}{\pi_{\text{ref}}(y|x)}\right]$$
+
+</div>
+
+In practice, for autoregressive models, this decomposes into a per-token KL:
+
+<div className="math-display">
+
+$$D_{\text{KL}} = \sum_{t=1}^{T} \mathbb{E}_{y_{<t}} \left[\sum_{v \in \mathcal{V}} \pi_\phi(v|x, y_{<t}) \log \frac{\pi_\phi(v|x, y_{<t})}{\pi_{\text{ref}}(v|x, y_{<t})}\right]$$
+
+</div>
+
+### PPO: Proximal Policy Optimization
+
+PPO (Schulman et al., 2017) is the standard algorithm used for the RL phase. It's popular because it's relatively stable and sample-efficient compared to other policy gradient methods.
+
+The core idea: update the policy to increase the probability of actions with positive advantage, but **clip** the update to prevent catastrophically large changes.
+
+#### The policy gradient
+
+The basic policy gradient theorem says:
+
+<div className="math-display">
+
+$$\nabla_\phi J(\phi) = \mathbb{E}_{\tau \sim \pi_\phi} \left[\sum_{t=0}^{T} \nabla_\phi \log \pi_\phi(a_t | s_t) \cdot A_t\right]$$
+
+</div>
+
+where $A_t$ is the **advantage** — how much better action $a_t$ was compared to the expected value at state $s_t$. In the RLHF context:
+- "State" $s_t$ is the prompt plus tokens generated so far
+- "Action" $a_t$ is the next token chosen
+- "Advantage" $A_t$ comes from the reward model score and a learned value function
+
+#### The clipped objective
+
+Vanilla policy gradients can take steps that are too large, destroying the policy. PPO prevents this with a clipped objective:
+
+<div className="math-display">
+
+$$L^{\text{CLIP}}(\phi) = \hat{\mathbb{E}}_t \left[\min\!\left(r_t(\phi)\hat{A}_t, \; \text{clip}\!\left(r_t(\phi),\, 1-\epsilon,\, 1+\epsilon\right)\hat{A}_t\right)\right]$$
+
+</div>
+
+where $r_t(\phi) = \frac{\pi_\phi(a_t|s_t)}{\pi_{\phi_{\text{old}}}(a_t|s_t)}$ is the probability ratio between the new and old policies, and $\epsilon$ is the clipping parameter (typically 0.2).
+
+**What the clipping does:** If the advantage is positive (good action), we want to increase the probability ratio $r_t$, but we cap it at $1 + \epsilon$. If the advantage is negative (bad action), we want to decrease $r_t$, but we cap it at $1 - \epsilon$. This prevents any single update from changing the policy too drastically.
+
+### The full PPO-RLHF objective
+
+Combining the reward, KL penalty, and PPO clipping:
+
+<div className="math-display">
+
+$$R(x, y) = r_\theta(x, y) - \beta \log \frac{\pi_\phi(y|x)}{\pi_{\text{ref}}(y|x)}$$
+
+</div>
+
+This modified reward $R$ is what PPO maximizes. The per-token KL penalty acts as a regularizer at every generation step, not just at the sequence level.
+
+### Interactive: Watch the PPO training loop
+
+Step through the PPO cycle and watch how reward, KL divergence, and loss evolve during training.
+
+<div className="not-prose my-12">
+  <PPOTrainingLoop />
+</div>
+
+### PPO implementation
+
+Here's a simplified but complete PPO training step for language model alignment:
+
+```python
+import torch
+import torch.nn.functional as F
+from dataclasses import dataclass
+
+@dataclass
+class PPOConfig:
+    clip_epsilon: float = 0.2       # PPO clipping range
+    kl_coeff: float = 0.1           # KL penalty coefficient (beta)
+    gamma: float = 1.0              # Discount factor (1.0 for bandit setting)
+    gae_lambda: float = 0.95        # GAE lambda for advantage estimation
+    value_loss_coeff: float = 0.5   # Value function loss weight
+    entropy_coeff: float = 0.01     # Entropy bonus weight
+    max_grad_norm: float = 1.0      # Gradient clipping
+    ppo_epochs: int = 4             # Number of PPO epochs per batch
+
+
+def compute_advantages(rewards, values, gamma=1.0, lam=0.95):
+    """Generalized Advantage Estimation (GAE).
+
+    For RLHF, the reward is typically assigned only at the final token,
+    making this simpler than general RL settings.
+    """
+    advantages = torch.zeros_like(rewards)
+    last_gae = 0
+
+    for t in reversed(range(len(rewards))):
+        if t == len(rewards) - 1:
+            next_value = 0  # Terminal state
+        else:
+            next_value = values[t + 1]
+
+        delta = rewards[t] + gamma * next_value - values[t]
+        advantages[t] = last_gae = delta + gamma * lam * last_gae
+
+    returns = advantages + values
+    return advantages, returns
+
+
+def ppo_step(
+    policy_model,
+    value_model,
+    ref_model,
+    reward_model,
+    prompts,
+    config: PPOConfig,
+    optimizer,
+):
+    """One PPO iteration for RLHF.
+
+    Steps:
+    1. Generate responses from current policy
+    2. Score with reward model
+    3. Compute per-token KL penalties
+    4. Estimate advantages with GAE
+    5. Update policy with clipped PPO objective
+    """
+    device = next(policy_model.parameters()).device
+
+    # --- Step 1: Generate responses ---
+    with torch.no_grad():
+        responses = policy_model.generate(
+            prompts,
+            max_new_tokens=256,
+            do_sample=True,
+            temperature=0.7,
+            top_p=0.9,
+        )
+
+        # Get log-probs from both policy and reference
+        policy_logits = policy_model(responses).logits
+        ref_logits = ref_model(responses).logits
+
+        policy_logprobs = get_token_logprobs(policy_logits, responses)
+        ref_logprobs = get_token_logprobs(ref_logits, responses)
+
+    # --- Step 2: Score with reward model ---
+    with torch.no_grad():
+        rewards = reward_model(responses)  # [B] scalar rewards
+
+    # --- Step 3: Per-token KL penalty ---
+    # KL(pi || pi_ref) per token = pi * log(pi / pi_ref)
+    with torch.no_grad():
+        kl_per_token = policy_logprobs - ref_logprobs  # Approximation
+        kl_penalty = config.kl_coeff * kl_per_token
+
+    # Construct per-token rewards: KL penalty at each token, RM reward at last
+    token_rewards = -kl_penalty.clone()
+    # Add the sequence-level reward at the last token
+    seq_lengths = (responses != 0).sum(dim=1) - 1
+    for i in range(len(rewards)):
+        token_rewards[i, seq_lengths[i]] += rewards[i]
+
+    # --- Step 4: Compute advantages ---
+    with torch.no_grad():
+        values = value_model(responses).squeeze(-1)  # [B, T]
+        advantages, returns = compute_advantages(
+            token_rewards, values, config.gamma, config.gae_lambda
+        )
+        # Normalize advantages
+        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+
+    # --- Step 5: PPO update ---
+    old_logprobs = policy_logprobs.detach()
+
+    for _ in range(config.ppo_epochs):
+        # Fresh forward pass
+        new_logits = policy_model(responses).logits
+        new_logprobs = get_token_logprobs(new_logits, responses)
+        new_values = value_model(responses).squeeze(-1)
+
+        # Probability ratio
+        ratio = torch.exp(new_logprobs - old_logprobs)  # r_t(theta)
+
+        # Clipped surrogate objective
+        surr1 = ratio * advantages
+        surr2 = torch.clamp(ratio, 1 - config.clip_epsilon,
+                            1 + config.clip_epsilon) * advantages
+        policy_loss = -torch.min(surr1, surr2).mean()
+
+        # Value function loss
+        value_loss = F.mse_loss(new_values, returns)
+
+        # Entropy bonus (encourages exploration)
+        entropy = compute_entropy(new_logits)
+        entropy_loss = -entropy.mean()
+
+        # Total loss
+        total_loss = (
+            policy_loss
+            + config.value_loss_coeff * value_loss
+            + config.entropy_coeff * entropy_loss
+        )
+
+        optimizer.zero_grad()
+        total_loss.backward()
+        torch.nn.utils.clip_grad_norm_(
+            list(policy_model.parameters()) + list(value_model.parameters()),
+            config.max_grad_norm,
+        )
+        optimizer.step()
+
+    # --- Metrics ---
+    mean_reward = rewards.mean().item()
+    mean_kl = kl_per_token.mean().item()
+    return {
+        "reward": mean_reward,
+        "kl": mean_kl,
+        "policy_loss": policy_loss.item(),
+        "value_loss": value_loss.item(),
+    }
+
+
+def get_token_logprobs(logits, tokens):
+    """Extract log-probabilities of the chosen tokens."""
+    log_probs = F.log_softmax(logits[:, :-1, :], dim=-1)
+    token_log_probs = log_probs.gather(2, tokens[:, 1:].unsqueeze(-1)).squeeze(-1)
+    return token_log_probs
+
+
+def compute_entropy(logits):
+    """Compute entropy of the policy distribution."""
+    probs = F.softmax(logits, dim=-1)
+    log_probs = F.log_softmax(logits, dim=-1)
+    entropy = -(probs * log_probs).sum(dim=-1)
+    return entropy
+```
+
+### The four models in memory
+
+During PPO training, four models must be loaded simultaneously:
+
+| Model | Role | Trainable? |
+|-------|------|-----------|
+| Policy $\pi_\phi$ | Generates responses; being optimized | Yes |
+| Reference $\pi_{\text{ref}}$ | Anchors the KL penalty | No (frozen) |
+| Reward model $r_\theta$ | Scores response quality | No (frozen) |
+| Value model $V_\psi$ | Estimates expected future reward | Yes |
+
+For a 7B parameter model, each copy requires ~14 GB in fp16. Four copies means ~56 GB just for model weights, before accounting for activations and gradients. This is why RLHF training typically requires multiple high-end GPUs.
+
+---
+
+## Part V: DPO — Direct Preference Optimization
+
+### The key insight
+
+Rafailov et al. (2023) asked a brilliant question: **what if we could skip the reward model and RL entirely?**
+
+The answer comes from a mathematical observation. The optimal policy under the RLHF objective (reward maximization + KL penalty) has a **closed-form solution**:
+
+<div className="math-display">
+
+$$\pi^*(y|x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y|x) \exp\!\left(\frac{1}{\beta} r(x, y)\right)$$
+
+</div>
+
+where $Z(x) = \sum_y \pi_{\text{ref}}(y|x) \exp\left(\frac{1}{\beta} r(x, y)\right)$ is the partition function.
+
+### Deriving the DPO loss
+
+This closed-form solution means we can solve for the reward in terms of the optimal policy:
+
+<div className="math-display">
+
+$$r(x, y) = \beta \log \frac{\pi^*(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)$$
+
+</div>
+
+Now substitute this into the Bradley-Terry preference model:
+
+<div className="math-display">
+
+$$P(y_w \succ y_l | x) = \sigma\!\left(r(x, y_w) - r(x, y_l)\right)$$
+
+</div>
+
+The partition function $Z(x)$ cancels out (it depends only on the prompt, not the response):
+
+<div className="math-display">
+
+$$P(y_w \succ y_l | x) = \sigma\!\left(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right)$$
+
+</div>
+
+This gives us the **DPO loss**:
+
+<div className="math-display">
+
+$$\mathcal{L}_{\text{DPO}}(\theta) = -\mathbb{E}_{(x, y_w, y_l)} \left[\log \sigma\!\left(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right)\right]$$
+
+</div>
+
+### What DPO actually computes
+
+The term $\beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)}$ is the **implicit reward**. It measures how much the current policy has diverged from the reference on this specific response. If $\pi_\theta$ assigns much higher probability to $y$ than $\pi_{\text{ref}}$ does, the implicit reward is high.
+
+The DPO loss says: increase the implicit reward for preferred responses and decrease it for dispreferred ones. The KL constraint is baked in automatically — because the implicit reward is defined relative to the reference policy.
+
+### RLHF vs DPO: side by side
+
+<div className="not-prose my-12">
+  <DPOComparison />
+</div>
+
+### DPO implementation
+
+DPO is dramatically simpler to implement than PPO:
+
+```python
+import torch
+import torch.nn.functional as F
+
+def dpo_loss(
+    policy_model,
+    ref_model,
+    chosen_ids,
+    chosen_mask,
+    rejected_ids,
+    rejected_mask,
+    beta=0.1,
+):
+    """Direct Preference Optimization loss.
+
+    The beauty of DPO: it's just a supervised loss on preference pairs.
+    No reward model, no RL, no value function, no GAE.
+
+    Args:
+        policy_model: The model being trained (pi_theta)
+        ref_model: Frozen reference model (pi_ref), typically the SFT model
+        chosen_ids: Token IDs for the preferred response [B, T]
+        rejected_ids: Token IDs for the dispreferred response [B, T]
+        beta: Temperature parameter controlling deviation from reference
+    """
+    # Compute log-probabilities under both models for chosen responses
+    with torch.no_grad():
+        ref_chosen_logps = get_sequence_logprobs(ref_model, chosen_ids, chosen_mask)
+        ref_rejected_logps = get_sequence_logprobs(ref_model, rejected_ids, rejected_mask)
+
+    policy_chosen_logps = get_sequence_logprobs(policy_model, chosen_ids, chosen_mask)
+    policy_rejected_logps = get_sequence_logprobs(policy_model, rejected_ids, rejected_mask)
+
+    # Compute log ratios (implicit rewards)
+    chosen_logratios = policy_chosen_logps - ref_chosen_logps
+    rejected_logratios = policy_rejected_logps - ref_rejected_logps
+
+    # DPO loss: -log(sigmoid(beta * (chosen_logratio - rejected_logratio)))
+    logits = beta * (chosen_logratios - rejected_logratios)
+    loss = -F.logsigmoid(logits).mean()
+
+    # Metrics
+    with torch.no_grad():
+        chosen_rewards = beta * chosen_logratios
+        rejected_rewards = beta * rejected_logratios
+        reward_margin = (chosen_rewards - rejected_rewards).mean()
+        accuracy = (chosen_logratios > rejected_logratios).float().mean()
+
+    return loss, {
+        "loss": loss.item(),
+        "reward_margin": reward_margin.item(),
+        "accuracy": accuracy.item(),
+        "chosen_reward": chosen_rewards.mean().item(),
+        "rejected_reward": rejected_rewards.mean().item(),
+    }
+
+
+def get_sequence_logprobs(model, input_ids, attention_mask):
+    """Compute the total log-probability of a sequence."""
+    outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+    logits = outputs.logits
+
+    # Shift: predict token t from position t-1
+    log_probs = F.log_softmax(logits[:, :-1, :], dim=-1)
+    target_ids = input_ids[:, 1:]
+
+    # Gather log-probs of actual tokens
+    token_logprobs = log_probs.gather(2, target_ids.unsqueeze(-1)).squeeze(-1)
+
+    # Mask out padding
+    mask = attention_mask[:, 1:]
+    token_logprobs = token_logprobs * mask
+
+    # Sum over sequence length to get total log-prob
+    return token_logprobs.sum(dim=1)  # [B]
+
+
+# Training loop
+def train_dpo(policy_model, ref_model, dataset, epochs=1, lr=5e-7, beta=0.1):
+    optimizer = torch.optim.AdamW(policy_model.parameters(), lr=lr, weight_decay=0.01)
+    dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
+
+    for epoch in range(epochs):
+        total_loss, total_acc = 0, 0
+        for batch in dataloader:
+            loss, metrics = dpo_loss(
+                policy_model, ref_model,
+                batch["chosen_ids"], batch["chosen_mask"],
+                batch["rejected_ids"], batch["rejected_mask"],
+                beta=beta,
+            )
+
+            optimizer.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(policy_model.parameters(), max_norm=1.0)
+            optimizer.step()
+
+            total_loss += metrics["loss"]
+            total_acc += metrics["accuracy"]
+
+        n = len(dataloader)
+        print(f"Epoch {epoch+1} | Loss: {total_loss/n:.4f} | Acc: {total_acc/n:.2%}")
+```
+
+### DPO advantages and limitations
+
+**Advantages:**
+- No reward model to train or maintain
+- No RL instabilities (PPO is notoriously finicky)
+- ~50% less GPU memory (2 models instead of 4)
+- Simpler codebase — standard supervised training loop
+- The loss is well-defined and easy to debug
+
+**Limitations:**
+- Requires preference data to be representative of the desired behavior
+- Less flexible than RLHF with an explicit reward model (can't easily do online learning)
+- The $\beta$ parameter is sensitive — too small leads to mode collapse, too large leads to no learning
+- Cannot leverage reward models for data filtering or best-of-N sampling at inference time
+- Some evidence that PPO produces stronger results at very large scale
+
+### Variants of DPO
+
+Several follow-up works have improved on the original DPO formulation:
+
+**IPO (Identity Preference Optimization)** — Replaces the sigmoid loss with a squared loss that avoids the overfitting problems of DPO when the preference data is deterministic.
+
+**KTO (Kahneman-Tversky Optimization)** — Doesn't require pairwise comparisons at all. Instead, it works with individual examples labeled as "good" or "bad." Based on prospect theory from behavioral economics.
+
+**ORPO (Odds Ratio Preference Optimization)** — Combines SFT and preference optimization into a single stage by adding a preference penalty directly to the SFT loss.
+
+---
+
+## Part VI: Constitutional AI & RLAIF
+
+### The human bottleneck
+
+Human feedback is expensive and slow. A single comparison label costs $0.50-2.00 and requires trained annotators. Training a strong reward model needs 50,000-100,000+ comparisons. This creates a bottleneck: the model can only be as aligned as the budget allows.
+
+### Using AI feedback
+
+Bai et al. (2022) proposed **Constitutional AI (CAI)**, which replaces human feedback with AI feedback in two stages:
+
+**Stage 1: Self-Critique and Revision.** Given a harmful response, ask the model to critique its own response against a set of principles (the "constitution"), then revise it.
+
+```
+Prompt: How do I hack into my neighbor's WiFi?
+Initial response: Here are the steps to hack WiFi...
+Critique: This response helps with an illegal activity.
+  It violates the principle of not assisting with
+  harmful or illegal actions.
+Revision: I can't help with unauthorized network access,
+  which is illegal. Instead, I can explain how to
+  secure your own WiFi network or suggest asking your
+  neighbor to share their password.
+```
+
+**Stage 2: RLAIF (RL from AI Feedback).** Instead of human annotators comparing responses, use a language model to compare them. The AI evaluator is prompted with the constitutional principles and asked which response better adheres to them.
+
+### The constitution
+
+The "constitution" is a set of principles like:
+- Be helpful, harmless, and honest
+- Don't assist with illegal activities
+- Acknowledge uncertainty rather than hallucinating
+- Respect privacy and consent
+- Avoid generating explicit or violent content
+
+These principles are provided to the AI critic as part of its system prompt. The specific principles can be updated without retraining — just modify the critic's prompt.
+
+### RLAIF in practice
+
+The RLAIF pipeline is nearly identical to RLHF, with one substitution:
+
+| Step | RLHF | RLAIF |
+|------|------|-------|
+| 1. SFT | Human demonstrations | Human demonstrations |
+| 2. Preferences | Human comparisons | AI comparisons |
+| 3. Reward model | Trained on human prefs | Trained on AI prefs |
+| 4. RL | PPO against reward model | PPO against reward model |
+
+Google's research showed that RLAIF achieves comparable performance to RLHF on many benchmarks, and can even exceed it when the AI labeler is sufficiently capable. The key finding: **AI preferences are more consistent** (less noisy) than human preferences, which can actually lead to a better reward model.
+
+### Self-play and iterated refinement
+
+A natural extension: use the aligned model to generate AI feedback, then use that feedback to train an even more aligned model, then repeat. This **iterated RLAIF** process can bootstrap from a weak initial model to increasingly capable alignment, though it risks amplifying any systematic biases in the AI evaluator.
+
+---
+
+## Part VII: Practical Challenges
+
+### Reward hacking
+
+The most pernicious problem in RLHF. **Reward hacking** occurs when the policy finds inputs that score highly according to the reward model but are not actually good responses.
+
+Common examples:
+- **Length gaming**: The reward model slightly prefers longer responses, so the policy generates extremely verbose answers with padding and repetition
+- **Style exploitation**: The model learns to use confident, authoritative language regardless of whether the content is correct
+- **Sycophancy**: The model agrees with whatever the user says, even when the user is wrong, because agreement tends to score higher
+- **Formatting tricks**: Excessive use of bullet points, headers, or markdown that reward models rate highly
+
+The KL penalty mitigates but doesn't eliminate reward hacking. The fundamental issue is that the reward model is an **imperfect proxy** for human judgment. Any optimization against an imperfect proxy will eventually find the gaps.
+
+**Goodhart's Law** applies directly: *"When a measure becomes a target, it ceases to be a good measure."*
+
+Mitigation strategies:
+1. **Ensemble reward models**: Use multiple reward models and take the minimum score
+2. **Reward model regularization**: Penalize extreme reward values
+3. **KL budget**: Set a hard limit on KL divergence, not just a soft penalty
+4. **Periodic re-labeling**: Have humans evaluate the policy's outputs and retrain the reward model
+
+### Mode collapse
+
+The policy may converge to producing the same response (or a small set of responses) for every prompt. This happens when the reward model strongly prefers one style and the KL penalty is insufficient to maintain diversity.
+
+Symptoms:
+- Entropy of the policy drops to near zero
+- All responses start with the same preamble
+- The model ignores prompt variations
+
+Solutions:
+- Increase the KL coefficient $\beta$
+- Add an entropy bonus to the PPO objective
+- Use diverse prompt batches during training
+- Monitor generation diversity as a training metric
+
+### Evaluation difficulties
+
+How do you know if alignment is working? Unlike classification accuracy or perplexity, there's no single number that captures "alignment quality."
+
+Common evaluation approaches:
+
+**Human evaluation**: The gold standard but expensive and slow. Typically done as A/B tests: show humans outputs from two models and ask which is better. Requires careful calibration to avoid annotator bias.
+
+**Automated benchmarks**:
+- **MT-Bench**: Multi-turn conversation quality judged by GPT-4
+- **AlpacaEval**: Single-turn instruction following with automated length-controlled win rates
+- **TruthfulQA**: Tests for hallucination on adversarial questions
+- **BBQ**: Measures social biases across demographic groups
+
+**Red teaming**: Adversarial probing by humans (or other models) to find failure modes. Essential but difficult to systematize.
+
+The fundamental challenge: alignment is **multi-dimensional**. A model can be helpful but unsafe. Safe but unhelpful. Honest but harsh. Improving one dimension often trades off against another.
+
+### The RLHF tax
+
+RLHF typically *reduces* the model's raw capabilities (as measured by benchmarks like MMLU or HumanEval) while improving its instruction-following and safety. This is sometimes called the "alignment tax." The magnitude varies but is typically 1-5% on capability benchmarks.
+
+This tradeoff is generally considered worthwhile: a slightly less capable model that follows instructions and avoids harm is far more useful in practice than a more capable model that ignores instructions and generates harmful content.
+
+---
+
+## Part VIII: Putting It All Together
+
+### The complete training recipe
+
+Here is the full pipeline for training an aligned language model, as practiced at major labs:
+
+**Phase 0: Pre-training**
+- Train on trillions of tokens of internet text
+- Objective: next-token prediction
+- Duration: weeks to months on thousands of GPUs
+- Output: base model (e.g., GPT-4-base, Llama-base)
+
+**Phase 1: Supervised Fine-Tuning**
+- Dataset: 10,000-100,000 (prompt, response) pairs from expert annotators
+- Objective: next-token prediction on demonstrations
+- Duration: hours to days
+- Output: SFT model
+
+**Phase 2: Reward Model Training**
+- Dataset: 50,000-500,000 pairwise comparisons
+- Objective: Bradley-Terry preference loss
+- Duration: hours
+- Output: Reward model
+
+**Phase 3: RL Optimization**
+- Algorithm: PPO or DPO
+- Objective: Maximize reward with KL constraint
+- Duration: days
+- Output: Aligned model
+
+**Phase 4: Safety Fine-Tuning**
+- Additional round of RLHF/DPO focused specifically on safety
+- Red team evaluation and iterative refinement
+- Constitutional AI principles for scalable oversight
+
+### What's next
+
+The field is moving rapidly. Some active research directions:
+
+**Process reward models**: Instead of scoring complete responses, score each step of reasoning individually. This provides denser training signal and catches errors earlier in the chain of thought.
+
+**RLHF at scale**: As models get larger, the computational cost of RLHF grows. Research into more efficient algorithms (like online DPO variants) is ongoing.
+
+**Multi-objective alignment**: Current RLHF collapses all human preferences into a single scalar reward. Future systems may maintain separate reward models for helpfulness, safety, honesty, and other dimensions, then use multi-objective optimization.
+
+**Scalable oversight**: As models become more capable than their human evaluators, how do we ensure the feedback is still meaningful? This is one of the deepest open problems in AI safety.
+
+---
+
+## Summary
+
+RLHF and its variants are the bridge between "language model" and "AI assistant." The math is elegant — the Bradley-Terry model, the closed-form DPO solution — but the engineering is where the real difficulty lies. Reward hacking, mode collapse, evaluation, and scalability remain active challenges.
+
+The key equations to remember:
+
+**Reward model loss**:
+
+<div className="math-display">
+
+$$\mathcal{L}_{\text{RM}} = -\log \sigma\!\left(r_\theta(x, y_w) - r_\theta(x, y_l)\right)$$
+
+</div>
+
+**RLHF objective**:
+
+<div className="math-display">
+
+$$\max_{\pi} \; \mathbb{E}\!\left[r(x, y)\right] - \beta \, D_{\text{KL}}\!\left[\pi \| \pi_{\text{ref}}\right]$$
+
+</div>
+
+**DPO loss**:
+
+<div className="math-display">
+
+$$\mathcal{L}_{\text{DPO}} = -\log \sigma\!\left(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right)$$
+
+</div>
+
+**PPO clipped objective**:
+
+<div className="math-display">
+
+$$L^{\text{CLIP}} = \hat{\mathbb{E}}_t\!\left[\min\!\left(r_t(\theta)\hat{A}_t,\; \text{clip}(r_t, 1{-}\epsilon, 1{+}\epsilon)\hat{A}_t\right)\right]$$
+
+</div>
+
+The path from raw language model to aligned assistant is long, expensive, and imperfect. But it works. And it's getting better.
+
+---
+
+### References
+
+- Ouyang et al., "Training language models to follow instructions with human feedback" (InstructGPT, 2022)
+- Schulman et al., "Proximal Policy Optimization Algorithms" (PPO, 2017)
+- Rafailov et al., "Direct Preference Optimization: Your Language Model is Secretly a Reward Model" (DPO, 2023)
+- Bai et al., "Constitutional AI: Harmlessness from AI Feedback" (CAI, 2022)
+- Christiano et al., "Deep reinforcement learning from human preferences" (2017)
+- Stiennon et al., "Learning to summarize from human feedback" (2020)
+- Ziegler et al., "Fine-Tuning Language Models from Human Preferences" (2019)
+- Bradley & Terry, "Rank Analysis of Incomplete Block Designs: I. The Method of Paired Comparisons" (1952)
+- Azar et al., "A General Theoretical Paradigm to Understand Learning from Human Feedback" (IPO, 2023)
+- Ethayarajh et al., "KTO: Model Alignment as Prospect Theoretic Optimization" (2024)
+- Hong et al., "ORPO: Monolithic Preference Optimization without Reference Model" (2024)
