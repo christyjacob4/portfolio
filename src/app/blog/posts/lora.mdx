@@ -54,13 +54,45 @@ $$M = U \Sigma V^T$$
 
 </div>
 
-where $U$ and $V$ are orthogonal matrices and $\Sigma$ is a diagonal matrix of **singular values** $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_d \geq 0$. These singular values tell you how much "energy" each dimension carries. If the values drop off quickly, the matrix is well-approximated by keeping only the top $r$ components:
+where $U$ and $V$ are orthogonal matrices and $\Sigma$ is a diagonal matrix of **singular values** $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_d \geq 0$.
+
+**What does each piece mean?** Think of any matrix as a transformation that acts on vectors. SVD breaks that transformation into three simpler steps:
+
+1. **$V^T$ (Rotate):** First, rotate the input into a new coordinate system that aligns with the "natural axes" of the transformation — the directions along which the matrix acts most cleanly.
+2. **$\Sigma$ (Scale):** Then, stretch or shrink along each of those axes. The singular values $\sigma_1, \sigma_2, \ldots$ are exactly these stretch factors, sorted from largest to smallest.
+3. **$U$ (Rotate again):** Finally, rotate the result into the output coordinate system.
+
+The singular values tell you how much "energy" each dimension carries. A large $\sigma_i$ means that dimension contributes a lot to the matrix's overall effect; a tiny $\sigma_i$ means that dimension is almost negligible.
+
+**A concrete example.** Take this small $3 \times 3$ matrix:
+
+<div className="math-display">
+
+$$M = \begin{bmatrix} 3 & 0 & 0 \\ 0 & 2 & 0 \\ 0 & 0 & 0.01 \end{bmatrix}$$
+
+</div>
+
+This is already diagonal, so the SVD is trivial: $U = V = I$ (the identity matrix) and $\Sigma = M$ itself. The singular values are $\sigma_1 = 3$, $\sigma_2 = 2$, $\sigma_3 = 0.01$. Notice that the third singular value is tiny — it contributes almost nothing. If we set it to zero, we get a **rank-2 approximation** that is nearly identical to the original:
+
+<div className="math-display">
+
+$$M \approx \begin{bmatrix} 3 & 0 & 0 \\ 0 & 2 & 0 \\ 0 & 0 & 0 \end{bmatrix}$$
+
+</div>
+
+We just went from 9 parameters to describing the matrix with only 2 meaningful values — and barely lost any information.
+
+Of course, real matrices aren't diagonal. But that's exactly what SVD does: it finds the right rotations ($U$ and $V$) so that after rotating, the matrix *becomes* diagonal ($\Sigma$). Then you can look at the diagonal entries and decide which ones actually matter.
+
+**Why does this help?** If the singular values drop off quickly — say $\sigma_1 = 100, \sigma_2 = 50, \sigma_3 = 0.1, \sigma_4 = 0.01, \ldots$ — then the matrix is well-approximated by keeping only the top $r$ components:
 
 <div className="math-display">
 
 $$M \approx U_r \Sigma_r V_r^T$$
 
 </div>
+
+Here $U_r$ is the first $r$ columns of $U$, $\Sigma_r$ is the $r \times r$ top-left block of $\Sigma$, and $V_r^T$ is the first $r$ rows of $V^T$. This is known as the **Eckart–Young theorem**: this rank-$r$ matrix is the *best possible* rank-$r$ approximation to $M$ (in terms of minimizing the Frobenius norm of the error).
 
 This rank-$r$ approximation uses $r(d + d + 1) = r(2d+1)$ parameters instead of $d^2$. For $d = 4096$ and $r = 16$, that's $131,088$ instead of $16,777,216$ - a **128x reduction**.
 
