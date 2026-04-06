@@ -6,11 +6,11 @@ image: "/blog/flash-attention/cover.jpg"
 published: true
 ---
 
-We spend so much time thinking about the math - matrix multiplications, gradients, loss functions - that we forget about the physical reality of the computers running them. The Transformer is an algorithmic masterpiece. But algorithms don't run in a theoretical void. They run on silicon. And when you scale the elegant math of attention to read entire books, it collides violently with the physical limits of hardware.
+At a sequence length of 100,000 tokens, computing standard attention requires a single intermediate matrix of **20 GB** - and that's just one head, one layer, one sequence. The GPU runs out of memory before a single forward pass completes. The Transformer's math is elegant. Its memory requirements are catastrophic.
 
-This is the story of the **Memory Wall**, and the brilliantly simple engineering hack that broke through it: **Flash Attention** (Dao et al., 2022).
+This is the story of the **Memory Wall**, and the brilliantly simple engineering insight that broke through it: **Flash Attention** (Dao et al., 2022).
 
-## The $O(N^2)$ Nightmare
+## The $O(N^2)$ Problem
 
 At the heart of the Transformer:
 
@@ -22,14 +22,14 @@ $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)
 
 Beautiful math. But look at the dimensions. If $N$ is the sequence length, both $Q$ and $K$ have $N$ rows. When you multiply $Q$ by $K^T$, the result is an $N \times N$ matrix - the attention score between every token and every other token.
 
-Some terrifying arithmetic for a single attention head:
+The numbers escalate fast:
 
 - $N = 1{,}000$: $1{,}000 \times 1{,}000 = 1\text{M}$ elements. Fine.
 - $N = 100{,}000$ (a short novel): $100{,}000 \times 100{,}000 = 10\text{B}$ elements.
 
 At fp16 (2 bytes per element), that intermediate matrix alone requires **20 GB of memory**. For one head, one sequence, one layer.
 
-### Proving it
+You can watch this play out directly:
 
 ```python
 import torch
@@ -60,15 +60,17 @@ Memory quadruples every time you double the sequence length. At $N = 32{,}768$, 
   <MemoryScalingChart />
 </div>
 
+This curve tells you something important: the problem isn't the final output. The output matrix has size $N \times d$, which is linear in sequence length. The problem is the intermediate $N \times N$ matrix - the thing we compute and immediately throw away. What if we never materialized it?
+
 ## The Hardware Reality
 
-To understand Flash Attention, you need to understand how a GPU is actually built. It's not a single bucket of memory - it has a hierarchy:
+To understand why that question matters, you need to understand how a GPU is actually structured. It isn't a single bucket of memory - it has a hierarchy:
 
-**HBM (High Bandwidth Memory):** The "main memory." Large (40–80 GB on an A100), but physically distant from the compute cores. Moving data in and out is **slow**.
+**HBM (High Bandwidth Memory):** The main memory. Large (40-80 GB on an A100), but physically distant from the compute cores. Moving data in and out is slow.
 
-**SRAM (Shared Memory):** The "working memory." Sits directly next to the compute cores. **Blazingly fast**, but tiny - only ~20 MB per streaming multiprocessor.
+**SRAM (Shared Memory):** The working memory. Sits directly next to the compute cores. Blazingly fast, but tiny - only about 20 MB per streaming multiprocessor.
 
-When PyTorch runs naive attention, it doesn't know our intent. It just executes operations sequentially:
+When PyTorch runs naive attention, it executes operations one at a time. Each operation reads inputs from HBM and writes outputs back to HBM:
 
 1. Read $Q$ and $K$ from slow HBM into fast SRAM
 2. Compute $S = QK^T$ in SRAM
@@ -79,19 +81,23 @@ When PyTorch runs naive attention, it doesn't know our intent. It just executes 
 7. **Read $P$ and $V$ from HBM into SRAM** (bottleneck)
 8. Compute output and write to HBM
 
-The compute cores sit idle - doing zero math - while gigabytes of intermediate data slowly travel back and forth. This is called being **memory-bound**. The bottleneck isn't computation; it's data movement.
+The compute cores sit idle while gigabytes of intermediate data travel back and forth across a slow bus. This is called being **memory-bound**: the bottleneck isn't computation, it's data movement. The GPU's arithmetic units could compute attention much faster - they're just waiting for data that never arrives quickly enough.
 
 <div className="not-prose my-8">
   <GPUMemoryDiagram />
 </div>
 
+Profiling a naive attention forward pass confirms this. The GPU's compute utilization is embarrassingly low - most wall-clock time is spent on memory transfers, not on the matrix multiplications we actually care about.
+
+The fix isn't to make the transfers faster. It's to do fewer of them.
+
 ## The Solution: Tiling
 
-Flash Attention's premise is a masterclass in IO-awareness: **what if we never write the $N \times N$ matrix to HBM at all?**
+Flash Attention's core idea is deceptively simple: **what if we never write the $N \times N$ matrix to HBM at all?**
 
-If we can compute attention scores and multiply by $V$ entirely inside the fast SRAM, we bypass the memory wall completely. But SRAM is only 20 MB - we can't fit the full $N \times N$ matrix there either.
+If we can compute attention scores, apply softmax, and multiply by $V$ entirely inside the fast SRAM, we bypass all those round trips. The problem is that SRAM is only 20 MB. The full $N \times N$ matrix won't fit there either.
 
-The solution is **tiling**. Break $Q$, $K$, and $V$ into small blocks (tiles) that fit in SRAM:
+The answer is **tiling**. Break $Q$, $K$, and $V$ into small blocks that do fit in SRAM, and process them one tile at a time:
 
 1. Load a block of Queries into SRAM
 2. Iterate over blocks of Keys and Values:
@@ -105,7 +111,7 @@ The $N \times N$ matrix is never fully materialized - not in HBM, not in SRAM, n
 
 ### The online softmax trick
 
-There's one mathematical subtlety. Standard softmax requires the maximum value of the entire row:
+There's one mathematical obstacle. Standard softmax requires the maximum value of the entire row before computing anything:
 
 <div className="math-display">
 
@@ -113,7 +119,34 @@ $$\text{softmax}(x_i) = \frac{e^{x_i - \max(\mathbf{x})}}{\sum_j e^{x_j - \max(\
 
 </div>
 
-When processing tiles, we don't have the full row - we only see one block at a time. Flash Attention uses **online softmax** (Milakov & Gimelshein, 2018): maintain a running maximum and a running sum of exponentials. As each new block is processed, rescale the previous accumulator to account for the updated maximum. The final result is mathematically identical to standard softmax, but computed incrementally.
+When processing tiles, we don't have the full row - we only see one block at a time. We can't compute the global maximum until we've seen everything. But by then, we've already discarded the earlier blocks.
+
+Flash Attention uses **online softmax** (Milakov & Gimelshein, 2018) to resolve this: maintain a running maximum $m$ and a running sum of exponentials $d$. As each new block arrives, rescale the previous accumulator to account for the updated maximum, then fold in the new block.
+
+```python
+def online_softmax_step(m_prev, d_prev, acc_prev, x_new, v_new):
+    """
+    Process one new tile of attention scores (x_new) and values (v_new),
+    updating the running softmax state without needing the full row.
+    """
+    # New running maximum after seeing this tile
+    m_new = torch.maximum(m_prev, x_new.max(dim=-1, keepdim=True).values)
+
+    # Rescale previous accumulator: earlier exponentials used the old max,
+    # so we multiply by exp(m_prev - m_new) to correct them
+    scale = torch.exp(m_prev - m_new)
+    d_new = scale * d_prev + torch.exp(x_new - m_new).sum(dim=-1, keepdim=True)
+
+    # Update the weighted value accumulator with the same correction
+    acc_new = scale * acc_prev + torch.exp(x_new - m_new) @ v_new
+
+    return m_new, d_new, acc_new
+
+# Final output: divide accumulator by the normalization constant
+# output = acc / d  ->  mathematically identical to standard softmax
+```
+
+The final result is mathematically identical to standard softmax - the paper includes a formal proof. The trick is that we never need all $N$ scores at once. We process them tile by tile, correcting our running estimate each time. This is what makes tiling possible: it turns a two-pass algorithm (find max, then normalize) into a single pass.
 
 ## Implementation: From PyTorch to GPU Kernels
 
@@ -173,7 +206,7 @@ def flash_attention_kernel(
     tl.store(o_ptrs, acc)
 ```
 
-Look closely: we never created a variable for the $N \times N$ matrix. The small `qk` block is computed, used to update `acc`, and overwritten on the next iteration. The full attention matrix never exists in memory.
+Look closely: there is no variable for the $N \times N$ matrix. The small `qk` block is computed, used to update `acc`, and overwritten on the next iteration. The full attention matrix never exists in memory.
 
 ### The wrapper
 
@@ -196,43 +229,53 @@ def triton_flash_attention(q, k, v):
     return out
 ```
 
-## The Results
+## Benchmarking the Difference
 
-Benchmarking our Triton kernel against naive PyTorch at $N = 16{,}384$:
+At $N = 16{,}384$, the gap becomes concrete:
 
-**Memory:** Naive demands gigabytes for the intermediate $N \times N$ matrix. Flash Attention uses near-zero additional memory - the footprint stays flat regardless of sequence length.
+**Memory:** Naive attention demands gigabytes for the intermediate $N \times N$ matrix. Flash Attention's memory footprint stays nearly flat regardless of sequence length - only the final output grows with $N$.
 
-**Speed:** With compute cores no longer waiting for HBM transfers, the kernel runs **2–4× faster** wall-clock time.
+**Speed:** With compute cores no longer waiting for HBM round trips, the kernel runs **2-4x faster** wall-clock time on the same hardware. The computation hasn't changed. The data movement has.
 
-Modern PyTorch includes `torch.nn.functional.scaled_dot_product_attention`, which automatically dispatches to an optimized Flash Attention kernel under the hood. But now you know exactly what it's doing.
+```python
+import time
 
-## Flash Attention 2 and Beyond
+def benchmark(fn, q, k, v, warmup=5, iters=20):
+    for _ in range(warmup):
+        fn(q, k, v)
+    torch.cuda.synchronize()
+    t0 = time.perf_counter()
+    for _ in range(iters):
+        fn(q, k, v)
+    torch.cuda.synchronize()
+    return (time.perf_counter() - t0) / iters * 1000  # ms
 
-**Flash Attention 2** (Dao, 2023) improved on the original by:
+N = 16384
+q = torch.randn(1, 12, N, 64, device="cuda", dtype=torch.float16)
+k, v = torch.randn_like(q), torch.randn_like(q)
 
-- Reducing non-matmul FLOPs (the bookkeeping around online softmax)
-- Better parallelism across sequence length (not just batch and heads)
-- Achieving **~2× speedup** over Flash Attention 1, reaching 50–73% of theoretical GPU throughput
+naive_ms = benchmark(naive_attention, q, k, v)
+flash_ms = benchmark(triton_flash_attention, q, k, v)
+print(f"Naive:  {naive_ms:.1f} ms")
+print(f"Flash:  {flash_ms:.1f} ms  ({naive_ms / flash_ms:.1f}x faster)")
+```
 
-**Flash Attention 3** (Dao et al., 2024) targets the Hopper architecture (H100) specifically, exploiting:
+Modern PyTorch exposes this directly via `torch.nn.functional.scaled_dot_product_attention`, which automatically dispatches to an optimized Flash Attention kernel. But now you know exactly what it's doing and why.
 
-- **Asynchronous execution** - overlapping SRAM-to-register data movement with computation
-- **FP8 tensor core support** - halving memory bandwidth for compatible workloads
-- **Hardware-aware warp scheduling** - hiding instruction latency
+## Flash Attention 2 and 3
+
+The original paper proved the idea. The follow-up papers pushed the implementation toward the GPU's physical limits.
+
+**Flash Attention 2** (Dao, 2023) achieved roughly **2x speedup** over Flash Attention 1 by reducing the non-matmul overhead that had been accumulating around the online softmax bookkeeping. It also parallelized across the sequence length dimension - not just across batches and heads - which matters when batch sizes are small but sequences are long. On an A100, it reaches 50-73% of theoretical peak throughput for attention.
+
+**Flash Attention 3** (Dao et al., 2024) targets the Hopper architecture (H100) specifically. The H100 introduced dedicated hardware for asynchronous data movement - you can start loading the next tile from HBM while the compute cores are still working on the current one. Flash Attention 3 exploits this by:
+
+- Overlapping SRAM-to-register data movement with computation
+- Using FP8 tensor cores, halving memory bandwidth for compatible workloads
+- Scheduling warps to hide instruction latency behind useful work
 
 Each version pushes closer to the theoretical hardware limit. The algorithm hasn't changed - it's still tiling with online softmax. What changes is how precisely the implementation matches the GPU's physical capabilities.
 
-## Why This Matters
+This is a pattern worth recognizing: the most impactful systems work happens not by inventing new algorithms, but by mapping existing ones more faithfully onto hardware reality. Flash Attention didn't change the math. It changed the execution order, and that was enough to unlock million-token context windows.
 
-Flash Attention is a reminder of a fundamental truth: **algorithms don't exist in a vacuum**. The most elegant formula is useless if it chokes the memory bus of the hardware it runs on.
-
-By understanding the physical architecture of the GPU - the hierarchy of HBM and SRAM, the cost of data movement vs computation - researchers unlocked the era of million-token context windows. The math built the Transformer, but hardware awareness allowed it to conquer the world.
-
-The implications extend far beyond attention:
-
-- **KV cache management** (PagedAttention) applies the same IO-aware thinking to inference
-- **Activation checkpointing** trades compute for memory during training
-- **Quantization** (INT8, INT4, FP8) reduces data movement by shrinking the data itself
-- **Speculative decoding** overlaps draft and verification to hide latency
-
-Every frontier of LLM efficiency is, at its core, about matching the algorithm to the machine.
+The same IO-aware thinking now runs through nearly every corner of efficient LLM inference: KV cache management (PagedAttention), activation checkpointing, quantization strategies that reduce data volume before it hits the memory bus. Once you see the memory hierarchy clearly, you start seeing the same optimization opportunity everywhere.
