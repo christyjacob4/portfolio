@@ -40,15 +40,21 @@ Together, the two stages use $b$ bits per coordinate and produce **unbiased** in
 
 ### Why rotate?
 
-Real KV cache vectors are messy. Some coordinates carry huge values (outliers), others are near zero. The distribution varies wildly across layers, heads, and positions. A one-size-fits-all quantizer seems hopeless.
+Real KV cache vectors are messy. Some coordinates carry huge values (outliers), others are near zero. The distribution varies wildly across layers, heads, and positions. A one-size-fits-all quantizer seems hopeless — you'd need to measure each vector's statistics before you could quantize it, and storing those statistics eats into your compression gains.
 
-But there's a remarkable fact from high-dimensional geometry: if you multiply any unit vector by a **random orthogonal matrix** $\Pi$, every coordinate of the result follows nearly the same distribution — approximately $\mathcal{N}(0, 1/d)$ for large $d$.
+Here's the core problem. Imagine a 128-dimensional key vector where most of the "meaning" is concentrated in just 3 coordinates: $[0, 0, \ldots, 4.2, \ldots, -3.8, \ldots, 2.1, \ldots, 0, 0]$. If you give every coordinate the same number of quantization bits, you're wasting 125 coordinates worth of bits on near-zero values while the 3 important coordinates don't get enough resolution. It's like giving equal shelf space to every product in a store — most of it goes to items nobody buys.
+
+The solution is beautifully simple: **spread the information evenly before quantizing**. If you multiply by a random orthogonal matrix $\Pi$, the information that was concentrated in 3 coordinates gets distributed across all 128. Now every coordinate carries roughly the same amount of signal, and uniform bit allocation becomes optimal.
+
+There's a remarkable fact from high-dimensional geometry that makes this work: after rotation, every coordinate of the result follows nearly the same distribution — approximately $\mathcal{N}(0, 1/d)$ for large $d$. It doesn't matter what the original vector looked like. Sparse, dense, outlier-heavy — the rotation makes them all look the same.
 
 This means a single, pre-computed quantizer works for *every* input, regardless of its original distribution. No calibration, no per-tensor statistics, no overhead.
 
 <div className="not-prose my-12">
   <RandomRotationDemo />
 </div>
+
+The visualization shows the key insight: the left panel has a spiky, uneven distribution (some coordinates are huge outliers). After rotation, the right panel is a smooth bell curve. A quantizer designed for that bell curve will work optimally on any input.
 
 ### The math
 
@@ -110,11 +116,23 @@ class TurboQuantMSE:
 
 ## Stage 1: Lloyd-Max Quantization
 
-The rotation gives us coordinates with a known distribution. Now we need the best possible way to map those continuous values to $2^b$ discrete levels. This is the **Lloyd-Max quantizer** — the optimal scalar quantizer for a given probability distribution.
+The rotation gives us coordinates with a known distribution — a bell curve. Now we need the best possible way to map those continuous values to $2^b$ discrete levels. This is the **Lloyd-Max quantizer** — the optimal scalar quantizer for a given probability distribution.
+
+### The intuition
+
+Consider 2-bit quantization: we get 4 discrete levels to represent the entire bell curve. Where should we place them?
+
+The naive approach is **uniform quantization**: space the levels evenly across the range. But think about where the values actually live. The bell curve peaks at zero — the vast majority of values cluster near the center. Very few values sit in the tails. Uniform quantization gives equal resolution to the crowded center and the empty tails. It's like putting the same number of bus stops in downtown Manhattan and rural Wyoming.
+
+**Lloyd-Max** does the obvious-in-hindsight thing: put more levels where more values live. It packs centroids densely near zero (where the bell curve peaks) and spaces them out in the tails (where values are rare). Each centroid is placed at the *average* of the values it represents, minimizing the squared distance to its assigned points. This is k-means in 1D, and it converges to the provably optimal quantizer for any given distribution.
+
+Since we know the exact distribution (the Beta distribution from the rotation step), we can pre-compute these optimal centroids once and reuse them forever.
 
 <div className="not-prose my-12">
   <LloydMaxQuantizer />
 </div>
+
+Move the bit-width slider and watch the centroids rearrange. At 1 bit (2 levels), you get a crude positive/negative split. At 4 bits (16 levels), the centroids pack tightly around zero where most values live, giving fine resolution where it matters most.
 
 ### How it works
 
@@ -200,16 +218,24 @@ $$\mathbb{E}[\langle y, \hat{x} \rangle] \neq \langle y, x \rangle$$
 
 </div>
 
-This bias is small, but attention scores pass through softmax, which exponentiates them. Even tiny systematic bias gets amplified exponentially. Over long sequences with thousands of keys, this accumulates and degrades generation quality.
+### Why bias matters more than error
+
+You might think: the MSE is tiny, who cares about bias? The issue is what happens *after* the inner product. Attention scores pass through softmax, which computes $e^{x}$. Softmax doesn't just amplify errors — it amplifies them **exponentially**.
+
+An analogy: imagine you're weighing packages on a slightly miscalibrated scale that always reads 0.1 kg too high. For a single measurement, 0.1 kg is nothing. But if you're computing compound interest on those measurements over 1,000 packages, the systematic error in one direction compounds into a large drift. A scale with random noise of 0.2 kg but zero bias would actually be better for the total, because random errors cancel out over many measurements.
+
+That's exactly what happens in attention. A biased quantizer makes the model systematically over-attend to certain positions and under-attend to others. Over a 32K-token context with thousands of key vectors, this systematic drift accumulates and degrades generation quality. An unbiased quantizer with slightly more variance is safer — the random errors average out across tokens.
 
 ### The Johnson-Lindenstrauss trick
 
-The **Quantized Johnson-Lindenstrauss (QJL)** transform fixes this with a single additional bit per coordinate. The idea:
+The **Quantized Johnson-Lindenstrauss (QJL)** transform fixes the bias with a single additional bit per coordinate. The idea:
 
-1. Compute the Stage 1 residual: $r = x - \hat{x}_{\text{mse}}$
-2. Project through a random Gaussian matrix $S \in \mathbb{R}^{d \times d}$: $z = S \cdot r$
-3. Store only the **sign bits**: $\text{qjl} = \text{sign}(z) \in \{-1, +1\}^d$
-4. Also store $\|r\|_2$ (the residual norm — a single scalar)
+1. Compute the Stage 1 residual: $r = x - \hat{x}_{\text{mse}}$ — this is the error that Stage 1 made
+2. Project through a random Gaussian matrix $S \in \mathbb{R}^{d \times d}$: $z = S \cdot r$ — this scrambles the error into a random basis
+3. Store only the **sign bits**: $\text{qjl} = \text{sign}(z) \in \{-1, +1\}^d$ — throw away the magnitudes, keep only "positive or negative"
+4. Also store $\|r\|_2$ (the residual norm — a single scalar, telling us how big the total error was)
+
+The intuition: the sign of a random projection tells you which *direction* the error points in. It's like asking 128 random people "was the error more to the left or the right?" — each answer is crude (just +1 or -1), but averaging 128 independent noisy estimates gives a surprisingly accurate correction. The random projection ensures these estimates are independent and unbiased.
 
 The dequantized residual correction is:
 
@@ -475,6 +501,20 @@ TurboQuant builds on and connects to several lines of research:
 - **KVQuant** (Hooper et al., 2024) — Sensitivity-aware KV cache quantization. Good empirical performance but requires calibration data.
 
 TurboQuant's key contribution is unifying the theoretical and practical: it proves optimality bounds while being simpler to implement than methods that require training or calibration.
+
+## When NOT to Use TurboQuant
+
+TurboQuant isn't a silver bullet. Here's when other approaches are better:
+
+**Short contexts (< 1K tokens).** The KV cache is tiny and not the bottleneck. The overhead of the rotation matrix multiply and centroid lookup costs more than it saves. At short contexts, the model weights dominate memory, not the cache.
+
+**When you have calibration data.** Methods like GPTQ and AWQ exploit the *specific* weight distribution of your model to achieve lower distortion at the same bit-width. TurboQuant's advantage is being data-oblivious — it works without calibration. If you can afford a calibration pass, calibration-aware methods will beat it for weight quantization.
+
+**When FP8 is good enough.** FP8 KV cache (8-bit) is simpler, has native hardware support on H100/GB200, and adds zero compute overhead. If your context length fits in memory with FP8, the added complexity of TurboQuant isn't worth it. TurboQuant shines when you need to go below 8 bits — the 3-4 bit regime where FP8 can't go.
+
+**Training weights and gradients.** Model weights must be stored at full precision during training — any approximation compounds over millions of gradient steps. TurboQuant is designed for ephemeral data (KV cache entries, embeddings for retrieval) that is written once and read a few times, not for parameters that are updated continuously.
+
+**The rotation matrix is $O(d^2)$.** For d_head=128, the rotation matrix is 128×128 = 16K floats (64KB). Trivial. But for high-dimensional embeddings (d=4096), it's 64M floats (256MB). At those dimensions, consider the Walsh-Hadamard transform instead — it achieves a similar decorrelation effect in $O(d \log d)$ time and $O(d)$ space.
 
 ## What We Built
 
