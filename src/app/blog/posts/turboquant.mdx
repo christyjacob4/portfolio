@@ -12,7 +12,7 @@ For Llama-3.1-8B at 32K tokens, the KV cache alone consumes **~4.3 GB** in FP16.
 
 The brute-force solution is [quantization](/blog/quantization) — storing each value in fewer bits. Standard 4-bit quantization cuts cache memory by 4×. But existing methods like KIVI and KVQuant require per-block calibration constants (scales, zero-points) that eat into the compression gains, and they introduce systematic bias into attention scores.
 
-In April 2025, a team at Google Research published **TurboQuant** (ICLR 2026), an algorithm that compresses KV caches to as few as **3 bits per value** with:
+In March 2026, a team at Google Research published **TurboQuant** (ICLR 2026), an algorithm that compresses KV caches to as few as **3 bits per value** with:
 - **No training or calibration required** — completely data-oblivious
 - **Zero memory overhead** — no scales or zero-points stored
 - **Provably near-optimal** distortion — within 2.7× of the information-theoretic limit
