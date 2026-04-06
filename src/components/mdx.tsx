@@ -110,6 +110,8 @@ const TurboQuantPipeline = dynamic(() => import('./blog/turboquant/TurboQuantPip
 const RandomRotationDemo = dynamic(() => import('./blog/turboquant/RandomRotationDemo'), { ssr: false })
 const LloydMaxQuantizer = dynamic(() => import('./blog/turboquant/LloydMaxQuantizer'), { ssr: false })
 const DistortionExplorer = dynamic(() => import('./blog/turboquant/DistortionExplorer'), { ssr: false })
+const SparseVsDenseQuantization = dynamic(() => import('./blog/turboquant/SparseVsDenseQuantization'), { ssr: false })
+const BiasAccumulation = dynamic(() => import('./blog/turboquant/BiasAccumulation'), { ssr: false })
 
 function CustomLink(props) {
   let href = props.href
@@ -324,6 +326,8 @@ let components = {
   RandomRotationDemo,
   LloydMaxQuantizer,
   DistortionExplorer,
+  SparseVsDenseQuantization,
+  BiasAccumulation,
 }
 
 export function CustomMDX(props) {

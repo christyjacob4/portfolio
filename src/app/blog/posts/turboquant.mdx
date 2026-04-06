@@ -50,11 +50,17 @@ There's a remarkable fact from high-dimensional geometry that makes this work: a
 
 This means a single, pre-computed quantizer works for *every* input, regardless of its original distribution. No calibration, no per-tensor statistics, no overhead.
 
+Try it yourself — the left panel shows a sparse vector where 3 coordinates carry all the information. The right panel shows the same vector after rotation. Notice how the quantization error (red) drops dramatically when the information is spread evenly:
+
+<div className="not-prose my-12">
+  <SparseVsDenseQuantization />
+</div>
+
+And here's the same effect on a larger scale. The left histogram shows the spiky, uneven coordinate distribution before rotation. The right shows the smooth bell curve after. Crank the dimension slider up and watch the bell curve tighten:
+
 <div className="not-prose my-12">
   <RandomRotationDemo />
 </div>
-
-The visualization shows the key insight: the left panel has a spiky, uneven distribution (some coordinates are huge outliers). After rotation, the right panel is a smooth bell curve. A quantizer designed for that bell curve will work optimally on any input.
 
 ### The math
 
@@ -225,6 +231,12 @@ You might think: the MSE is tiny, who cares about bias? The issue is what happen
 An analogy: imagine you're weighing packages on a slightly miscalibrated scale that always reads 0.1 kg too high. For a single measurement, 0.1 kg is nothing. But if you're computing compound interest on those measurements over 1,000 packages, the systematic error in one direction compounds into a large drift. A scale with random noise of 0.2 kg but zero bias would actually be better for the total, because random errors cancel out over many measurements.
 
 That's exactly what happens in attention. A biased quantizer makes the model systematically over-attend to certain positions and under-attend to others. Over a 32K-token context with thousands of key vectors, this systematic drift accumulates and degrades generation quality. An unbiased quantizer with slightly more variance is safer — the random errors average out across tokens.
+
+The visualization below shows this in action. The biased quantizer shifts attention weights away from the correct positions, and the problem gets worse as context length grows. The unbiased quantizer stays close to the true distribution:
+
+<div className="not-prose my-12">
+  <BiasAccumulation />
+</div>
 
 ### The Johnson-Lindenstrauss trick
 
