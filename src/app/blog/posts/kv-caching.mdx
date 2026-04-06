@@ -6,35 +6,31 @@ image: "/blog/kv-caching/cover.jpg"
 published: true
 ---
 
-The Transformer architecture revolutionized AI by looking at an entire sequence at once. Parallel processing across all tokens made training on internet-scale datasets feasible. But there's a catch.
+Generating a single 1,000-token response with a naive transformer requires roughly 500,000 matrix multiplications that produce output you immediately throw away. That number is not a rounding error - it is the actual cost of recomputing the same vectors over and over, for tokens that have not changed, because nobody told the model it was allowed to remember them.
 
-Parallel processing is only possible during **training**, when you already have the entire document. During **inference** - when the model is deployed and talking to a user - it doesn't have the whole document. It generates text one token at a time, just like humans speak.
-
-This process is called **autoregressive generation**. And if we use standard Transformer math to do it, it is painfully slow. This post explains why, and builds the engine that makes real-time generation possible: **KV Caching**.
+Parallel processing is only possible during **training**, when you already have the entire document. During **inference**, the model generates one token at a time - it cannot know token 600 until it has committed to tokens 1 through 599. This is called **autoregressive generation**, and it creates a mismatch between how transformers are designed and how they are deployed.
 
 ## The Autoregressive Loop
 
-Let's say we prompt the model with "The cat sat" and want it to generate more text.
+Start with a concrete example. The model receives "The cat sat" and must continue.
 
-**Step 1:** Feed `["The", "cat", "sat"]` into the model. It computes attention for all 3 tokens and predicts: "on".
+**Step 1:** Feed `["The", "cat", "sat"]` into the model. Attention is computed for all 3 tokens. Output: "on".
 
-**Step 2:** Append "on" to the input. Feed `["The", "cat", "sat", "on"]` into the model. It computes attention for all 4 tokens and predicts: "the".
+**Step 2:** Feed `["The", "cat", "sat", "on"]` - all 4 tokens. Attention is recomputed for every token. Output: "the".
 
-**Step 3:** Feed `["The", "cat", "sat", "on", "the"]` - all 5 tokens - and predict: "mat".
+**Step 3:** Feed `["The", "cat", "sat", "on", "the"]` - all 5. Every token again. Output: "mat".
 
-Do you see the problem? At step 2, the model recalculates the Q, K, V projections for "The", "cat", and "sat" completely from scratch - even though nothing about those tokens has changed. At step 3, it recomputes all of them again, plus "on".
-
-For a 1,000-token generation, the model recalculates token 1 a thousand times, token 2 nine hundred and ninety-nine times, and so on.
+At step 2, the model recalculates the Q, K, V projections for "The", "cat", and "sat" from scratch. Nothing about those tokens has changed - their embeddings are identical to step 1. At step 3, all of them get recomputed again. Token 1 will be recomputed a total of $N$ times across an $N$-token generation.
 
 <div className="not-prose my-8">
   <AutoregressiveLoop />
 </div>
 
-The total work is the sum $1 + 2 + 3 + \ldots + N = \frac{N(N+1)}{2}$, which is $O(N^2)$. As the generated text gets longer, the computation grows quadratically and generation grinds to a halt.
+The total work sums to $1 + 2 + 3 + \ldots + N = \frac{N(N+1)}{2}$, which is $O(N^2)$. Double the generation length, quadruple the compute. This is why, without caching, LLM inference at 4K+ contexts was essentially unusable.
 
-## The Mathematical Epiphany
+## Keys and Values Do Not Change
 
-To fix this, look closely at the attention formula:
+To see why caching is possible, look at the attention formula:
 
 <div className="math-display">
 
@@ -42,21 +38,19 @@ $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)
 
 </div>
 
-During generation, we only need the attention output for the **newest token**. What does that newest token need?
+During generation, the only thing the model needs to produce is the attention output for the **newest token**. What does that token depend on?
 
-- **Its own Query** ($Q$): "What am I looking for?" - This must be freshly computed because it's a new token.
-- **All Keys** ($K$): The new token compares its query against the keys of all previous tokens. But the keys for past tokens haven't changed - $K_i = W_K x_i$ depends only on the embedding $x_i$, which is fixed once token $i$ is generated.
-- **All Values** ($V$): Same story. $V_i = W_V x_i$ is static once token $i$ exists.
+- **Its own Query** ($Q$): computed fresh because it is a new token.
+- **All Keys** ($K$): the newest token compares its query against the keys of every previous token. But $K_i = W_K x_i$ depends only on $x_i$, which is fixed once token $i$ has been generated.
+- **All Values** ($V$): same argument. $V_i = W_V x_i$ does not change after token $i$ exists.
 
-Here's the epiphany: **the Keys and Values of past tokens never change**. The word "cat" has the same K and V vector whether we're at step 3 or step 900. The only new computation needed is the Query for the latest token.
-
-So instead of recalculating K and V for every past token at every step, we calculate them **once**, save them in GPU memory, and reuse them. This is the **KV Cache**.
+The word "cat" produces the same K and V vector whether we are at step 3 or step 900. Every step, we recompute them from scratch and use them once. The fix is obvious in retrospect: compute them once, store the result, and look it up. This is the **KV Cache**.
 
 ## How KV Caching Works
 
 ### Prefill phase
 
-When the user sends a prompt, the model processes all prompt tokens in parallel - just like training. This **prefill** step computes Q, K, V for every token simultaneously and populates the initial cache.
+When the user sends a prompt, the model processes all prompt tokens in parallel - just like training. This **prefill** step computes Q, K, V for every prompt token simultaneously and populates the initial cache. The quadratic cost of attention still applies here, but it happens only once and scales with prompt length, not generation length.
 
 ### Decode phase
 
@@ -67,7 +61,7 @@ For each new token generated:
 3. **Append** $k_t$ and $v_t$ to the cached $K_{1:t-1}$ and $V_{1:t-1}$
 4. Compute attention: $\text{softmax}\left(\frac{q_t \cdot K_{1:t}^T}{\sqrt{d_k}}\right) V_{1:t}$
 
-The Q matrix has shrunk from $(t \times d)$ to $(1 \times d)$. We've eliminated the re-projection of all past tokens. The per-step projection cost drops from $O(t \cdot d)$ to $O(d)$, and the total cost across all steps drops from $O(N^2 \cdot d)$ to $O(N \cdot d)$.
+The Q matrix has shrunk from $(t \times d)$ to $(1 \times d)$. We eliminated re-projection of all past tokens. Per-step projection cost drops from $O(t \cdot d)$ to $O(d)$, and the total cost across all steps from $O(N^2 \cdot d)$ to $O(N \cdot d)$.
 
 Step through the visualization below to see it in action:
 
@@ -132,9 +126,11 @@ def generate(model, prompt_ids, max_new_tokens):
     return generated
 ```
 
+Notice what `kv_cache` is: a list of `(K, V)` tensor pairs, one per transformer layer. Every layer maintains its own cache because every layer has its own K/V projections. The cache grows by one row per layer per generated token.
+
 ## The Memory Wall
 
-KV caching solves the compute problem brilliantly. But in computer science, there's no free lunch. We traded a **compute problem** for a **memory problem**.
+KV caching trades a compute problem for a memory problem. The compute savings are real and dramatic. The memory cost is also real and dramatic, and at scale, it becomes the binding constraint.
 
 ### How big is the cache?
 
@@ -173,34 +169,51 @@ kv_cache_memory_gb(80, 64, 128, 4096)   # ~20.0 GB
 
 At batch size 8 with a 32K context window, even a 7B model's KV cache exceeds the memory of a consumer GPU. A 70B model at 128K tokens? The cache alone needs **hundreds of gigabytes** - more than the model weights themselves.
 
-This is the **memory wall**. The KV cache becomes the dominant memory consumer, and it determines how many users a single GPU can serve simultaneously.
+This is the **memory wall**. The KV cache becomes the dominant memory consumer, and it determines how many users a single GPU can serve simultaneously. A GPU that can hold the 70B weights and produce one slow response might be able to serve zero concurrent users if there is no memory left for their caches.
 
-## Beyond Basic KV Caching
+The compute problem was solved by storing more. The memory problem cannot be solved by storing more - it must be attacked by storing less, or storing smarter.
 
-The memory wall spawned an entire field of engineering innovations:
+## Attacking the Memory Wall
 
 ### Multi-Query and Grouped-Query Attention
 
-Standard multi-head attention gives each head its own K and V projections. **Multi-Query Attention (MQA)** (Shazeer, 2019) shares a single K/V head across all query heads, slashing cache size by the number of heads. **Grouped-Query Attention (GQA)** (Ainslie et al., 2023) compromises - groups of query heads share K/V heads. Llama 2 70B uses GQA with 8 KV heads shared across 64 query heads, reducing the cache by 8×.
+Standard multi-head attention gives each head its own K and V projections. **Multi-Query Attention (MQA)** (Shazeer, 2019) shares a single K/V head across all query heads. The cache shrinks by a factor of $H$ - the number of heads. The quality hit is real but often acceptable.
+
+**Grouped-Query Attention (GQA)** (Ainslie et al., 2023) finds a middle ground: groups of query heads share K/V heads. Llama 2 70B uses GQA with 8 KV heads shared across 64 query heads, reducing cache size by 8x with less quality degradation than full MQA.
+
+```python
+# Standard MHA: each head has its own K, V projection
+# KV cache shape: (batch, n_heads, seq_len, d_head)
+
+# MQA: one shared K, V for all query heads
+# KV cache shape: (batch, 1, seq_len, d_head)  <- 1/n_heads the size
+
+# GQA: g groups, each with their own K, V
+# KV cache shape: (batch, n_groups, seq_len, d_head)  <- n_groups/n_heads the size
+```
+
+The cache is just the stored K and V tensors. Fewer KV heads means fewer tensors to store - the query heads still exist and still attend, they just all read from a shared set of keys and values.
 
 ### FlashAttention
 
-FlashAttention (Dao et al., 2022) doesn't eliminate the cache, but makes the attention computation itself dramatically faster by being **IO-aware**. Standard attention materializes the full $N \times N$ attention matrix in GPU high-bandwidth memory (HBM). FlashAttention tiles the computation into blocks that fit in fast on-chip SRAM, never materializing the full matrix. The result: 2-4× faster attention with significantly less memory.
+FlashAttention (Dao et al., 2022) does not eliminate the cache, but makes the attention computation itself dramatically faster by being **IO-aware**. Standard attention materializes the full $N \times N$ attention score matrix in GPU high-bandwidth memory (HBM). For long sequences, that matrix dominates memory bandwidth - you spend most of your time reading and writing it, not computing.
+
+FlashAttention tiles the computation into blocks that fit in fast on-chip SRAM, never materializing the full matrix. The result is 2-4x faster attention and significantly lower peak memory, with mathematically identical output.
 
 ### PagedAttention
 
-Traditional KV caching pre-allocates a contiguous block of memory for the maximum possible sequence length. If the actual sequence is shorter, the rest is wasted. With multiple concurrent requests of varying lengths, fragmentation is massive.
+Traditional KV caching pre-allocates a contiguous block of memory for the maximum possible sequence length. A request that terminates early leaves most of that allocation unused. With hundreds of concurrent requests, the fragmentation is massive - you might have 40% of your GPU memory reserved but unreachable.
 
-**PagedAttention** (Kwon et al., 2023), implemented in vLLM, treats KV cache like virtual memory - storing it in non-contiguous pages that are allocated on demand. This eliminates fragmentation, enables sharing cache blocks across requests with common prefixes (like system prompts), and can nearly double the throughput of a serving system.
+**PagedAttention** (Kwon et al., 2023), implemented in vLLM, treats KV cache like virtual memory. Cache is stored in non-contiguous pages that are allocated on demand. Pages can be shared across requests that share a common prefix (system prompts, few-shot examples). Fragmentation drops to near zero. Throughput nearly doubles on realistic serving workloads - not because the math changed, but because the allocator got smarter.
 
 ### Quantized KV Caches
 
-If fp16 K/V values can be quantized to int8 or int4 with minimal quality loss, the cache shrinks by 2-4×. This is an active area of research (Hooper et al., 2024), with some models tolerating aggressive quantization of cached values better than others.
+The cache is in fp16 because attention arithmetic is sensitive to precision. But how sensitive, exactly? If K and V can be quantized to int8 or int4 with acceptable quality loss, the cache shrinks by 2-4x. Research (Hooper et al., 2024) shows models tolerate K quantization better than V quantization, because errors in V accumulate multiplicatively through the weighted sum. Some production systems run K at int8 and V at fp16 as a pragmatic compromise.
 
-## The Full Picture
+## What This Means in Practice
 
-Without KV caching, real-time text generation from large language models would be unusable. A 1,000-token response would require roughly 500,000 redundant matrix multiplications. With KV caching, it requires 1,000.
+Every technique above is a different angle of attack on the same constraint: a fixed amount of GPU memory that must be shared between model weights, KV cache, and activations. The KV cache, unlike the weights, grows with sequence length and batch size - which means at high throughput, it crowds everything else out.
 
-But the cache creates its own bottleneck - a memory wall that dominates GPU utilization in production serving. Every major LLM deployment today is shaped by this tradeoff: **compute vs. memory, speed vs. capacity**. FlashAttention, PagedAttention, GQA, and quantization are all different angles of attack on the same fundamental constraint.
+A 70B model serving 100 concurrent users at 32K context each has a KV cache footprint in the terabytes. No single GPU holds that. Production systems shard it across devices, evict cold pages to CPU memory, and batch requests that share prefixes to amortize cache cost. The inference engine is not just attention math running fast - it is a memory allocator that happens to also compute attention.
 
-The inference engine is built. Now the challenge is making it fit.
+Understanding KV caching is understanding why inference infrastructure is hard. The compute was always tractable. The memory is what scales badly.
