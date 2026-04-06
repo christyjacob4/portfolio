@@ -24,7 +24,20 @@ This post builds TurboQuant from scratch. We'll implement every piece in Python,
 
 TurboQuant solves a precise mathematical problem: given a high-dimensional vector $x \in \mathbb{R}^d$ and a bit budget of $b$ bits per coordinate, find a quantizer that minimizes distortion while keeping inner products unbiased.
 
-The algorithm has two stages:
+The algorithm has two stages. Watch the full pipeline in action:
+
+<div className="not-prose my-12">
+  <video
+    src="/blog/turboquant/pipeline.mp4"
+    autoPlay
+    muted
+    loop
+    playsInline
+    className="w-full rounded-xl"
+  />
+</div>
+
+Or step through it interactively:
 
 <div className="not-prose my-12">
   <TurboQuantPipeline />
@@ -56,7 +69,20 @@ Try it yourself — the left panel shows a sparse vector where 3 coordinates car
   <SparseVsDenseQuantization />
 </div>
 
-And here's the same effect on a larger scale. The left histogram shows the spiky, uneven coordinate distribution before rotation. The right shows the smooth bell curve after. Crank the dimension slider up and watch the bell curve tighten:
+Here's the same effect animated on a 128-dimensional vector — watch the spiky histogram on the left morph into a smooth bell curve on the right:
+
+<div className="not-prose my-12">
+  <video
+    src="/blog/turboquant/rotation.mp4"
+    autoPlay
+    muted
+    loop
+    playsInline
+    className="w-full rounded-xl"
+  />
+</div>
+
+Explore it yourself — crank the dimension slider up and watch the bell curve tighten:
 
 <div className="not-prose my-12">
   <RandomRotationDemo />
