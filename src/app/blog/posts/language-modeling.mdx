@@ -6,17 +6,19 @@ image: "/blog/language-modeling/cover.jpg"
 published: true
 ---
 
+The core loop of language modeling is deceptively simple: given what you've read so far, predict the next word. Do that well enough, at scale, and you get a model that can write, translate, summarize, and reason. The hard part is that "so far" can mean a single word or an entire novel, and "next word" depends on context you might have seen thousands of tokens ago. Every architecture covered in this post is a different attempt to crack that problem.
+
 This post picks up where [Deep Learning from First Principles](/blog/building-blocks) left off. You now understand vectors, dot products, neural networks, and how they learn. The question is: how do we apply all of that to language?
 
 ## Tokenization - Slicing Text into Pieces
 
 Before we can turn words into number vectors, we need to define what a "word" actually is. Splitting by spaces seems obvious, but what about punctuation? Compound words? Languages that don't use spaces at all? And if we assign a unique vector to every exact word in English, our vocabulary explodes to millions - and a typo like "catt" crashes the model entirely.
 
-**Subword tokenization** solves this. Modern models don't process whole words - they process **tokens**, which are statistically optimized chunks of text. **Byte Pair Encoding (BPE)** (Sennrich et al., 2016) starts with individual characters and iteratively merges the most frequent pairs until it builds an efficient vocabulary of 30,000–100,000 tokens.
+**Subword tokenization** solves this. Modern models don't process whole words - they process **tokens**, which are statistically optimized chunks of text. **Byte Pair Encoding (BPE)** (Sennrich et al., 2016) starts with individual characters and iteratively merges the most frequent pairs until it builds an efficient vocabulary of 30,000-100,000 tokens.
 
 Common words stay whole. Rare words get split into reusable pieces:
 
-`"The unbelievable refrigerator"` → `["The", "un", "believ", "able", "refrig", "erator"]`
+`"The unbelievable refrigerator"` -> `["The", "un", "believ", "able", "refrig", "erator"]`
 
 By breaking language into these statistical building blocks, models can handle any text - even words they've never seen before - by composing subword vectors.
 
@@ -38,6 +40,8 @@ This idea was popularized by Mikolov et al., 2013 with **Word2Vec**, which showe
 
 Two dimensions capture basic groupings, but real language needs more. The word "bank" means both a financial institution and a river's edge - you need more dimensions to separate those meanings. Modern models use 768+ dimensions, giving each word a rich fingerprint that encodes synonymy, analogy, sentiment, and part-of-speech.
 
+But here's what embeddings can't do: a single vector for "bank" will always be the same regardless of whether it appears next to "deposit" or "riverbank." The embedding is static. Solving that requires something that reads context - which leads directly to the problem of processing sequences.
+
 ## The Problem of Variable Length & Order
 
 We now have a way to turn each token into a vector. Can we just feed these vectors into the dense neural networks from the previous post?
@@ -52,7 +56,7 @@ No. Two fundamental problems:
   <SequenceOrderDemo />
 </div>
 
-We need an architecture that can process sequences of **any length** and understand that **order matters**.
+We need an architecture that can process sequences of **any length** and understand that **order matters**. The solution that dominated NLP for two decades does something beautifully simple: process one token at a time, carrying memory forward.
 
 ## Recurrent Neural Networks - Reading Left to Right
 
@@ -75,6 +79,36 @@ $$h_t = \tanh(W_h \cdot h_{t-1} + W_x \cdot x_t + b)$$
 That's it. Two matrix multiplications, an addition, and a $\tanh$ activation. The same weights $W_h$ and $W_x$ are reused at every time step - this is what makes RNNs work on sequences of any length. The network literally loops over itself, applying the same transformation at each step.
 
 The hidden state $h_t$ is the network's running summary of everything it has seen from $x_1$ through $x_t$. Think of it as a fixed-size notepad that gets rewritten at every step.
+
+A minimal implementation makes the structure concrete:
+
+```python
+import torch
+import torch.nn as nn
+
+class RNNCell(nn.Module):
+    def __init__(self, input_size: int, hidden_size: int):
+        super().__init__()
+        self.hidden_size = hidden_size
+        # Same W_h and W_x reused at every step
+        self.W_h = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.W_x = nn.Linear(input_size, hidden_size)
+
+    def forward(self, x_t: torch.Tensor, h_prev: torch.Tensor) -> torch.Tensor:
+        # Combine current input with previous memory
+        return torch.tanh(self.W_h(h_prev) + self.W_x(x_t))
+
+def run_rnn(cell: RNNCell, sequence: torch.Tensor) -> list[torch.Tensor]:
+    # sequence: (seq_len, input_size)
+    h = torch.zeros(cell.hidden_size)
+    hidden_states = []
+    for x_t in sequence:          # process one token at a time
+        h = cell(x_t, h)          # h encodes everything seen so far
+        hidden_states.append(h)
+    return hidden_states           # final h is used for classification/generation
+```
+
+The loop is the architecture. Every token updates the same memory vector, so the network naturally handles sequences of any length.
 
 ### Unrolling through time
 
@@ -133,17 +167,13 @@ The standard fix is **gradient clipping** (Pascanu et al., 2013): if the gradien
 
 ### Practical consequences
 
-These aren't theoretical concerns - they define what RNNs can and cannot learn:
+These aren't theoretical concerns - they define what RNNs can and cannot learn. Short-range patterns (3-10 tokens) come naturally: subject-verb agreement within a clause, simple bigram and trigram statistics. Medium-range dependencies (10-50 tokens) are possible with careful initialization and gradient clipping. Long-range dependencies (50+ tokens) are essentially out of reach for vanilla RNNs. Coreference across paragraphs, document-level coherence, any situation where the meaning of a word now depends on a word from many sentences ago - the gradient signal is gone before it gets there.
 
-- **Short-range patterns** (3-10 tokens): RNNs learn well. Subject-verb agreement within a clause, simple bigram/trigram patterns.
-- **Medium-range** (10-50 tokens): Degraded but possible. Requires careful initialization and gradient clipping.
-- **Long-range** (50+ tokens): Essentially impossible for vanilla RNNs. Coreference across paragraphs, document-level coherence, long conversations - all beyond reach.
+By the mid-1990s, researchers knew they needed something better. The question was how to get gradients to flow over long distances without the product of many Jacobians destroying the signal.
 
-This is why, by the mid-1990s, researchers knew they needed something better.
+## Gated Memory - LSTMs
 
-## The Band-Aid: LSTMs
-
-In 1997, Hochreiter & Schmidhuber proposed the **Long Short-Term Memory (LSTM)** - a fundamentally redesigned RNN cell built to solve the vanishing gradient problem.
+In 1997, Hochreiter & Schmidhuber proposed the **Long Short-Term Memory (LSTM)** - a fundamentally redesigned RNN cell built around a single insight: what if we gave the network an explicit, protected memory channel that gradients can flow through without compounding?
 
 ### The key idea: a cell state highway
 
@@ -215,11 +245,45 @@ $$h_t = o_t \odot \tanh(c_t)$$
 
 Not everything in the cell state is relevant for the current prediction. The output gate selects which parts of the memory to surface as the hidden state.
 
+In code, one LSTM step is exactly those four equations:
+
+```python
+import torch
+import torch.nn as nn
+
+class LSTMCell(nn.Module):
+    def __init__(self, input_size: int, hidden_size: int):
+        super().__init__()
+        self.hidden_size = hidden_size
+        # One linear for all four gates (batched for efficiency)
+        self.gates = nn.Linear(input_size + hidden_size, 4 * hidden_size)
+
+    def forward(
+        self,
+        x_t: torch.Tensor,        # current token embedding
+        h_prev: torch.Tensor,     # previous hidden state
+        c_prev: torch.Tensor,     # previous cell state (the highway)
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        combined = torch.cat([h_prev, x_t], dim=-1)
+        gates = self.gates(combined).chunk(4, dim=-1)
+        f, i, g, o = gates
+
+        f = torch.sigmoid(f)       # forget gate: what to erase
+        i = torch.sigmoid(i)       # input gate: what to write
+        g = torch.tanh(g)          # candidate new content
+        o = torch.sigmoid(o)       # output gate: what to expose
+
+        # Cell state update - gradient flows here without tanh squashing
+        c = f * c_prev + i * g
+        h = o * torch.tanh(c)
+        return h, c
+```
+
+The cell state `c` is the gradient highway. Because `c = f * c_prev + ...`, backpropagating through the cell state multiplication is just multiplying by `f` - a scalar between 0 and 1, not a full matrix product. The compounding that destroyed vanilla RNN gradients doesn't happen here.
+
 ### Why it works (and when it doesn't)
 
-The LSTM's gradient flows through the cell state update equation. Because $c_t = f_t \odot c_{t-1} + \ldots$, the gradient with respect to $c_{t-1}$ is simply $f_t$ - a value between 0 and 1, not a matrix product. No compounding multiplication. The gradient highway stays open.
-
-In practice, LSTMs extended the effective memory range from ~10 tokens (vanilla RNN) to ~100-200 tokens. This was enough to power:
+In practice, LSTMs extended the effective memory range from roughly 10 tokens (vanilla RNN) to 100-200 tokens. This was enough to power:
 
 - **Machine translation** - Sutskever et al., 2014 (Google's sequence-to-sequence model)
 - **Speech recognition** - Graves et al., 2013 (CTC loss + bidirectional LSTMs)
@@ -258,7 +322,7 @@ Despite their improvements, LSTMs and GRUs still have fundamental limitations:
 
 **No random access.** To retrieve information from the beginning of a sequence, the signal must propagate through every intermediate step. There's no way to "look back" directly at token 5 when processing token 500.
 
-This last limitation is the most fundamental - and it's exactly what attention solves.
+This last limitation is the most fundamental - and it's exactly what attention solves. But there is a second, equally serious problem that gating can't touch at all.
 
 ## The Sequential Bottleneck
 
@@ -282,7 +346,7 @@ Token $t$ cannot be processed until tokens $1$ through $t-1$ are finished. This 
 
 For a 1,000-token document on a GPU with 10,000 CUDA cores, 9,999 cores sit idle at each time step. The sequential nature of RNNs wastes nearly all of the GPU's computational capacity.
 
-Concrete numbers: training an LSTM-based translation model on WMT'14 English-German took 3.5 days on 8 GPUs (Sutskever et al., 2014). The original Transformer achieved better results in 12 hours on 8 GPUs (Vaswani et al., 2017) - a 7× speedup, driven almost entirely by parallelization.
+Concrete numbers: training an LSTM-based translation model on WMT'14 English-German took 3.5 days on 8 GPUs (Sutskever et al., 2014). The original Transformer achieved better results in 12 hours on 8 GPUs (Vaswani et al., 2017) - a 7x speedup, driven almost entirely by parallelization.
 
 ### The bidirectionality hack
 
@@ -290,19 +354,12 @@ Vanilla RNNs only read left to right. But understanding often requires right-to-
 
 **Bidirectional RNNs** (Schuster & Paliwal, 1997) run two separate RNNs - one forward, one backward - and concatenate their hidden states. This doubles the parameters and still doesn't solve the sequential bottleneck (you now have two sequential passes instead of one).
 
-### Why the Transformer was inevitable
+### What an architecture without recurrence would need
 
-By 2016, the limitations of recurrent architectures were clear:
+By 2016, the failure modes were well-understood. Vanishing gradients capped effective context at roughly 200 tokens even with LSTM gating. Sequential processing left GPU utilization near zero. Fixed-size hidden states couldn't represent long documents. And there was no mechanism for a token to directly examine any other specific token without routing information through every intermediate step.
 
-1. **Vanishing gradients** limited effective context to ~200 tokens, even with LSTM gates
-2. **Sequential processing** prevented efficient GPU utilization
-3. **Fixed-size hidden states** couldn't represent long documents
-4. **No direct connections** between distant tokens - everything was mediated by intermediate states
+What if instead of threading information through a chain of hidden states, every token could directly compute how much to attend to every other token - simultaneously, in parallel? No recurrence. No bottleneck vector. No sequential dependency.
 
-What if we could build a network where every token can directly attend to every other token, in parallel, with no recurrence at all?
-
-That architecture is the **Transformer** (Vaswani et al., 2017). It replaces recurrence with **self-attention** - a mechanism where each token computes a weighted combination of all tokens in the sequence, in a single parallelizable matrix multiplication.
-
-No sequential bottleneck. No hidden state degradation. No memory limit (beyond the fixed context window). Just attention.
+That mechanism is **self-attention**, and it's the foundation of the Transformer (Vaswani et al., 2017). Each token computes a weighted combination of all other tokens in a single parallelizable matrix multiplication - O(1) path length between any two positions, no hidden state required.
 
 Continue to [Attention Is All You Need - A Visual Story](/blog/transformers).
