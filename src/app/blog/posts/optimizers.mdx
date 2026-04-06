@@ -6,13 +6,13 @@ image: "/blog/optimizers/cover.jpg"
 published: true
 ---
 
-In the [previous post](/blog/building-blocks), we trained a digit classifier with vanilla SGD and hit 93.6% accuracy. Not bad, but not great. This post explores how one line of code can push that to 97%+.
+Swapping one line of code pushed our digit classifier from 93.6% to 97.4% accuracy. Same model, same data, same training loop. The only change was the optimizer.
 
-We'll keep using the same `DigitClassifier` from the previous post - same architecture, same data, same training loop. The only thing that changes is the optimizer.
+That gap is worth understanding. Optimization is the part of deep learning most practitioners treat as a black box - pick Adam, tune the learning rate, ship it. But the optimizer is doing something profound: it's navigating a loss landscape with billions of dimensions, where the wrong strategy gets you stuck in a ravine while the right one finds paths the gradient alone would never reveal.
 
-## The Problem with Vanilla SGD
+## Why Vanilla SGD Fails
 
-**Stochastic Gradient Descent (SGD)** computes the gradient on a small batch of data and updates all weights:
+**Stochastic Gradient Descent** computes the gradient on a small batch and steps in the direction of steepest descent:
 
 <div className="math-display">
 
@@ -20,57 +20,59 @@ $$w_{t+1} = w_t - \eta \cdot \nabla L(w_t)$$
 
 </div>
 
-where $\eta$ is the learning rate. Simple and elegant, but deeply flawed:
+The learning rate $\eta$ controls step size. This is where the trouble starts.
 
-**The learning rate dilemma.** Too large and you overshoot the minimum, bouncing around chaotically. Too small and training takes forever. The optimal learning rate changes as training progresses - what works at step 1 is wrong at step 10,000.
+Set $\eta$ too large and you overshoot the minimum, bouncing chaotically. Set it too small and training crawls. The right $\eta$ at step 1 (large loss, rough landscape) is different from the right $\eta$ at step 10,000 (near a minimum, sensitive terrain). A single global value can't be right for both.
 
-**Ravines and saddle points.** Real loss landscapes aren't smooth bowls. They have narrow ravines where the gradient is steep in one direction and shallow in another. SGD oscillates wildly across the ravine while making slow progress along it. Saddle points (where the gradient is zero but you're not at a minimum) can trap SGD entirely.
+The second problem is geometry. Real loss surfaces have narrow ravines: steep walls in one direction, a shallow slope in the direction you want to move. SGD takes big steps across the ravine and tiny steps along it, oscillating wildly instead of making progress.
 
-**Equal treatment of all parameters.** SGD applies the same learning rate to every parameter. But some parameters (like those connected to rare features) need larger updates, while others (connected to common features) need smaller ones. One-size-fits-all doesn't work.
+The third problem is more subtle. Not all parameters are equally well-trained. An embedding for a rare word updates rarely - when it does, it needs a big step. Common-word embeddings update constantly and need smaller ones. SGD applies the same $\eta$ to every parameter regardless of how often or how much they've moved.
 
-## Momentum - Building Up Speed
+These three failures - the learning rate dilemma, geometric inefficiency, and uniform treatment of parameters - all have different solutions. Momentum addresses the geometry. Adam addresses all three at once.
 
-The first major improvement: give the optimizer a "memory" of past gradients. Instead of reacting only to the current gradient, accumulate a velocity that builds up over time:
+## Momentum: Giving the Optimizer a Memory
+
+The idea: instead of reacting only to the current gradient, accumulate a velocity that builds over time.
 
 <div className="math-display">
 
 $$v_t = \beta \cdot v_{t-1} + \nabla L(w_t)$$
 
 </div>
+
 <div className="math-display">
 
 $$w_{t+1} = w_t - \eta \cdot v_t$$
 
 </div>
 
-The momentum term $\beta$ (typically 0.9) means 90% of the previous velocity is retained. This has two effects:
+With $\beta = 0.9$, 90% of the previous velocity carries forward. In a ravine, the cross-ravine gradients alternate in sign at each step and cancel out in the accumulated velocity. The along-ravine gradients consistently point the same direction and build up. The optimizer rolls smoothly down the valley instead of bouncing off the walls.
 
-**Dampens oscillations.** In a ravine, the cross-ravine gradients alternate in sign and cancel out in the velocity. The along-ravine gradients consistently point the same way and accumulate. The ball rolls smoothly down the valley instead of bouncing off the walls.
+This also helps with saddle points. A saddle point has zero gradient, which brings vanilla SGD to a halt. But an optimizer with accumulated velocity can coast through small flat regions, like a ball rolling over a gentle bump instead of stopping at it.
 
-**Escapes local minima.** The accumulated velocity can carry the optimizer through small bumps in the landscape, like a ball rolling over a small hill rather than getting stuck.
+Momentum was first proposed by Polyak in 1964 and later shown by Sutskever et al. (2013) to be critical for training deep networks. It solved the geometry problem, but it still applied the same adaptive scaling to every parameter. That required a different fix.
 
-Momentum was first proposed by Polyak, 1964 and later popularized in the context of neural networks by Sutskever et al., 2013 (who showed it was critical for training deep networks).
+## Adam: One Optimizer to Rule Them All
 
-## Adam - The Adaptive King
+**Adam** (Kingma & Ba, 2015) adds a second running average: the squared gradient. This gives it per-parameter scaling.
 
-**Adam** (Kingma & Ba, 2015) combines two ideas: momentum (first moment estimation) and adaptive learning rates (second moment estimation).
-
-It maintains two running averages per parameter:
+It maintains two moments:
 
 <div className="math-display">
 
 $$m_t = \beta_1 \cdot m_{t-1} + (1 - \beta_1) \cdot g_t$$
 
 </div>
+
 <div className="math-display">
 
 $$v_t = \beta_2 \cdot v_{t-1} + (1 - \beta_2) \cdot g_t^2$$
 
 </div>
 
-$m_t$ is the exponential moving average of gradients (like momentum). $v_t$ is the exponential moving average of squared gradients (tracks per-parameter gradient magnitude).
+$m_t$ is the exponential moving average of gradients - the momentum term. $v_t$ is the exponential moving average of squared gradients. It tracks how large the gradients have been for each parameter over time.
 
-With bias correction (because $m_0 = v_0 = 0$):
+Because both start at zero, the early estimates are biased toward zero. Bias correction fixes this:
 
 <div className="math-display">
 
@@ -78,7 +80,7 @@ $$\hat{m}_t = \frac{m_t}{1 - \beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1 - \beta_
 
 </div>
 
-The update:
+Then the update:
 
 <div className="math-display">
 
@@ -86,9 +88,9 @@ $$w_{t+1} = w_t - \eta \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}$$
 
 </div>
 
-The division by $\sqrt{\hat{v}_t}$ is the key: parameters with large gradients get smaller effective learning rates, and parameters with small gradients get larger effective learning rates. The optimizer automatically adapts to each parameter's needs.
+The division by $\sqrt{\hat{v}_t}$ is the payoff. A parameter that has consistently received large gradients has a large $\hat{v}_t$, so it gets a smaller effective step. A parameter that has rarely updated has a small $\hat{v}_t$, so it gets a larger step. The optimizer automatically calibrates step sizes to each parameter's history.
 
-Default hyperparameters ($\beta_1 = 0.9$, $\beta_2 = 0.999$, $\epsilon = 10^{-8}$) work well across most tasks. This "just works" quality made Adam the default optimizer for most deep learning.
+Default hyperparameters ($\beta_1 = 0.9$, $\beta_2 = 0.999$, $\epsilon = 10^{-8}$) work well across an enormous range of tasks. This is rare in deep learning, and it's why Adam became the default optimizer almost everywhere.
 
 ### One line changes everything
 
@@ -121,11 +123,11 @@ Watch all three optimizers race to the minimum on the same loss landscape. SGD c
   <OptimizerComparison />
 </div>
 
-## AdamW - Fixing Weight Decay
+## AdamW: Fixing a Subtle Bug
 
-Loshchilov & Hutter, 2019 discovered that Adam's interaction with L2 regularization was broken. Standard L2 regularization adds $\lambda \|w\|^2$ to the loss, which modifies the gradient. But Adam's adaptive scaling distorts this regularization signal.
+Adam's success created a hidden problem. Standard L2 regularization adds $\lambda \|w\|^2$ to the loss, which adds $\lambda w$ to the gradient. Adam then scales this gradient term by $1/\sqrt{\hat{v}_t}$ along with everything else - which means the effective regularization strength varies per parameter depending on gradient history. Parameters with historically large gradients get weaker regularization than parameters with small gradients. This breaks the intended behavior of weight decay entirely.
 
-**AdamW** decouples weight decay from the gradient:
+Loshchilov & Hutter (2019) fixed this by decoupling weight decay from the gradient update:
 
 <div className="math-display">
 
@@ -133,7 +135,7 @@ $$w_{t+1} = (1 - \lambda) \cdot w_t - \eta \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}_
 
 </div>
 
-The $(1 - \lambda)$ factor shrinks weights directly, independent of the adaptive learning rate. This seemingly small change improved generalization significantly. AdamW is the standard optimizer for training Transformers - it's what GPT, BERT, and LLaMA all use.
+The $(1 - \lambda)$ factor shrinks weights directly, before the adaptive step. Weight decay now applies uniformly, independent of gradient history. This is **AdamW**, and the seemingly small change improved generalization noticeably - enough that it became the standard optimizer for Transformer training. GPT, BERT, and LLaMA all use it.
 
 ```python
 # AdamW with weight decay
@@ -145,32 +147,34 @@ optimizer = torch.optim.AdamW(
 # Result: 97.6% after 5 epochs (slight improvement over Adam)
 ```
 
-## Loss Functions - Not All Errors Are Equal
+## Loss Functions: What Is the Optimizer Minimizing?
 
-The choice of loss function determines what the optimizer is actually minimizing. Different losses penalize errors differently:
+The optimizer navigates a loss landscape. The loss function defines that landscape. Choose the wrong one and you're optimizing for the wrong thing, no matter how good your optimizer is.
 
 <div className="not-prose my-8">
   <LossFunctionComparison />
 </div>
 
-**Cross-Entropy** ($-\log p$) is the standard for classification. It barely penalizes confident correct predictions but _explodes_ when the model is confidently wrong. At $p = 0.01$ (very wrong), the loss is 4.6 - compared to just 0.98 for MSE. This harsh penalty for overconfident mistakes is exactly what you want when training a language model.
+**Cross-Entropy** ($-\log p$) is the standard for classification. It barely penalizes confident correct predictions but explodes when the model is confidently wrong. At $p = 0.01$ (very wrong), the loss is 4.6 - compared to just 0.98 for MSE. This harsh penalty for overconfident mistakes is exactly what you want when training a language model: a model that assigns $p = 0.01$ to the correct next token should suffer severely.
 
-**Mean Squared Error** ($(1-p)^2$) is gentler. It penalizes large errors more than small ones, but not as aggressively as cross-entropy. Standard for regression tasks where you're predicting a continuous value.
+**Mean Squared Error** ($(1-p)^2$) is gentler. It penalizes large errors more than small ones, but not as aggressively as cross-entropy. It's standard for regression tasks where you're predicting a continuous value.
 
-**Mean Absolute Error** ($|1-p|$) has a constant gradient regardless of error magnitude. It's robust to outliers but can be slow to converge because it doesn't accelerate near the optimum.
+**Mean Absolute Error** ($|1-p|$) has a constant gradient regardless of error magnitude. It's robust to outliers - a single terrible prediction doesn't dominate the gradient - but converges more slowly because it doesn't accelerate near the optimum.
+
+The interaction between loss function and optimizer matters. Cross-entropy's steep gradient for wrong predictions pairs well with Adam's adaptive scaling: parameters driving confident mistakes get large, targeted updates. MSE's gentler gradient is a better fit for SGD on smooth regression landscapes.
 
 ## Learning Rate Schedules
 
-Even with Adam, the learning rate shouldn't be constant throughout training. Early in training, you want larger steps to explore the landscape. Late in training, you want smaller steps to fine-tune near the minimum.
+Even with Adam and a well-chosen loss function, a constant learning rate is leaving performance on the table. Early in training, the loss landscape is rough and gradients are noisy - you want large steps to explore. Late in training, you're near a minimum and need precise, small steps to settle in. One learning rate cannot be optimal for both phases.
 
 <div className="not-prose my-8">
   <LRScheduleChart />
 </div>
 
-**Warmup + cosine decay** is the standard for Transformer training (Vaswani et al., 2017):
+**Warmup + cosine decay** became the standard for Transformer training with Vaswani et al. (2017):
 
-1. **Linear warmup** (first ~1000 steps): the learning rate ramps from 0 to the peak. This prevents the randomly initialized model from making huge, destructive updates on the first few batches.
-2. **Cosine decay**: the learning rate follows a cosine curve from peak to near-zero. Smooth and gradual - no sudden drops that could destabilize training.
+1. **Linear warmup** (first ~1000 steps): the learning rate ramps from 0 to the peak. The model starts with randomly initialized weights - if you take large steps immediately, the first few batches cause destructive updates that the rest of training has to undo. Warmup lets the optimizer stabilize before taking full-sized steps.
+2. **Cosine decay**: the learning rate follows a cosine curve from peak to near-zero. Smooth and gradual - no sudden drops that could kick the parameters out of the minimum they've settled into.
 
 <div className="math-display">
 
@@ -203,21 +207,17 @@ for epoch in range(5):
 # Result: 97.8% - the schedule helps squeeze out the last fraction
 ```
 
-## The Current State of the Art
+## What LLM Training Actually Uses
 
-Modern LLM training uses:
+The stack described above - AdamW plus warmup plus cosine decay - is exactly what large language models use, with a few additions:
 
-- **AdamW** with $\beta_1 = 0.9$, $\beta_2 = 0.95$ (slightly lower $\beta_2$ for better stability at large scale)
+- **AdamW** with $\beta_1 = 0.9$, $\beta_2 = 0.95$ (slightly lower than Adam's default 0.999; the smaller value makes the second moment estimate respond faster, which helps at large scale where gradient statistics shift)
 - **Warmup + cosine decay** with peak learning rate around $3 \times 10^{-4}$ for smaller models, $1.5 \times 10^{-4}$ for larger ones
-- **Gradient clipping** at norm 1.0 to prevent exploding gradients
-- **Mixed precision training** (fp16/bf16 for forward/backward, fp32 for optimizer states) to halve memory and double throughput
+- **Gradient clipping** at norm 1.0 - this caps the gradient magnitude before the optimizer step, preventing the occasional enormous gradient spike from destroying the weight values trained over thousands of steps
+- **Mixed precision** (fp16/bf16 for forward/backward, fp32 for optimizer states) halves memory and roughly doubles throughput, since the optimizer states are where numerical precision actually matters
 
-Some recent alternatives to Adam:
+Recent alternatives challenge Adam's dominance on specific fronts. **Lion** (Chen et al., 2023) uses only the sign of the gradient rather than its magnitude, reducing memory by skipping second moment storage. It's competitive with Adam at lower cost. **Sophia** (Liu et al., 2023) uses a diagonal Hessian estimate to get more precise curvature information and claims 2x faster convergence on LLM pre-training. **LAMB** (You et al., 2020) scales learning rates by layer norm, enabling much larger batch sizes (up to 64K) without accuracy degradation.
 
-- **Lion** (Chen et al., 2023) uses only the sign of the gradient (not its magnitude), reducing memory by not storing second moments. Competitive with Adam at lower memory cost.
-- **Sophia** (Liu et al., 2023) uses a diagonal Hessian estimate for more precise curvature information. Can converge 2x faster than Adam on LLM pre-training.
-- **LAMB** (You et al., 2020) scales learning rates by layer norm, enabling training with much larger batch sizes (up to 64K).
+None have consistently unseated AdamW. It's well-understood, well-tuned across a decade of use, and any alternative has to clear a high bar to beat something that already just works.
 
-But Adam/AdamW remains king for now. It's well-understood, well-tuned, and very hard to beat consistently.
-
-Next up: the techniques that prevent networks from memorizing their training data and enable truly deep architectures. Continue to [Regularization & Stability](/blog/regularization).
+The techniques above are responsible for getting parameters to good values. Keeping them there - and preventing the network from collapsing, exploding, or simply memorizing the training set - is a different problem. That's what regularization and normalization are for. Continue to [Regularization & Stability](/blog/regularization).
