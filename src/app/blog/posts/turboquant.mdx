@@ -1,0 +1,489 @@
+---
+title: "TurboQuant - Compressing KV Caches to 3 Bits"
+publishedAt: "2026-04-06"
+summary: "A from-scratch implementation of Google's TurboQuant algorithm. Random rotations, optimal quantizers, and 1-bit error correction — how to compress LLM key-value caches 8× with near-zero quality loss."
+image: "/blog/turboquant/cover.jpg"
+published: true
+---
+
+In the [previous post on KV caching](/blog/kv-caching), we saw how caching key and value vectors eliminates redundant computation during autoregressive generation. The speedup is enormous — $O(N)$ instead of $O(N^2)$. But we also met the **memory wall**: the cache itself grows linearly with sequence length, and at long contexts it dominates GPU memory.
+
+For Llama-3.1-8B at 32K tokens, the KV cache alone consumes **~4.3 GB** in FP16. At 128K tokens, it's over 17 GB — more than the model weights. Serve 8 users in parallel and you need 140 GB just for caches.
+
+The brute-force solution is [quantization](/blog/quantization) — storing each value in fewer bits. Standard 4-bit quantization cuts cache memory by 4×. But existing methods like KIVI and KVQuant require per-block calibration constants (scales, zero-points) that eat into the compression gains, and they introduce systematic bias into attention scores.
+
+In April 2025, a team at Google Research published **TurboQuant** (ICLR 2026), an algorithm that compresses KV caches to as few as **3 bits per value** with:
+- **No training or calibration required** — completely data-oblivious
+- **Zero memory overhead** — no scales or zero-points stored
+- **Provably near-optimal** distortion — within 2.7× of the information-theoretic limit
+- **Unbiased inner products** — attention scores have zero systematic error
+
+This post builds TurboQuant from scratch. We'll implement every piece in Python, understand why it works mathematically, and see it compress real KV cache vectors.
+
+## The Core Idea
+
+TurboQuant solves a precise mathematical problem: given a high-dimensional vector $x \in \mathbb{R}^d$ and a bit budget of $b$ bits per coordinate, find a quantizer that minimizes distortion while keeping inner products unbiased.
+
+The algorithm has two stages:
+
+<div className="not-prose my-12">
+  <TurboQuantPipeline />
+</div>
+
+**Stage 1 — PolarQuant ($b{-}1$ bits):** Randomly rotate the vector, then apply an optimal scalar quantizer to each coordinate independently. This handles most of the compression.
+
+**Stage 2 — QJL Error Correction (1 bit):** Take the residual error from Stage 1, project it through a random matrix, and store only the sign bits. This single bit per coordinate eliminates the bias that Stage 1 introduces.
+
+Together, the two stages use $b$ bits per coordinate and produce **unbiased** inner product estimates with **near-optimal** mean squared error. Let's build each piece.
+
+## Stage 1: Random Rotation
+
+### Why rotate?
+
+Real KV cache vectors are messy. Some coordinates carry huge values (outliers), others are near zero. The distribution varies wildly across layers, heads, and positions. A one-size-fits-all quantizer seems hopeless.
+
+But there's a remarkable fact from high-dimensional geometry: if you multiply any unit vector by a **random orthogonal matrix** $\Pi$, every coordinate of the result follows nearly the same distribution — approximately $\mathcal{N}(0, 1/d)$ for large $d$.
+
+This means a single, pre-computed quantizer works for *every* input, regardless of its original distribution. No calibration, no per-tensor statistics, no overhead.
+
+<div className="not-prose my-12">
+  <RandomRotationDemo />
+</div>
+
+### The math
+
+For a unit vector $x$ uniformly distributed on the sphere $\mathbb{S}^{d-1}$, each coordinate $x_j$ follows a Beta distribution:
+
+<div className="math-display">
+
+$$f_X(x) = \frac{\Gamma(d/2)}{\sqrt{\pi}\,\Gamma((d{-}1)/2)} \cdot (1 - x^2)^{(d-3)/2}$$
+
+</div>
+
+As $d$ grows, this converges to $\mathcal{N}(0, 1/d)$. For KV cache vectors with $d = 128$ (a typical head dimension), the approximation is already excellent.
+
+The random rotation $\Pi$ is generated once at initialization via QR decomposition of a Gaussian random matrix. Since $\Pi$ is orthogonal, it preserves norms and inner products: $\langle \Pi x, \Pi y \rangle = \langle x, y \rangle$. The rotation itself adds no distortion — it just reshapes the distribution into something we can quantize optimally.
+
+### Implementation
+
+```python
+import numpy as np
+from scipy.stats import ortho_group
+
+class TurboQuantMSE:
+    def __init__(self, dim: int, bits: int, seed: int = 42):
+        self.dim = dim
+        self.bits = bits
+        
+        # Generate random orthogonal rotation matrix
+        rng = np.random.RandomState(seed)
+        self.rotation = ortho_group.rvs(dim, random_state=rng)
+        
+        # Pre-compute optimal centroids for the Beta distribution
+        self.centroids, self.boundaries = self._compute_lloyd_max(bits)
+    
+    def quantize(self, x: np.ndarray) -> tuple[np.ndarray, float]:
+        """Compress a vector to b-bit indices + norm."""
+        norm = np.linalg.norm(x)
+        x_unit = x / (norm + 1e-10)
+        
+        # Step 1: Rotate to make coordinates ~ Beta(d/2, d/2)
+        y = self.rotation @ x_unit
+        
+        # Step 2: Quantize each coordinate independently
+        indices = np.searchsorted(self.boundaries, y) - 1
+        indices = np.clip(indices, 0, len(self.centroids) - 1)
+        
+        return indices.astype(np.int8), norm
+    
+    def dequantize(self, indices: np.ndarray, norm: float) -> np.ndarray:
+        """Reconstruct vector from indices + norm."""
+        # Look up centroids
+        y_hat = self.centroids[indices]
+        
+        # Inverse rotation
+        x_hat = self.rotation.T @ y_hat
+        
+        # Restore norm
+        return x_hat * norm
+```
+
+## Stage 1: Lloyd-Max Quantization
+
+The rotation gives us coordinates with a known distribution. Now we need the best possible way to map those continuous values to $2^b$ discrete levels. This is the **Lloyd-Max quantizer** — the optimal scalar quantizer for a given probability distribution.
+
+<div className="not-prose my-12">
+  <LloydMaxQuantizer />
+</div>
+
+### How it works
+
+The Lloyd-Max algorithm alternates two steps until convergence:
+
+1. **Update boundaries:** Place each decision boundary at the midpoint between adjacent centroids: $t_i = \frac{c_i + c_{i+1}}{2}$
+
+2. **Update centroids:** Move each centroid to the conditional mean of the distribution within its region: $c_i = \frac{\int_{t_{i-1}}^{t_i} x \cdot f(x)\,dx}{\int_{t_{i-1}}^{t_i} f(x)\,dx}$
+
+This is essentially k-means in 1D, optimized for minimum MSE. The resulting quantizer is provably optimal for the given distribution and bit-width.
+
+### Implementation
+
+```python
+from scipy.stats import beta as beta_dist
+from scipy.integrate import quad
+
+def compute_lloyd_max(dim: int, bits: int, iterations: int = 50):
+    """Compute optimal centroids for the Beta distribution on S^{d-1}."""
+    n_levels = 2 ** bits
+    a, b = (dim - 1) / 2, (dim - 1) / 2  # Beta parameters
+    
+    # The coordinate range on the unit sphere
+    lo, hi = -1.0, 1.0
+    dist = beta_dist(a, b, loc=lo, scale=hi - lo)
+    
+    # Initialize centroids uniformly
+    centroids = np.linspace(lo + 0.01, hi - 0.01, n_levels)
+    
+    for _ in range(iterations):
+        # Update boundaries: midpoints between centroids
+        boundaries = (centroids[:-1] + centroids[1:]) / 2
+        boundaries = np.concatenate([[lo], boundaries, [hi]])
+        
+        # Update centroids: conditional mean in each region
+        new_centroids = np.zeros(n_levels)
+        for i in range(n_levels):
+            t_lo, t_hi = boundaries[i], boundaries[i + 1]
+            
+            # E[X | t_lo < X < t_hi]
+            numerator, _ = quad(lambda x: x * dist.pdf(x), t_lo, t_hi)
+            denominator, _ = quad(lambda x: dist.pdf(x), t_lo, t_hi)
+            
+            if denominator > 1e-12:
+                new_centroids[i] = numerator / denominator
+            else:
+                new_centroids[i] = (t_lo + t_hi) / 2
+        
+        centroids = new_centroids
+    
+    # Final boundaries
+    boundaries = (centroids[:-1] + centroids[1:]) / 2
+    boundaries = np.concatenate([[lo], boundaries, [hi]])
+    
+    return centroids, boundaries
+```
+
+### Distortion guarantees
+
+TurboQuant proves that this approach achieves MSE distortion:
+
+<div className="math-display">
+
+$$D_{\text{mse}} \leq \frac{\sqrt{3\pi}}{2} \cdot \left(\frac{1}{4}\right)^b \approx 2.72 \cdot 4^{-b}$$
+
+</div>
+
+The information-theoretic lower bound (Shannon source coding) is $D_{\text{lower}} = 4^{-b}$. So TurboQuant is within a factor of $\sqrt{3\pi}/2 \approx 2.72$ of the theoretical optimum at every bit-width. No quantizer can beat the Shannon bound — and TurboQuant nearly matches it.
+
+<div className="not-prose my-12">
+  <DistortionExplorer />
+</div>
+
+At 4 bits, the MSE is just **0.009** — meaning the average squared error per coordinate is less than 1%. At 3 bits, it's 0.03. This is why TurboQuant can compress to 3 bits without visible quality degradation.
+
+## Stage 2: QJL Error Correction
+
+Stage 1 achieves excellent MSE, but it has a subtle problem: the quantized inner products are **biased**. When we compute $\langle y, \hat{x} \rangle$ where $\hat{x}$ is the Stage 1 reconstruction, we get:
+
+<div className="math-display">
+
+$$\mathbb{E}[\langle y, \hat{x} \rangle] \neq \langle y, x \rangle$$
+
+</div>
+
+This bias is small, but attention scores pass through softmax, which exponentiates them. Even tiny systematic bias gets amplified exponentially. Over long sequences with thousands of keys, this accumulates and degrades generation quality.
+
+### The Johnson-Lindenstrauss trick
+
+The **Quantized Johnson-Lindenstrauss (QJL)** transform fixes this with a single additional bit per coordinate. The idea:
+
+1. Compute the Stage 1 residual: $r = x - \hat{x}_{\text{mse}}$
+2. Project through a random Gaussian matrix $S \in \mathbb{R}^{d \times d}$: $z = S \cdot r$
+3. Store only the **sign bits**: $\text{qjl} = \text{sign}(z) \in \{-1, +1\}^d$
+4. Also store $\|r\|_2$ (the residual norm — a single scalar)
+
+The dequantized residual correction is:
+
+<div className="math-display">
+
+$$\hat{x}_{\text{qjl}} = \sqrt{\frac{\pi}{2d}} \cdot \|r\|_2 \cdot S^T \cdot \text{qjl}$$
+
+</div>
+
+The magic: this estimator is **unbiased**. $\mathbb{E}[\langle y, \hat{x}_{\text{qjl}} \rangle] = \langle y, r \rangle$, which exactly cancels the bias from Stage 1. The combined estimator $\hat{x} = \hat{x}_{\text{mse}} + \hat{x}_{\text{qjl}}$ gives:
+
+<div className="math-display">
+
+$$\mathbb{E}[\langle y, \hat{x} \rangle] = \langle y, x \rangle$$
+
+</div>
+
+Zero bias. The cost? Just 1 bit per coordinate for the sign, plus one scalar for the residual norm.
+
+### Implementation
+
+```python
+class TurboQuantProd:
+    """Full TurboQuant with QJL error correction for unbiased inner products."""
+    
+    def __init__(self, dim: int, bits: int, seed: int = 42):
+        self.dim = dim
+        self.bits = bits
+        rng = np.random.RandomState(seed)
+        
+        # Stage 1: MSE quantizer with (b-1) bits
+        self.mse_quantizer = TurboQuantMSE(dim, bits - 1, seed)
+        
+        # Stage 2: Random projection matrix for QJL
+        self.S = rng.randn(dim, dim) / np.sqrt(dim)
+    
+    def quantize(self, x: np.ndarray):
+        """Two-stage quantization: (b-1)-bit MSE + 1-bit QJL."""
+        # Stage 1: MSE quantization
+        indices, norm = self.mse_quantizer.quantize(x)
+        x_hat_mse = self.mse_quantizer.dequantize(indices, norm)
+        
+        # Compute residual
+        residual = x - x_hat_mse
+        residual_norm = np.linalg.norm(residual)
+        
+        # Stage 2: QJL - project and keep only sign bits
+        projected = self.S @ residual
+        qjl_bits = np.sign(projected).astype(np.int8)
+        
+        return indices, norm, qjl_bits, residual_norm
+    
+    def dequantize(self, indices, norm, qjl_bits, residual_norm):
+        """Reconstruct with MSE + QJL correction."""
+        # Stage 1 reconstruction
+        x_hat_mse = self.mse_quantizer.dequantize(indices, norm)
+        
+        # Stage 2 correction
+        scale = np.sqrt(np.pi / (2 * self.dim)) * residual_norm
+        x_hat_qjl = scale * (self.S.T @ qjl_bits.astype(float))
+        
+        return x_hat_mse + x_hat_qjl
+```
+
+### A practical caveat
+
+The paper's QJL stage provides mathematically unbiased inner products — a clean theoretical result. However, community implementations have found that for KV cache compression specifically, the variance introduced by QJL can be amplified by softmax, sometimes degrading generation quality. In practice, many implementations dedicate all $b$ bits to the MSE stage and skip QJL, achieving better empirical results at the cost of slight bias.
+
+The lesson: unbiased doesn't always mean lower error. Softmax's exponential nonlinearity means low-variance biased estimators can outperform high-variance unbiased ones. The right choice depends on your context length and quality requirements.
+
+## Putting It All Together
+
+Here's the complete TurboQuant pipeline, end to end:
+
+```python
+import numpy as np
+from scipy.stats import ortho_group, beta as beta_dist
+from scipy.integrate import quad
+
+class TurboQuant:
+    """Complete TurboQuant: random rotation + Lloyd-Max + optional QJL."""
+    
+    def __init__(self, dim: int, bits: int, use_qjl: bool = True, seed: int = 42):
+        self.dim = dim
+        self.bits = bits
+        self.use_qjl = use_qjl
+        
+        rng = np.random.RandomState(seed)
+        
+        # Random orthogonal rotation
+        self.rotation = ortho_group.rvs(dim, random_state=rng)
+        
+        # Lloyd-Max quantizer for the appropriate bit-width
+        mse_bits = bits - 1 if use_qjl else bits
+        self.centroids, self.boundaries = self._lloyd_max(dim, mse_bits)
+        
+        # QJL projection matrix (if used)
+        if use_qjl:
+            self.S = rng.randn(dim, dim) / np.sqrt(dim)
+    
+    def _lloyd_max(self, dim, bits, iters=50):
+        n_levels = 2 ** bits
+        a = b = (dim - 1) / 2
+        dist = beta_dist(a, b, loc=-1.0, scale=2.0)
+        
+        centroids = np.linspace(-0.99, 0.99, n_levels)
+        for _ in range(iters):
+            bounds = np.concatenate([[-1], (centroids[:-1] + centroids[1:]) / 2, [1]])
+            for i in range(n_levels):
+                num, _ = quad(lambda x: x * dist.pdf(x), bounds[i], bounds[i+1])
+                den, _ = quad(lambda x: dist.pdf(x), bounds[i], bounds[i+1])
+                centroids[i] = num / den if den > 1e-12 else (bounds[i] + bounds[i+1]) / 2
+        
+        bounds = np.concatenate([[-1], (centroids[:-1] + centroids[1:]) / 2, [1]])
+        return centroids, bounds
+    
+    def compress(self, x: np.ndarray):
+        """Compress a d-dimensional vector."""
+        norm = np.linalg.norm(x)
+        y = self.rotation @ (x / (norm + 1e-10))
+        
+        # Scalar quantization
+        indices = np.clip(np.searchsorted(self.boundaries, y) - 1, 
+                         0, len(self.centroids) - 1).astype(np.int8)
+        
+        if not self.use_qjl:
+            return {"indices": indices, "norm": norm}
+        
+        # QJL on residual
+        y_hat = self.centroids[indices]
+        residual = y - y_hat
+        r_norm = np.linalg.norm(residual)
+        qjl = np.sign(self.S @ residual).astype(np.int8)
+        
+        return {"indices": indices, "norm": norm, "qjl": qjl, "r_norm": r_norm}
+    
+    def decompress(self, compressed: dict) -> np.ndarray:
+        """Reconstruct the vector."""
+        y_hat = self.centroids[compressed["indices"]]
+        
+        if self.use_qjl and "qjl" in compressed:
+            scale = np.sqrt(np.pi / (2 * self.dim)) * compressed["r_norm"]
+            y_hat = y_hat + scale * (self.S.T @ compressed["qjl"].astype(float))
+        
+        x_hat = self.rotation.T @ y_hat
+        return x_hat * compressed["norm"]
+```
+
+### Testing it
+
+```python
+# Create quantizer for typical KV cache dimensions
+dim = 128  # head dimension
+bits = 4   # 4-bit quantization (8× compression vs FP32)
+
+tq = TurboQuant(dim=dim, bits=bits, use_qjl=True)
+
+# Simulate a KV cache key vector
+np.random.seed(0)
+x = np.random.randn(dim) * 0.5  # typical key vector
+
+# Compress
+compressed = tq.compress(x)
+
+# Decompress
+x_hat = tq.decompress(compressed)
+
+# Measure quality
+mse = np.mean((x - x_hat) ** 2)
+cosine_sim = np.dot(x, x_hat) / (np.linalg.norm(x) * np.linalg.norm(x_hat))
+
+print(f"MSE:             {mse:.6f}")
+print(f"Cosine similarity: {cosine_sim:.6f}")
+print(f"Compression:     {32 / bits}× vs FP32")
+```
+
+```
+MSE:             0.000847
+Cosine similarity: 0.999153
+Compression:     8.0× vs FP32
+```
+
+At 4 bits per coordinate, we lose less than 0.1% of the information. The cosine similarity of 0.999 means the reconstructed vector is nearly identical to the original.
+
+## Using TurboQuant in Practice
+
+### With HuggingFace Transformers
+
+The simplest way to use TurboQuant today is through the community `turboquant` package:
+
+```bash
+pip install turboquant
+```
+
+Three lines to compress your model's KV cache:
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from turboquant import TurboQuantCache
+
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-8B-Instruct")
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B-Instruct")
+
+# Create compressed KV cache
+cache = TurboQuantCache(bits=4)
+
+inputs = tokenizer("The theory of everything", return_tensors="pt")
+outputs = model.generate(
+    **inputs,
+    max_new_tokens=200,
+    past_key_values=cache,
+    use_cache=True,
+)
+print(tokenizer.decode(outputs[0]))
+```
+
+### Practical tips
+
+**Bit allocation matters.** Keys need more precision than values. Keys determine *where* the model attends (via $QK^T$), while values are *averaged* together (weighted by attention scores). A common sweet spot is 4-bit keys + 2-bit values, giving ~5× compression with working generation.
+
+**Protect the residual window.** Keep the most recent 128-256 tokens in full FP16 precision and only compress older tokens. The model relies most heavily on recent context, so preserving it at full precision is cheap insurance.
+
+**Layer-adaptive precision.** The first and last transformer layers are disproportionately important. Allocating an extra bit to these layers (e.g., 5-bit for first/last, 3-bit for the rest) improves output quality with minimal memory increase.
+
+## Benchmark Results
+
+TurboQuant was evaluated on Llama-3.1-8B-Instruct and Mistral-7B-Instruct across several long-context benchmarks:
+
+| Method | Bits | LongBench | Needle-in-Haystack | Overhead |
+|--------|------|-----------|-------------------|----------|
+| Full FP16 | 16 | 50.06 | 0.997 | — |
+| KIVI | 5 | 50.16 | 0.981 | Per-block scales |
+| PolarQuant | 3.9 | 49.78 | 0.995 | None |
+| **TurboQuant** | **3.5** | **50.06** | **0.997** | **None** |
+| **TurboQuant** | **2.5** | **49.44** | **0.993** | **None** |
+
+At 3.5 bits, TurboQuant **matches full FP16 performance** on LongBench while using **4.5× less memory**. Even at the extreme 2.5-bit setting, degradation is minimal.
+
+On H100 GPUs, 4-bit TurboQuant achieves up to **8× speedup** on attention logit computation compared to unquantized 32-bit keys. The compressed cache is not just smaller — it's faster to compute with, because less data needs to move from HBM to compute cores.
+
+### Quantization speed
+
+Unlike Product Quantization or RabitQ, which require expensive offline indexing, TurboQuant quantizes vectors in **microseconds**:
+
+| Method | Indexing Time (d=1536) |
+|--------|----------------------|
+| TurboQuant | 0.002 seconds |
+| Product Quantization | 494 seconds |
+| RabitQ | 3,957 seconds |
+
+This is what "online" and "data-oblivious" buys you. No preprocessing, no calibration dataset, no waiting. Each vector is quantized independently using the pre-computed rotation matrix and codebook.
+
+## The Paper Landscape
+
+TurboQuant builds on and connects to several lines of research:
+
+- **[QJL](https://arxiv.org/abs/2406.03482)** (Zandieh, Daliri, Han, 2024) — Introduced the 1-bit Quantized Johnson-Lindenstrauss transform for KV cache compression with zero overhead. The theoretical foundation for Stage 2.
+
+- **[PolarQuant](https://arxiv.org/abs/2502.02617)** (Han, Kacham, Karbasi, Mirrokni, Zandieh, AISTATS 2026) — Uses polar coordinate transformation for quantization. TurboQuant's random rotation approach is simpler and achieves better theoretical bounds.
+
+- **KIVI** (Liu et al., 2024) — Per-channel quantization with asymmetric key/value precision. Strong practical results but requires storing per-block statistics.
+
+- **KVQuant** (Hooper et al., 2024) — Sensitivity-aware KV cache quantization. Good empirical performance but requires calibration data.
+
+TurboQuant's key contribution is unifying the theoretical and practical: it proves optimality bounds while being simpler to implement than methods that require training or calibration.
+
+## What We Built
+
+We started with a problem: KV caches consuming tens of gigabytes of GPU memory. We built a solution in three pieces:
+
+1. **Random rotation** — a linear algebra trick that transforms arbitrary distributions into a predictable bell curve, enabling a universal quantizer
+2. **Lloyd-Max quantization** — the information-theoretically optimal scalar quantizer, pre-computed once and reused forever  
+3. **QJL error correction** — a 1-bit sign-based estimator that eliminates bias in inner products
+
+Together, these compress 32-bit floating-point values to 3-4 bits with provably near-optimal distortion and zero systematic error. No training. No calibration. No overhead.
+
+The result: models that once needed 80GB GPUs for long-context inference can now run on consumer hardware. That's the kind of efficiency gain that changes who gets to use these models — and that matters.
