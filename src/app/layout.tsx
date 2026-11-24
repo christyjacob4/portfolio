@@ -10,8 +10,6 @@ const lora = Lora({
   display: "swap",
 });
 import { Navbar } from "../components/nav";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import Footer from "../components/footer";
 import { baseUrl } from "./sitemap";
 
@@ -21,15 +19,17 @@ export const metadata: Metadata = {
     default: "Christy Jacob",
     template: "%s | Christy Jacob",
   },
-  description: "Developer, optimist, and leader.",
+  description: "Engineer at Magic. Writing about ML systems and infrastructure.",
   openGraph: {
     title: "Christy Jacob",
-    description: "Developer, optimist, and leader",
+    description: "Engineer at Magic. Writing about ML systems and infrastructure",
     url: baseUrl,
     siteName: "Christy Jacob",
     locale: "en_US",
     type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
   },
+  twitter: { card: "summary_large_image", images: ["/og.png"] },
   robots: {
     index: true,
     follow: true,
@@ -83,14 +83,13 @@ export default function RootLayout({
       )}
     >
       <body className="antialiased bg-background text-foreground">
+        {/* TODO: Cloudflare Web Analytics beacon goes here (add the script once the token exists). */}
         <div aria-hidden="true" className="grain" />
         <div className="max-w-2xl mx-auto px-4 md:px-6 lg:px-4">
           <main className="flex flex-col min-h-screen">
             <Navbar />
             {children}
             <Footer />
-            <Analytics />
-            <SpeedInsights />
           </main>
         </div>
       </body>

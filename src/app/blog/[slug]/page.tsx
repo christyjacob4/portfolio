@@ -12,8 +12,9 @@ export async function generateStaticParams() {
   }))
 }
 
-export function generateMetadata({ params }) {
-  let post = getBlogPosts().find((post) => post.slug === params.slug)
+export async function generateMetadata({ params }) {
+  const { slug } = await params
+  let post = getBlogPosts().find((post) => post.slug === slug)
   if (!post) {
     return
   }
@@ -24,9 +25,8 @@ export function generateMetadata({ params }) {
     summary: description,
     image,
   } = post.metadata
-  let ogImage = image
-    ? image
-    : `${baseUrl}/og?title=${encodeURIComponent(title)}`
+  // Build-time OG image from ./og.png/route.tsx unless the post has a cover.
+  const ogImage = image ? image : `/blog/${post.slug}/og.png`
 
   return {
     title,
@@ -52,8 +52,9 @@ export function generateMetadata({ params }) {
   }
 }
 
-export default function Blog({ params }) {
-  let post = getBlogPosts().find((post) => post.slug === params.slug)
+export default async function Blog({ params }) {
+  const { slug } = await params
+  let post = getBlogPosts().find((post) => post.slug === slug)
 
   if (!post) {
     notFound()
@@ -74,7 +75,7 @@ export default function Blog({ params }) {
             description: post.metadata.summary,
             image: post.metadata.image
               ? `${baseUrl}${post.metadata.image}`
-              : `/og?title=${encodeURIComponent(post.metadata.title)}`,
+              : `${baseUrl}/blog/${post.slug}/og.png`,
             url: `${baseUrl}/blog/${post.slug}`,
             author: {
               '@type': 'Person',
@@ -88,7 +89,7 @@ export default function Blog({ params }) {
           <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase mb-3">
             {formatDate(post.metadata.publishedAt)}
           </p>
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight leading-snug mb-4" style={{ fontFamily: 'var(--font-lora), Georgia, serif', color: 'hsl(var(--foreground))' }}>
+          <h1 className="text-3xl md:text-4xl md:leading-10 font-semibold tracking-tight leading-snug mb-4" style={{ fontFamily: 'var(--font-lora), Georgia, serif', color: 'hsl(var(--foreground))' }}>
             {post.metadata.title}
           </h1>
           <p className="max-w-2xl leading-relaxed" style={{ fontFamily: 'var(--font-lora), Georgia, serif', color: 'hsl(var(--muted-foreground))', fontSize: '1.02rem', lineHeight: '1.7' }}>

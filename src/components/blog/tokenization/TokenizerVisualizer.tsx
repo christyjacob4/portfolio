@@ -56,7 +56,7 @@ export default function TokenizerVisualizer({ targetChar = "s" }: Props) {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-neutral-100 text-sm focus:outline-none focus:border-neutral-500"
+            className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-neutral-100 text-sm focus:outline-hidden focus:border-neutral-500"
             placeholder="type a word..."
           />
         </div>
@@ -66,7 +66,7 @@ export default function TokenizerVisualizer({ targetChar = "s" }: Props) {
             value={searchChar}
             maxLength={1}
             onChange={(e) => setSearchChar(e.target.value.slice(-1))}
-            className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-neutral-100 text-sm text-center focus:outline-none focus:border-neutral-500"
+            className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-neutral-100 text-sm text-center focus:outline-hidden focus:border-neutral-500"
           />
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function TokenizerVisualizer({ targetChar = "s" }: Props) {
             return (
               <span
                 key={i}
-                className={`w-7 h-7 flex items-center justify-center rounded text-sm border ${
+                className={`w-7 h-7 flex items-center justify-center rounded-sm text-sm border ${
                   isTarget
                     ? `font-bold ${col.bg} ${col.border} ${col.text}`
                     : `text-neutral-500 border-neutral-800 bg-neutral-900`

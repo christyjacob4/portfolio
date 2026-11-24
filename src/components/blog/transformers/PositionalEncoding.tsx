@@ -73,7 +73,7 @@ function encodingValueToColor(value: number): string {
 function Tooltip({ cell, x, y }: { cell: CellInfo; x: number; y: number }) {
   return (
     <div
-      className="pointer-events-none absolute z-10 rounded bg-black/90 px-3 py-2 font-mono text-xs text-white shadow-lg"
+      className="pointer-events-none absolute z-10 rounded-sm bg-black/90 px-3 py-2 font-mono text-xs text-white shadow-lg"
       style={{ left: x, top: y, transform: "translate(-50%, -120%)" }}
     >
       <div className="flex flex-col gap-0.5">

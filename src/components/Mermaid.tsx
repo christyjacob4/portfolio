@@ -42,7 +42,7 @@ type MermaidProps = {
   readonly chart: string;
 };
 
-const Mermaid = ({ chart }: MermaidProps): JSX.Element => {
+const Mermaid = ({ chart }: MermaidProps): React.JSX.Element => {
   const [svg, setSvg] = useState<string>("");
   const [id] = useState<string>(`mermaid-${Math.random().toString(36).substr(2, 9)}`);
   
@@ -68,7 +68,7 @@ const Mermaid = ({ chart }: MermaidProps): JSX.Element => {
       style={{ color: 'white' }}
     />
   ) : (
-    <div className="p-4 bg-gray-800 rounded my-6">
+    <div className="p-4 bg-gray-800 rounded-sm my-6">
       <p className="text-white">Loading diagram...</p>
     </div>
   );

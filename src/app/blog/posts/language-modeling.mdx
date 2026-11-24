@@ -8,7 +8,7 @@ published: true
 
 The core loop of language modeling is deceptively simple: given what you've read so far, predict the next word. Do that well enough, at scale, and you get a model that can write, translate, summarize, and reason. The hard part is that "so far" can mean a single word or an entire novel, and "next word" depends on context you might have seen thousands of tokens ago. Every architecture covered in this post is a different attempt to crack that problem.
 
-This post picks up where [Deep Learning from First Principles](/blog/building-blocks) left off. You now understand vectors, dot products, neural networks, and how they learn. The question is: how do we apply all of that to language?
+This post picks up where [Deep Learning from First Principles](/blog/deep-learning-from-first-principles) left off. You now understand vectors, dot products, neural networks, and how they learn. The question is: how do we apply all of that to language?
 
 ## Tokenization - Slicing Text into Pieces
 
@@ -362,4 +362,4 @@ What if instead of threading information through a chain of hidden states, every
 
 That mechanism is **self-attention**, and it's the foundation of the Transformer (Vaswani et al., 2017). Each token computes a weighted combination of all other tokens in a single parallelizable matrix multiplication - O(1) path length between any two positions, no hidden state required.
 
-Continue to [Attention Is All You Need - A Visual Story](/blog/transformers).
+Continue to [Attention Is All You Need - A Visual Story](/blog/attention-is-all-you-need).

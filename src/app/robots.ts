@@ -1,3 +1,5 @@
+export const dynamic = "force-static";
+
 import { baseUrl } from "./sitemap";
 
 export default function robots() {

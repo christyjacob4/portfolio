@@ -1,11 +1,12 @@
 "use client"
 
-import React, { ReactNode, ReactElement } from 'react'
+import React, { ReactNode } from 'react'
 
 interface CodeBlockProps {
   children: ReactNode
   className?: string
   filename?: string
+  lineCount?: number
 }
 
 const LANGUAGE_DISPLAY_NAMES: Record<string, string> = {
@@ -48,34 +49,6 @@ function extractLanguage(className?: string): string | null {
 
 function getDisplayName(language: string): string {
   return LANGUAGE_DISPLAY_NAMES[language] ?? language
-}
-
-/**
- * Recursively extracts plain text from a React node tree.
- * Used to count lines from syntax-highlighted code elements
- * that contain nested spans from rehype-prism-plus.
- */
-function extractTextContent(node: ReactNode): string {
-  if (typeof node === 'string') return node
-  if (typeof node === 'number') return String(node)
-  if (!node) return ''
-
-  if (Array.isArray(node)) {
-    return node.map(extractTextContent).join('')
-  }
-
-  if (React.isValidElement(node)) {
-    const element = node as ReactElement<{ children?: ReactNode }>
-    return extractTextContent(element.props.children)
-  }
-
-  return ''
-}
-
-function countLines(text: string): number {
-  if (!text) return 1
-  const trimmed = text.endsWith('\n') ? text.slice(0, -1) : text
-  return trimmed.split('\n').length
 }
 
 function TrafficLights() {
@@ -143,11 +116,9 @@ function LineNumbers({ count }: { count: number }) {
   )
 }
 
-export function CodeBlock({ children, className, filename }: CodeBlockProps) {
+export function CodeBlock({ children, className, filename, lineCount = 1 }: CodeBlockProps) {
   const language = extractLanguage(className)
   const titleText = filename ?? (language ? getDisplayName(language) : null)
-  const textContent = extractTextContent(children)
-  const lineCount = countLines(textContent)
 
   return (
     <div
