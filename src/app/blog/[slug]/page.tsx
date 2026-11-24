@@ -103,6 +103,7 @@ export default async function Blog({ params }) {
               src={post.metadata.image}
               alt={`${post.metadata.title} hero image`}
               fill
+              sizes="(min-width: 768px) 640px, 100vw"
               priority
               quality={75}
               className="object-cover"

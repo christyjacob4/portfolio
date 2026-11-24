@@ -18,6 +18,7 @@ export default function Experience() {
                 src={exp.icon}
                 alt={`${exp.company} logo`}
                 fill
+                sizes="56px"
                 className="object-contain"
               />
             </div>
