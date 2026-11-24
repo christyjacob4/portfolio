@@ -570,7 +570,28 @@ export default function LoRAForwardPass() {
           <span style={{ fontSize: 13, color: ACCENT, fontWeight: "bold" }}>
             Step {step + 1}/{TOTAL_STEPS}: {currentStep.label}
           </span>
-          <div style={{ display: "flex", gap: 2 }}>
+          <div
+            role="slider"
+            tabIndex={0}
+            aria-label="Animation step"
+            aria-valuemin={1}
+            aria-valuemax={TOTAL_STEPS}
+            aria-valuenow={step + 1}
+            aria-valuetext={`Step ${step + 1} of ${TOTAL_STEPS}: ${currentStep.label}`}
+            onKeyDown={(e) => {
+              const next =
+                e.key === "ArrowRight" || e.key === "ArrowUp" ? Math.min(step + 1, TOTAL_STEPS - 1)
+                : e.key === "ArrowLeft" || e.key === "ArrowDown" ? Math.max(step - 1, 0)
+                : e.key === "Home" ? 0
+                : e.key === "End" ? TOTAL_STEPS - 1
+                : null;
+              if (next === null) return;
+              e.preventDefault();
+              setStep(next);
+              setIsPlaying(false);
+            }}
+            style={{ display: "flex", gap: 2, padding: "8px 0", margin: "-8px 0", borderRadius: 4 }}
+          >
             {STEPS.map((_, i) => (
               <span
                 key={i}
