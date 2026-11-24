@@ -10,7 +10,8 @@ export function generateStaticParams() {
   return getBlogPosts().map((post) => ({ slug: post.slug }));
 }
 
-export function GET(_req: Request, { params }: { params: { slug: string } }) {
-  const post = getBlogPosts().find((p) => p.slug === params.slug);
+export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = getBlogPosts().find((p) => p.slug === slug);
   return renderOg(post?.metadata.title ?? "Christy Jacob", "christyjacob.dev / blog");
 }
