@@ -36,6 +36,15 @@ jobs:
           node-version: 24
           cache: npm
 
+      # Installs on Christy's machine go through a private npm mirror (registry.stepsecurity.io) whose
+      # URLs end up in package-lock.json and fail on CI with E401. Point them back at the public
+      # registry before installing (same tarballs, integrity hashes unchanged). Locally:
+      # `npm run lockfile:normalize`.
+      - name: Normalize lockfile registry URLs
+        run: |
+          sed -i 's#https://registry.stepsecurity.io/javascript/#https://registry.npmjs.org/#g' package-lock.json
+          if grep -q 'registry.stepsecurity.io' package-lock.json; then echo "::error::lockfile still references the private mirror"; exit 1; fi
+
       - run: npm ci
       - run: npm run lint
       - run: npm run build
