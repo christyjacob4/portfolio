@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 /* VS Code Dark Theme for Code Blocks */
 .prose pre {
   @apply rounded-lg overflow-x-auto border my-6;

@@ -43,7 +43,7 @@ export default function Page() {
         {workExperiences.map((company, index) => (
           <div key={index} className="group">
             <div className="flex items-center gap-4 mb-6">
-              <div className="relative h-14 md:h-12 aspect-square rounded-md overflow-hidden bg-muted flex-shrink-0">
+              <div className="relative h-14 md:h-12 aspect-square rounded-md overflow-hidden bg-muted shrink-0">
                 <Image
                   src={company.icon}
                   alt={`${company.company} logo`}

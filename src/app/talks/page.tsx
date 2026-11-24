@@ -45,7 +45,7 @@ export default function Page() {
       <div className="text-muted-foreground animate-fade-up delay-150">Coming soon...</div>
       <div className="space-y-4">
         {/* {talks.map((talk, index) => (
-          <div key={index} className="border rounded-lg p-4 shadow-sm">
+          <div key={index} className="border rounded-lg p-4 shadow-xs">
             <h2 className="text-xl font-semibold mb-2">{talk.title}</h2>
             <p className="mb-3">{talk.description}</p>
             <div className="flex space-x-4">

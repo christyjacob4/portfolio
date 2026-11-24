@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 /* Mermaid Diagram Styling */
 .mermaid-diagram {
   @apply my-6;

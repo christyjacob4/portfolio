@@ -220,10 +220,10 @@ export default async function Page() {
                   <CoverImage title={project.coverText ?? project.title} />
                 )}
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
                 {/* Stars badge */}
                 {project.stars != null && project.stars > 0 && (
-                  <span className="absolute top-2 right-2 text-[10px] text-neutral-300 bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5 flex items-center gap-1">
+                  <span className="absolute top-2 right-2 text-[10px] text-neutral-300 bg-black/50 backdrop-blur-xs rounded-full px-2 py-0.5 flex items-center gap-1">
                     <Star className="h-2.5 w-2.5 fill-current" />
                     {project.stars > 1000
                       ? `${(project.stars / 1000).toFixed(1)}k`

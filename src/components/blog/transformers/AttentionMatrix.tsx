@@ -35,7 +35,7 @@ function cellOpacity(weight: number): number {
 function CellTooltip({ weight, x, y }: { weight: number; x: number; y: number }) {
   return (
     <div
-      className="pointer-events-none absolute z-10 rounded bg-black/90 px-2 py-1 font-mono text-xs text-white shadow-lg"
+      className="pointer-events-none absolute z-10 rounded-sm bg-black/90 px-2 py-1 font-mono text-xs text-white shadow-lg"
       style={{ left: x, top: y, transform: "translate(-50%, -120%)" }}
     >
       {weight.toFixed(2)}

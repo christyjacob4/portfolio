@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .prose {
   font-family: var(--font-lora), Georgia, 'Times New Roman', serif;
   font-size: 1.05rem;
