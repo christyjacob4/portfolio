@@ -199,7 +199,8 @@ function MatrixPanel({
             >
               {/* Row label (query token) */}
               <div
-                className="flex shrink-0 cursor-default items-center justify-end pr-4 font-mono text-xs transition-colors duration-150"
+                className="flex shrink-0 cursor-default items-center justify-end pr-4 font-mono text-xs transition-colors duration-150 before:content-[attr(data-token)]"
+                data-token={isRowVisible ? undefined : queryToken}
                 style={{
                   width: LABEL_AREA,
                   height: CELL_SIZE,
@@ -211,7 +212,7 @@ function MatrixPanel({
                 onMouseEnter={() => isRowVisible && onRowHover(row)}
                 onMouseLeave={onRowLeave}
               >
-                {queryToken}
+                {isRowVisible ? queryToken : null}
               </div>
 
               {/* Attention cells for this row */}
@@ -278,7 +279,7 @@ function Legend() {
 
 function Annotation() {
   return (
-    <p className="max-w-md text-center font-mono text-[11px] leading-relaxed text-white/40">
+    <p className="max-w-md text-center font-mono text-[11px] leading-relaxed text-white/50">
       During generation, future tokens don&rsquo;t exist yet. The mask ensures
       the model can only attend to tokens it has already generated.
     </p>
@@ -303,7 +304,7 @@ function GenerationProgress({
         </span>
       ))}
       {pendingTokens.map((token, i) => (
-        <span key={`pending-${i}`} className="text-white/20">
+        <span key={`pending-${i}`} className="text-white/50">
           {token}
         </span>
       ))}

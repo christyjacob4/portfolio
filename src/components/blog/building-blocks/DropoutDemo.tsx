@@ -214,11 +214,12 @@ export default function DropoutDemo() {
 
       {/* Slider */}
       <div className="mx-auto mt-3 flex max-w-md items-center gap-4">
-        <label className="shrink-0 text-[11px] text-white/40" style={{ fontFamily: FONT_MONO }}>
+        <label className="shrink-0 text-[11px] text-white/50" style={{ fontFamily: FONT_MONO }}>
           Dropout: {dropoutRate}%
         </label>
         <input
           type="range" min={0} max={50} step={5} value={dropoutRate}
+          aria-label="Dropout rate"
           onChange={(e) => setDropoutRate(Number(e.target.value))}
           className={SLIDER_CLASSES}
         />

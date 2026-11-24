@@ -185,7 +185,7 @@ export default function PPOTrainingLoop() {
       const isActive = i === currentStage;
       ctx.strokeStyle = isActive
         ? PPO_STAGES[i].color
-        : "rgba(255,255,255,0.1)";
+        : "rgba(255,255,255,0.5)";
       ctx.lineWidth = isActive ? 2.5 : 1;
       ctx.stroke();
 
@@ -260,7 +260,7 @@ export default function PPOTrainingLoop() {
       const lx = centerX + Math.cos(angle) * (radius + labelOffset);
       const ly = centerY + Math.sin(angle) * (radius + labelOffset);
       ctx.font = `${isActive ? "bold " : ""}13px ${FONT_MONO}`;
-      ctx.fillStyle = isActive ? stage.color : "rgba(255,255,255,0.4)";
+      ctx.fillStyle = isActive ? stage.color : "rgba(255,255,255,0.5)";
       ctx.fillText(stage.label, lx, ly);
     }
 
@@ -431,7 +431,7 @@ export default function PPOTrainingLoop() {
           style={{
             fontSize: 13,
             fontFamily: FONT_MONO,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.5)",
             letterSpacing: "0.04em",
           }}
         >
@@ -441,7 +441,7 @@ export default function PPOTrainingLoop() {
           style={{
             fontSize: 13,
             fontFamily: FONT_MONO,
-            color: `rgba(${ACCENT_RGB}, 0.5)`,
+            color: `rgba(${ACCENT_RGB}, 0.65)`,
           }}
         >
           step {currentStep}/{TOTAL_STEPS}

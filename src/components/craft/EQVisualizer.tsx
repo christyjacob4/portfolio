@@ -61,7 +61,7 @@ export default function EQVisualizer() {
             <span style={{
               fontSize: "9px",
               fontFamily: "var(--font-geist-mono), monospace",
-              color: "rgba(255,255,255,0.35)",
+              color: "rgba(255,255,255,0.5)",
             }}>
               {String(i + 1).padStart(2, "0")}
             </span>

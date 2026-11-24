@@ -464,6 +464,7 @@ export default function LloydMaxQuantizer() {
         </label>
         <input
           type="range"
+          aria-label="Bit width"
           min={1}
           max={5}
           value={bits}

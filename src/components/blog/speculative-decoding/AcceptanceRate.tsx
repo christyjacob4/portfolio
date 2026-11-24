@@ -131,6 +131,7 @@ export default function AcceptanceRate() {
         </div>
         <input
           type="range"
+          aria-label="Draft-target alignment"
           min={0.1}
           max={0.99}
           step={0.01}
@@ -147,7 +148,7 @@ export default function AcceptanceRate() {
             display: "flex",
             justifyContent: "space-between",
             fontSize: 13,
-            color: "rgba(255,255,255,0.3)",
+            color: "rgba(255,255,255,0.5)",
             marginTop: 2,
           }}
         >

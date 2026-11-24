@@ -256,7 +256,7 @@ export default function PerplexityVsBits() {
                 }`,
                 borderRadius: 4,
                 padding: "6px 12px",
-                color: isEnabled ? m.color : TEXT_DIM,
+                color: isEnabled ? m.color.replace("0.8", "1") : TEXT_DIM,
                 fontFamily: FONT_MONO,
                 fontSize: 13,
                 cursor: "pointer",

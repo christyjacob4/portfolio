@@ -340,7 +340,7 @@ export default function DenseVsSparse() {
             style={{
               fontFamily: FONT_MONO,
               fontSize: 13,
-              color: "rgba(255,255,255,0.45)",
+              color: "rgba(255,255,255,0.5)",
               margin: 0,
               lineHeight: 1.5,
             }}

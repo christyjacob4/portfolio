@@ -53,7 +53,7 @@ export default function Page() {
                 />
               </div>
               <div>
-                <h3 className="font-medium text-xl">
+                <h2 className="font-medium text-xl">
                   <a
                     href={company.companyUrl}
                     target="_blank"
@@ -62,7 +62,7 @@ export default function Page() {
                   >
                     {company.company}
                   </a>
-                </h3>
+                </h2>
                 {company.location && (
                   <p className="text-sm text-muted-foreground">
                     {company.location}

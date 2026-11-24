@@ -881,6 +881,7 @@ export default function BiasAccumulation() {
           </label>
           <input
             type="range"
+            aria-label="Sequence length"
             min={0}
             max={SEQUENCE_LENGTH_OPTIONS.length - 1}
             step={1}
@@ -932,6 +933,7 @@ export default function BiasAccumulation() {
           </label>
           <input
             type="range"
+            aria-label="Bias magnitude"
             min={0}
             max={0.3}
             step={0.01}

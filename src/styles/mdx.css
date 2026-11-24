@@ -99,6 +99,13 @@
   letter-spacing: 0.06em;
 }
 
+.prose h3.sub-heading {
+  @apply text-lg mt-5 mb-1.5;
+  font-weight: 500;
+  line-height: 1.75rem;
+  color: #ccc8c2;
+}
+
 .prose strong {
   font-weight: 600;
   color: #d5d1cb;

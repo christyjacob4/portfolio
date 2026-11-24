@@ -284,7 +284,7 @@ export default function LoRAForwardPass() {
         <span
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.5)",
             letterSpacing: "0.04em",
           }}
         >
@@ -570,10 +570,32 @@ export default function LoRAForwardPass() {
           <span style={{ fontSize: 13, color: ACCENT, fontWeight: "bold" }}>
             Step {step + 1}/{TOTAL_STEPS}: {currentStep.label}
           </span>
-          <div style={{ display: "flex", gap: 2 }}>
+          <div
+            role="slider"
+            tabIndex={0}
+            aria-label="Animation step"
+            aria-valuemin={1}
+            aria-valuemax={TOTAL_STEPS}
+            aria-valuenow={step + 1}
+            aria-valuetext={`Step ${step + 1} of ${TOTAL_STEPS}: ${currentStep.label}`}
+            onKeyDown={(e) => {
+              const next =
+                e.key === "ArrowRight" || e.key === "ArrowUp" ? Math.min(step + 1, TOTAL_STEPS - 1)
+                : e.key === "ArrowLeft" || e.key === "ArrowDown" ? Math.max(step - 1, 0)
+                : e.key === "Home" ? 0
+                : e.key === "End" ? TOTAL_STEPS - 1
+                : null;
+              if (next === null) return;
+              e.preventDefault();
+              setStep(next);
+              setIsPlaying(false);
+            }}
+            style={{ display: "flex", gap: 2, padding: "8px 0", margin: "-8px 0", borderRadius: 4 }}
+          >
             {STEPS.map((_, i) => (
-              <button
+              <span
                 key={i}
+                aria-hidden="true"
                 onClick={() => { setStep(i); setIsPlaying(false); }}
                 style={{
                   width: 8,
@@ -616,7 +638,7 @@ export default function LoRAForwardPass() {
               border: `1px solid ${FROZEN_STROKE}`,
             }}
           />
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
             Frozen weights
           </span>
         </div>
@@ -630,7 +652,7 @@ export default function LoRAForwardPass() {
               border: `1px solid ${TRAINABLE_STROKE}`,
             }}
           />
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
             Trainable (LoRA)
           </span>
         </div>
@@ -644,7 +666,7 @@ export default function LoRAForwardPass() {
               border: "1px solid rgba(250,204,21,0.4)",
             }}
           />
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
             Data signal
           </span>
         </div>

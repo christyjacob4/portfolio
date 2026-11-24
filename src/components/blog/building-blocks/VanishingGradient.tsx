@@ -129,7 +129,7 @@ function ModeToggle({
           className="px-3 py-1.5 text-[11px] transition-colors duration-150"
           style={{
             fontFamily: FONT_MONO,
-            color: !hasResidual ? "#fff" : "rgba(255,255,255,0.4)",
+            color: !hasResidual ? "#fff" : "rgba(255,255,255,0.5)",
             backgroundColor: !hasResidual
               ? "rgba(74,222,128,0.15)"
               : "transparent",
@@ -144,7 +144,7 @@ function ModeToggle({
           className="px-3 py-1.5 text-[11px] transition-colors duration-150"
           style={{
             fontFamily: FONT_MONO,
-            color: hasResidual ? "#fff" : "rgba(255,255,255,0.4)",
+            color: hasResidual ? "#fff" : "rgba(255,255,255,0.5)",
             backgroundColor: hasResidual
               ? "rgba(74,222,128,0.15)"
               : "transparent",
@@ -323,7 +323,7 @@ function GradientBarChart({
   return (
     <div className="mt-4">
       <p
-        className="mb-2 text-center text-[10px] uppercase tracking-wider text-white/40"
+        className="mb-2 text-center text-[10px] uppercase tracking-wider text-white/50"
         style={{ fontFamily: FONT_MONO }}
       >
         Gradient Magnitude
@@ -339,7 +339,7 @@ function GradientBarChart({
                 className="text-[9px] tabular-nums"
                 style={{
                   fontFamily: FONT_MONO,
-                  color: isActive ? ACCENT : "rgba(255,255,255,0.4)",
+                  color: isActive ? ACCENT : "rgba(255,255,255,0.5)",
                   transition: "color 0.2s ease",
                 }}
               >

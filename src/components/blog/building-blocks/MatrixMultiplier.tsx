@@ -84,7 +84,7 @@ function MatrixGrid({
   return (
     <div className="flex flex-col items-center gap-2">
       <span
-        className="text-[10px] tracking-wider text-white/35"
+        className="text-[10px] tracking-wider text-white/50"
         style={{ fontFamily: FONT_MONO }}
       >
         {label}
@@ -192,13 +192,13 @@ function DotProductExplanation({
       <div className="flex flex-wrap items-baseline justify-center gap-x-1 gap-y-1">
         {rowValues.map((v, k) => (
           <span key={k} className="flex items-baseline gap-x-1">
-            {k > 0 && <span className="text-white/25 mx-1">+</span>}
+            {k > 0 && <span className="text-white/50 mx-1">+</span>}
             <span style={{ color: ROW_HIGHLIGHT }}>{v.toFixed(1)}</span>
-            <span className="text-white/25">×</span>
+            <span className="text-white/50">×</span>
             <span style={{ color: COLUMN_HIGHLIGHT }}>{colValues[k].toFixed(1)}</span>
           </span>
         ))}
-        <span className="text-white/25 mx-1">=</span>
+        <span className="text-white/50 mx-1">=</span>
         <span className="text-base font-semibold" style={{ color: ACCENT }}>
           {result.toFixed(2)}
         </span>
@@ -214,7 +214,7 @@ function DotProductExplanation({
 function OperatorSymbol({ symbol }: { symbol: string }) {
   return (
     <div
-      className="flex items-center justify-center self-center px-2 text-lg text-white/30"
+      className="flex items-center justify-center self-center px-2 text-lg text-white/50"
       style={{ fontFamily: FONT_MONO }}
     >
       {symbol}

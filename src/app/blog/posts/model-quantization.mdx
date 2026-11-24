@@ -559,7 +559,7 @@ def per_group_quantize_dequantize(W, bits, group_size):
 
 ### AWQ vs GPTQ
 
-| | GPTQ | AWQ |
+| <span className="sr-only">Method</span> | GPTQ | AWQ |
 |---|------|-----|
 | **Approach** | Compensate errors after quantization | Protect important weights before quantization |
 | **Uses** | Hessian (second-order) information | Activation magnitude (first-order) |

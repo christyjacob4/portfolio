@@ -137,6 +137,7 @@ function SequenceLengthSlider({
       </label>
       <input
         type="range"
+        aria-label="Sequence length"
         min={MIN_SEQUENCE_LENGTH}
         max={MAX_SEQUENCE_LENGTH}
         step={1}
@@ -235,7 +236,7 @@ export default function PositionalEncoding() {
             style={{ width: Y_AXIS_LABEL_WIDTH, height: D_MODEL * CELL_HEIGHT }}
           >
             <span
-              className="font-mono text-[10px] tracking-wider text-white/40"
+              className="font-mono text-[10px] tracking-wider text-white/50"
               style={{ writingMode: "vertical-lr", transform: "rotate(180deg)" }}
             >
               Dimension
@@ -256,7 +257,7 @@ export default function PositionalEncoding() {
                       color:
                         hoveredDimension === dim
                           ? ACCENT
-                          : "rgba(255,255,255,0.35)",
+                          : "rgba(255,255,255,0.5)",
                     }}
                   >
                     {dim}
@@ -319,7 +320,7 @@ export default function PositionalEncoding() {
                     color:
                       hoveredPosition === pos
                         ? ACCENT
-                        : "rgba(255,255,255,0.35)",
+                        : "rgba(255,255,255,0.5)",
                     visibility:
                       pos % positionTickInterval === 0 ? "visible" : "hidden",
                   }}
@@ -331,7 +332,7 @@ export default function PositionalEncoding() {
 
             {/* X-axis label */}
             <div
-              className="text-center font-mono text-[10px] tracking-wider text-white/40"
+              className="text-center font-mono text-[10px] tracking-wider text-white/50"
               style={{ paddingLeft: 20 }}
             >
               Position

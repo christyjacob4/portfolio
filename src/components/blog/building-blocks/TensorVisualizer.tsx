@@ -196,7 +196,7 @@ export default function TensorVisualizer() {
         </svg>
       </div>
 
-      <p className="mt-2 text-center text-xs text-white/35" style={{ fontFamily: FONT_MONO }}>
+      <p className="mt-2 text-center text-xs text-white/50" style={{ fontFamily: FONT_MONO }}>
         32 × 512 × 768 ={" "}
         <span style={{ color: ACCENT, fontWeight: 600 }}>
           12,582,912

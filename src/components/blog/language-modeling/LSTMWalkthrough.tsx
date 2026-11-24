@@ -383,7 +383,7 @@ function CellStateLine({ activeStep }: { activeStep: StepId }) {
 
 function HiddenStateLine({ activeStep }: { activeStep: StepId }) {
   const isOutput = activeStep === 3
-  const hiddenColor = isOutput ? STEPS[3].color : "rgba(255,255,255,0.15)"
+  const hiddenColor = isOutput ? STEPS[3].color : "rgba(255,255,255,0.5)"
 
   return (
     <g>
@@ -818,7 +818,7 @@ function StepIndicator({ activeStep }: { activeStep: StepId }) {
             cx={startX + i * dotSpacing}
             cy={20}
             r={isActive ? 4 : 3}
-            fill={isActive ? step.color : "rgba(255,255,255,0.15)"}
+            fill={isActive ? step.color : "rgba(255,255,255,0.5)"}
             style={{
               transition: `fill ${TRANSITION_DURATION} ease, r ${TRANSITION_DURATION} ease`,
               filter: isActive

@@ -228,7 +228,7 @@ export default function LineChart() {
         {SERIES.map((s) => (
           <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
             <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: s.color }} />
-            <span style={{ fontSize: "9px", fontFamily: "var(--font-geist-mono), monospace", color: "rgba(255,255,255,0.35)" }}>{s.label}</span>
+            <span style={{ fontSize: "9px", fontFamily: "var(--font-geist-mono), monospace", color: "rgba(255,255,255,0.5)" }}>{s.label}</span>
           </div>
         ))}
       </div>

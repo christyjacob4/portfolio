@@ -606,7 +606,7 @@ export default function RandomRotationDemo() {
         <span
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.5)",
             letterSpacing: "0.04em",
           }}
         >
@@ -732,6 +732,7 @@ export default function RandomRotationDemo() {
           </label>
           <input
             type="range"
+            aria-label="Vector dimension"
             min={0}
             max={DIMENSION_OPTIONS.length - 1}
             step={1}
