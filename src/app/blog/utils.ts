@@ -113,3 +113,48 @@ export function formatDate(date: string, includeRelative = false) {
 
   return `${fullDate} (${formattedDate})`;
 }
+
+
+export function readingMinutes(content: string) {
+  // Count prose only: skip fenced code, math blocks and multi-line JSX figures.
+  let words = 0;
+  let fence = false;
+  let jsx = false;
+  let math = false;
+  for (const raw of content.split("\n")) {
+    const line = raw.trim();
+    if (line.startsWith("```")) { fence = !fence; continue; }
+    if (fence) continue;
+    if (line.startsWith("$$")) { if (!(line.length > 2 && line.endsWith("$$"))) math = !math; continue; }
+    if (math) continue;
+    if (jsx) { if (/\/>\s*$|^<\/[A-Z]/.test(line)) jsx = false; continue; }
+    if (/^<[A-Z]/.test(line)) { if (!/\/>\s*$|<\/[A-Z]\w*>\s*$/.test(line)) jsx = true; continue; }
+    words += line.split(/\s+/).filter(Boolean).length;
+  }
+  return Math.max(1, Math.round(words / 230));
+}
+
+export function slugifyHeading(str: string) {
+  return str
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/&/g, "-and-")
+    .replace(/[^\w\-]+/g, "")
+    .replace(/\-\-+/g, "-");
+}
+
+export function extractHeadings(content: string) {
+  const out: { id: string; text: string; level: 2 | 3 }[] = [];
+  let inFence = false;
+  for (const line of content.split("\n")) {
+    if (line.trim().startsWith("```")) inFence = !inFence;
+    if (inFence) continue;
+    const m = /^(#{2,3})\s+(.+?)\s*$/.exec(line);
+    if (!m) continue;
+    const text = m[2].replace(/[`*_]/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+    out.push({ id: slugifyHeading(text), text, level: m[1].length as 2 | 3 });
+  }
+  return out;
+}

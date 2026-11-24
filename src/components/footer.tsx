@@ -1,42 +1,54 @@
 import Link from "next/link";
-import { Separator } from "./ui/separator";
 import { ArrowUpRight } from "lucide-react";
 
-const footerLinks = [
-  // { href: "/rss", text: "rss" },
-  { href: "https://x.com/christyjacob4", text: "twitter" },
-  { href: "https://github.com/christyjacob4", text: "github" },
-  { href: "https://www.linkedin.com/in/christyjacob4/", text: "linkedin" },
-  { href: "mailto:christyjacob4@gmail.com", text: "email" },
+const links = [
+  { href: "https://github.com/christyjacob4", text: "GitHub" },
+  { href: "https://x.com/christyjacob4", text: "X" },
+  { href: "https://www.linkedin.com/in/christyjacob4/", text: "LinkedIn" },
+  { href: "mailto:christyjacob4@gmail.com", text: "Email" },
+  { href: "/rss", text: "RSS", internal: true },
 ];
 
 export default function Footer() {
   return (
-    <footer className="my-8">
-      <ul className="flex flex-col space-x-0 space-y-2 md:flex-row md:space-x-4 md:space-y-0">
-        {footerLinks.map((link, index) => (
-          <li key={index}>
-            <Link
-              className="flex items-center transition-all hover:text-neutral-800 dark:hover:text-neutral-100 group"
-              rel="noopener noreferrer"
-              target="_blank"
-              href={link.href}
-            >
-              <ArrowUpRight className="h-5 w-5" />
-              <p className="ml-1 relative">
-                {link.text}
-                <span className="absolute left-0 -bottom-0.5 w-full h-[1px] bg-current transform scale-x-0 transition-transform duration-200 origin-left group-hover:scale-x-100"></span>
-              </p>
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <Separator className="my-6" />
-      <p className="italic text-sm">
-        &ldquo;Knowledge is discovered collectively, wisdom is rediscovered
-        individually.&rdquo;
-      </p>
-      <p className="mt-1 text-muted-foreground text-sm">- Naval Ravikant</p>
+    <footer className="mt-24 border-t border-border">
+      <div className="mx-auto grid w-full max-w-[72rem] gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr] lg:px-8">
+        <div>
+          <p className="display text-3xl sm:text-4xl max-w-md">
+            &ldquo;Knowledge is discovered collectively, wisdom is rediscovered
+            individually.&rdquo;
+          </p>
+          <p className="mt-3 eyebrow">Naval Ravikant</p>
+        </div>
+        <nav aria-label="Elsewhere">
+          <p className="eyebrow mb-4">Elsewhere</p>
+          <ul className="grid grid-cols-2 gap-y-2">
+            {links.map((l) => (
+              <li key={l.text}>
+                {l.internal ? (
+                  <a href={l.href} className="group inline-flex items-center gap-1 py-1">
+                    <span className="link-u">{l.text}</span>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden />
+                  </a>
+                ) : (
+                  <Link
+                    href={l.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex items-center gap-1 py-1"
+                  >
+                    <span className="link-u">{l.text}</span>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden />
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-8 text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} Christy Jacob
+          </p>
+        </nav>
+      </div>
     </footer>
   );
 }

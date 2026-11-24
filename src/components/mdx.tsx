@@ -10,6 +10,7 @@ import dynamic from 'next/dynamic'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/accordion'
 import { BlogImageGrid } from './BlogImageGrid'
 import { CodeBlock } from './CodeBlock'
+import { slugifyHeading } from '@/app/blog/utils'
 
 // Dynamically import the Mermaid component with SSR disabled
 const Mermaid = dynamic(() => import('./Mermaid'), { ssr: false })
@@ -174,29 +175,22 @@ function ScrollableTable({ children, ...props }) {
 
 function CustomBlockquote({ children, ...props }) {
   return (
-    <blockquote 
-      className="border-l-4 border-slate-600 dark:border-slate-500 bg-slate-100 dark:bg-slate-800/70 px-4 py-1 italic text-slate-800 dark:text-slate-200"
-      {...props}
-    >
+    <blockquote {...props}>
       {children}
     </blockquote>
   )
 }
 
-function slugify(str) {
-  return str
-    .toString()
-    .toLowerCase()
-    .trim() // Remove whitespace from both ends of a string
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/&/g, '-and-') // Replace & with 'and'
-    .replace(/[^\w\-]+/g, '') // Remove all non-word characters except for -
-    .replace(/\-\-+/g, '-'); // Replace multiple - with single -
+function nodeText(node: React.ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(nodeText).join('')
+  if (React.isValidElement(node)) return nodeText((node.props as { children?: React.ReactNode }).children)
+  return ''
 }
 
 function createHeading(level) {
   const Heading = ({ children }) => {
-    let slug = slugify(children)
+    let slug = slugifyHeading(nodeText(children))
     return React.createElement(
       `h${level}`,
       { id: slug },
@@ -205,6 +199,7 @@ function createHeading(level) {
           href: `#${slug}`,
           key: `link-${slug}`,
           className: 'anchor',
+          'aria-label': `Link to section: ${nodeText(children)}`,
         }),
       ],
       children
@@ -216,7 +211,18 @@ function createHeading(level) {
   return Heading
 }
 
-let components = {
+// Interactive figures are drawn for a dark surface; give each the same dark stage in both themes.
+function withStage<P extends object>(C: React.ComponentType<P>) {
+  const Staged = (props: P) => (
+    <div className="viz-stage not-prose">
+      <C {...props} />
+    </div>
+  )
+  Staged.displayName = `Staged(${(C as { displayName?: string }).displayName ?? 'Figure'})`
+  return Staged
+}
+
+const baseComponents = {
   h1: createHeading(1),
   h2: createHeading(2),
   h3: createHeading(3),
@@ -229,12 +235,15 @@ let components = {
   code: Code,
   table: ScrollableTable,
   blockquote: CustomBlockquote,
-  Mermaid,
   Accordion,
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
   BlogImageGrid,
+}
+
+const figures = {
+  Mermaid,
   AnimatedGauge,
   EQVisualizer,
   LineChart,
@@ -329,6 +338,12 @@ let components = {
   SparseVsDenseQuantization,
   BiasAccumulation,
 }
+
+const staged = Object.fromEntries(
+  Object.entries(figures).map(([name, C]) => [name, withStage(C as React.ComponentType<object>)]),
+)
+
+const components = { ...baseComponents, ...staged }
 
 export function CustomMDX(props) {
   return MDXRemote({

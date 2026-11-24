@@ -1,134 +1,59 @@
-import { ProjectItem, Project } from "@/components/ProjectItem";
-
-const projects: Project[] = [
-  {
-    title: "orionlabs",
-    description:
-      "A software development studio specializing in AI development, full-stack engineering, and custom software solutions. Built for clients ranging from seed-stage startups to Fortune 500 enterprises.",
-    coverText: "orionlabs",
-    projectUrl: "https://orionlabs.work",
-    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion", "Vercel"],
-  },
-  {
-    title: "mcat",
-    description:
-      "A drop-in cat replacement that understands Parquet, Avro, CSV, JSONL, and streams from remote sources like S3, GCS, and HTTP. Includes schema inspection, column selection, grep, sort, stats, and diff.",
-    coverText: "mcat",
-    projectUrl: "https://christyjacob4.github.io/mcat",
-    githubUrl: "https://github.com/christyjacob4/mcat",
-    techStack: ["Python", "PyArrow", "fsspec", "CLI"],
-  },
-  {
-    title: "pghashlib",
-    description: "PostgreSQL extension providing fast stable hash functions with support for text, bytea, and integer inputs.",
-    coverText: "pghashlib",
-    projectUrl: "https://github.com/christyjacob4/pghashlib",
-    githubUrl: "https://github.com/christyjacob4/pghashlib",
-    techStack: ["C", "Docker", "PostgreSQL"],
-  },
-  {
-    title: "remotenomad",
-    description:
-      "A modern job board platform helping developers find their dream remote positions at top tech companies worldwide.",
-    image: "/projects/remotenomad.png",
-    projectUrl: "https://remotenomad.app",
-    techStack: ["Sveltekit", "Tailwind CSS", "Appwrite"],
-  },
-  {
-    title: "promptsauce",
-    description: "A platform for discovering and sharing AI prompts.",
-    image: "/projects/promptsauce.png",
-    projectUrl: "https://promptsauce.com",
-    techStack: ["Next.js", "Tailwind CSS", "Appwrite"],
-  },
-  {
-    title: "appwrite/appwrite",
-    description:
-      "Appwrite is an open-source backend-as-a-service server that allows you to build scalable, secure, and real-time web and mobile applications.",
-    image: "/projects/appwrite.png",
-    projectUrl: "https://appwrite.io",
-    githubUrl: "https://github.com/appwrite/appwrite",
-    techStack: [
-      "Python",
-      "Node.js",
-      "Sveltekit",
-      "PHP",
-      "Docker",
-      "Redis",
-      "MySQL",
-      "Terraform",
-    ],
-  },
-  {
-    title: "appwrite/mcp",
-    description:
-      "A Model Context Protocol server for interacting with Appwrite's API. Provides tools to manage databases, users, functions, teams, and more within your Appwrite project.",
-    image: "/projects/appwrite-mcp.png",
-    projectUrl: "https://github.com/appwrite/mcp",
-    githubUrl: "https://github.com/appwrite/mcp",
-    techStack: ["Python", "MCP", "Claude", "Appwrite", "LLM"],
-  },
-  {
-    title: "appwrite/monitoring",
-    description:
-      "A lightweight system monitoring tool that tracks CPU, memory, and disk usage across infrastructure. It creates incidents in BetterStack when resource usage exceeds defined thresholds, with configurable parameters for monitoring sensitivity.",
-    coverText: "monitoring",
-    projectUrl: "https://github.com/appwrite/monitoring",
-    githubUrl: "https://github.com/appwrite/monitoring",
-    techStack: ["Go", "Docker", "BetterStack", "DevOps"],
-  },
-  {
-    title: "open-runtimes/executor",
-    description:
-      "Executor provides a lightweight and highly performant HTTP API to create and manage OCI complaint runtimes (Docker). Executor manages the runtime's state and ensures jobs are scheduled to the right containers while handles horizontal auto-scaling and minimizing cold starts.",
-    coverText: "executor",
-    projectUrl: "https://github.com/open-runtimes/executor",
-    githubUrl: "https://github.com/open-runtimes/executor",
-    techStack: ["PHP", "Swoole", "Docker"],
-  },
-];
-
-async function addStarCounts(projects: Project[]): Promise<Project[]> {
-  return Promise.all(
-    projects.map(async (project) => {
-      if (!project.githubUrl) {
-        return { ...project, stars: null } as Project;
-      }
-
-      const repoPath = project.githubUrl.replace("https://github.com/", "");
-
-      try {
-        const res = await fetch(`https://api.github.com/repos/${repoPath}`, {
-          headers: {
-            Accept: "application/vnd.github+json",
-          },
-          next: { revalidate: 86400 }, // revalidate every 24h
-        });
-
-        if (!res.ok) {
-          return { ...project, stars: null } as Project;
-        }
-
-        const data = await res.json();
-        return { ...project, stars: data.stargazers_count ?? null } as Project;
-      } catch {
-        return { ...project, stars: null } as Project;
-      }
-    })
-  );
-}
+import { ArrowUpRight, Star } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
+import { ProjectCover } from "@/components/project-cover";
+import { projects } from "@/data/projects";
+import { fetchStars, formatStars } from "@/lib/stars";
 
 export default async function Page() {
-  const projectsWithStars = await addStarCounts(projects);
-
+  const withStars = await Promise.all(
+    projects.map(async (p) => ({ ...p, stars: await fetchStars(p.githubUrl) })),
+  );
   return (
-    <section>
-      <h1 className="font-semibold text-2xl mb-8 tracking-tighter animate-fade-up delay-75">Projects</h1>
-      <div className="space-y-0 animate-fade-up delay-150">
-        {projectsWithStars.map((project, index) => (
-          <ProjectItem key={index} project={project} />
+    <>
+      <PageHeader
+        eyebrow="Projects"
+        title={
+          <>
+            Things I&apos;ve <span className="italic text-brand">shipped</span>
+          </>
+        }
+        lede="Open-source tools, infrastructure and a few side projects. The Appwrite repositories are open-source work from my time there."
+      />
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {withStars.map((p) => (
+          <li key={p.title}>
+            <a
+              href={p.projectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-[border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-brand/50"
+            >
+              <ProjectCover project={p} sizes="(min-width:1024px) 360px, (min-width:640px) 45vw, 92vw" />
+              <div className="flex flex-1 flex-col gap-3 p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="truncate text-lg font-semibold">{p.title}</h2>
+                  <span className="inline-flex shrink-0 items-center gap-2 font-mono text-xs text-muted-foreground">
+                    {p.stars ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Star className="h-3 w-3" aria-hidden /> {formatStars(p.stars)}
+                      </span>
+                    ) : null}
+                    <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden />
+                  </span>
+                </div>
+                <p className="line-clamp-4 text-sm leading-relaxed text-muted-foreground">{p.description}</p>
+                <ul className="mt-auto flex flex-wrap gap-1.5 pt-1" aria-label="Tech stack">
+                  {p.techStack.map((t) => (
+                    <li key={t} className="rounded-full border border-border px-2.5 py-0.5 font-mono text-[0.68rem] text-muted-foreground">
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </a>
+          </li>
         ))}
-      </div>
-    </section>
+      </ul>
+    </>
   );
 }

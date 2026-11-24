@@ -2,7 +2,7 @@ import { getBlogPosts } from "./blog/utils";
 
 export const dynamic = "force-static";
 
-export const baseUrl = "https://christyjacob.dev";
+import { baseUrl } from "@/lib/site";
 
 export default async function sitemap() {
   let blogs = getBlogPosts().map((post) => ({
@@ -10,7 +10,7 @@ export default async function sitemap() {
     lastModified: post.metadata.publishedAt,
   }));
 
-  let routes = ["", "/blog"].map((route) => ({
+  let routes = ["", "/blog", "/work", "/projects", "/talks"].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString().split("T")[0],
   }));

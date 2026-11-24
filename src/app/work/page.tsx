@@ -1,132 +1,98 @@
-import { experience as workExperiences } from "@/data/experience";
-import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { PageHeader } from "@/components/page-header";
+import { experience } from "@/data/experience";
 
 export const metadata = {
   title: "Work",
-  description: "My work experience and professional journey.",
+  description: "Where I've worked, from computer vision research to engineering leadership to ML infrastructure at Magic.",
 };
 
-// Define custom styles for MDX content
 const mdxComponents = {
-  strong: (props) => <strong className="text-white font-medium" {...props} />,
+  strong: (props) => <strong className="font-semibold text-foreground" {...props} />,
+  a: (props) => <a className="text-brand underline underline-offset-2" {...props} />,
 };
-
-
 
 export default function Page() {
   return (
-    <section className="max-w-2xl mb-8">
-      <h1 className="font-medium text-2xl mb-8 tracking-tighter animate-fade-up delay-75">Work</h1>
-      <p className="text-base text-muted-foreground mb-8 animate-fade-up delay-150">
-        Over the past 5 years, I&apos;ve evolved from a researcher developing
-        cutting-edge computer vision systems to leading engineering
-        organizations at scale. I&apos;ve architected cloud infrastructures
-        handling <strong className="text-foreground font-medium">over 100M daily requests</strong>, pioneered AI
-        initiatives, and built cross-platform applications that dramatically
-        improved business outcomes. My expertise spans full-stack development,
-        deep learning, and distributed systems, with contributions that have
-        directly influenced <strong className="text-foreground font-medium">$37M+ in funding</strong>. Whether leading
-        world-class engineering teams or providing technical consulting to
-        founders & C-suite executives, I consistently deliver solutions that
-        combine technical excellence with strategic business value.
-      </p>
+    <>
+      <PageHeader
+        eyebrow="Work"
+        title={
+          <>
+            Where I&apos;ve <span className="italic text-brand">built</span>
+          </>
+        }
+        lede={
+          <>
+            From computer vision research, to leading engineering at an open source developer platform running{" "}
+            <strong className="font-medium text-foreground">100M+ daily requests</strong>, to ML at{" "}
+            <a href="https://magic.dev" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground link-u">
+              Magic
+            </a>
+            .
+          </>
+        }
+      />
 
-      <div className="space-y-14 animate-fade-up delay-225">
-        {workExperiences.map((company, index) => (
-          <div key={index} className="group">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="relative h-14 md:h-12 aspect-square rounded-md overflow-hidden bg-muted flex-shrink-0">
-                <Image
-                  src={company.icon}
-                  alt={`${company.company} logo`}
-                  fill
-                  className="object-contain"
-                />
-              </div>
+      <ol className="space-y-5">
+        {experience.map((company) => (
+          <li key={company.company} className="tile !p-0 overflow-hidden">
+            <div className="grid gap-6 p-6 sm:p-8 md:grid-cols-[16rem_1fr]">
               <div>
-                <h3 className="font-medium text-xl">
-                  <a
-                    href={company.companyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-primary transition-colors"
-                  >
-                    {company.company}
-                  </a>
-                </h3>
-                {company.location && (
-                  <p className="text-sm text-muted-foreground">
-                    {company.location}
+                <div className="flex items-center gap-3">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-white ring-1 ring-border">
+                    <Image src={company.icon} alt={`${company.company} logo`} fill sizes="48px" className="object-contain" />
+                  </div>
+                  <div>
+                    <h2 className="display text-3xl leading-none">
+                      <a
+                        href={company.companyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="transition-colors hover:text-brand"
+                      >
+                        {company.company}
+                      </a>
+                    </h2>
+                    {company.location && (
+                      <p className="mt-1 text-sm text-muted-foreground">{company.location}</p>
+                    )}
+                  </div>
+                </div>
+                <p className="mt-4 font-mono text-[0.72rem] uppercase tracking-[0.1em] text-muted-foreground">
+                  {company.summaryPeriod}
+                </p>
+                {company.current && (
+                  <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1 text-xs font-medium text-brand">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden /> Current
                   </p>
                 )}
               </div>
-            </div>
 
-            {/* Positions using accordion without timeline */}
-            <div className="mb-12">
-              <Accordion type="single" collapsible className="space-y-1">
-                {company.positions.map((position, posIndex) => (
-                  <AccordionItem
-                    key={posIndex}
-                    value={`item-${posIndex}`}
-                    className="border-none"
-                  >
-                    <AccordionTrigger className="py-1 hover:no-underline">
-                      <div className="flex items-center justify-between w-full">
-                        <h4 className="font-semibold text-lg text-muted-foreground">
-                          {position.title}
-                        </h4>
-                        <span className="text-sm text-muted-foreground tabular-nums mr-2">
-                          {position.period}
-                        </span>
-                      </div>
-                    </AccordionTrigger>
-
+              <div className="space-y-6">
+                {company.positions.map((position) => (
+                  <div key={position.title + position.period}>
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+                      <h3 className="text-lg font-semibold">{position.title}</h3>
+                      <p className="font-mono text-xs tabular-nums text-muted-foreground">{position.period}</p>
+                    </div>
                     {position.achievements.length > 0 && (
-                    <AccordionContent>
-                      <div className="pt-2">
-                        <ul className="list-disc pl-5 space-y-1.5 text-muted-foreground">
-                          {position.achievements.map((achievement, i) => (
-                            <li key={i} className="text-base pl-1">
-                              <MDXRemote
-                                source={achievement}
-                                components={mdxComponents}
-                              />
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </AccordionContent>
+                      <ul className="mt-3 list-disc space-y-2 pl-5 text-[0.95rem] leading-relaxed text-foreground/80 marker:text-brand">
+                        {position.achievements.map((a, i) => (
+                          <li key={i} className="pl-1 [&_p]:m-0">
+                            <MDXRemote source={a} components={mdxComponents} />
+                          </li>
+                        ))}
+                      </ul>
                     )}
-                  </AccordionItem>
+                  </div>
                 ))}
-              </Accordion>
-            </div>
-
-            {/* Tech Stack section - now at the end */}
-            {/* {company.techStack && (
-              <div className="ml-2 pl-1 mb-4">
-                <h5 className="text-sm font-medium mb-2">Tech Stack</h5>
-                <div className="flex flex-wrap gap-2">
-                  {company.techStack.map((tech, i) => (
-                    <Badge key={i} variant="secondary" className="text-xs">
-                      {tech}
-                    </Badge>
-                  ))}
-                </div>
               </div>
-            )} */}
-          </div>
+            </div>
+          </li>
         ))}
-      </div>
-    </section>
+      </ol>
+    </>
   );
 }

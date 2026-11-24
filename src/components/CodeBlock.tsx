@@ -153,8 +153,11 @@ export function CodeBlock({ children, className, filename }: CodeBlockProps) {
     <div
       data-codeblock
       style={{
-        borderRadius: '0.5rem',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
+        borderRadius: '0.9rem',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        backgroundColor: '#0b0b0a',
+        colorScheme: 'dark',
+        margin: '1.75rem 0',
         overflow: 'hidden',
       }}
     >
