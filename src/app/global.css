@@ -186,20 +186,19 @@
   }
 }
 
-/* Keep long tokens and wide display math inside the text column */
-.katex-display,
-.math-display {
+/* Keep long tokens and wide display math inside the text column. The scroll
+   container is the paragraph inside .math-display (not the wrapper) so the
+   surrounding margins collapse exactly as before. */
+.math-display > p {
   overflow-x: auto;
   overflow-y: hidden;
-  max-width: 100%;
 }
 article p code,
 article li code,
-article td code,
 article h2,
 article h3,
 article h4 {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 /* ─── Grain overlay ─────────────────────────────────────────────────────────── */
