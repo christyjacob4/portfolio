@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Lora } from "next/font/google";
+import Script from "next/script";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -83,7 +84,11 @@ export default function RootLayout({
       )}
     >
       <body className="antialiased bg-background text-foreground">
-        {/* TODO: Cloudflare Web Analytics beacon goes here (add the script once the token exists). */}
+        <Script
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          strategy="afterInteractive"
+          data-cf-beacon='{"token": "a5396a0a548c45b3b997c5ef8ca707a9"}'
+        />
         <div aria-hidden="true" className="grain" />
         <div className="max-w-2xl mx-auto px-4 md:px-6 lg:px-4">
           <main className="flex flex-col min-h-screen">
