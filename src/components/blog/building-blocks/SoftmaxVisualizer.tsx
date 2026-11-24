@@ -274,7 +274,7 @@ export default function SoftmaxVisualizer() {
             ))}
           </div>
           <p
-            className="mt-3 text-center text-[11px] tabular-nums text-white/40"
+            className="mt-3 text-center text-[11px] tabular-nums text-white/50"
             style={{ fontFamily: FONT_MONO }}
           >
             {"\u03A3"} = {probabilities.reduce((s, p) => s + p, 0).toFixed(2)}

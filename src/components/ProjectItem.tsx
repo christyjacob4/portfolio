@@ -34,10 +34,10 @@ export function ProjectItem({ project }: { project: Project }) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <h3 className="font-medium text-base relative group-hover:text-neutral-900 dark:group-hover:text-neutral-100 transition-colors">
+              <h2 className="font-medium text-base relative group-hover:text-neutral-900 dark:group-hover:text-neutral-100 transition-colors">
                 {project.title}
                 <span className="absolute left-0 -bottom-0.5 w-full h-[1px] bg-current transform scale-x-0 transition-transform duration-200 origin-left group-hover:scale-x-100"></span>
-              </h3>
+              </h2>
             </Link>
           </div>
         </HoverCardTrigger>

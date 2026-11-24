@@ -202,12 +202,12 @@ function slugify(str) {
     .replace(/\-\-+/g, '-'); // Replace multiple - with single -
 }
 
-function createHeading(level) {
+function createHeading(level, className?: string) {
   const Heading = ({ children }) => {
     let slug = slugify(children)
     return React.createElement(
       `h${level}`,
-      { id: slug },
+      { id: slug, className },
       [
         React.createElement('a', {
           href: `#${slug}`,
@@ -231,6 +231,7 @@ let components = {
   h4: createHeading(4),
   h5: createHeading(5),
   h6: createHeading(6),
+  SubHeading: createHeading(3, "sub-heading"),
   Image: RoundedImage,
   a: CustomLink,
   pre: Pre,

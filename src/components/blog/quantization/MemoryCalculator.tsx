@@ -33,6 +33,7 @@ interface PrecisionConfig {
   bits: number;
   color: string;
   colorBg: string;
+  textColor?: string;
 }
 
 const PRECISIONS: PrecisionConfig[] = [
@@ -41,6 +42,7 @@ const PRECISIONS: PrecisionConfig[] = [
     bits: 32,
     color: "rgba(239, 68, 68, 0.85)",
     colorBg: "rgba(239, 68, 68, 0.15)",
+    textColor: "rgb(239, 68, 68)",
   },
   {
     name: "FP16",
@@ -73,10 +75,10 @@ interface GpuRef {
 }
 
 const GPU_REFS: GpuRef[] = [
-  { name: "RTX 3060 12GB", vramGB: 12, color: "rgba(255,255,255,0.2)" },
-  { name: "RTX 4090 24GB", vramGB: 24, color: "rgba(255,255,255,0.25)" },
-  { name: "A100 40GB", vramGB: 40, color: "rgba(255,255,255,0.3)" },
-  { name: "A100 80GB", vramGB: 80, color: "rgba(255,255,255,0.35)" },
+  { name: "RTX 3060 12GB", vramGB: 12, color: "rgba(255,255,255,0.5)" },
+  { name: "RTX 4090 24GB", vramGB: 24, color: "rgba(255,255,255,0.5)" },
+  { name: "A100 40GB", vramGB: 40, color: "rgba(255,255,255,0.5)" },
+  { name: "A100 80GB", vramGB: 80, color: "rgba(255,255,255,0.5)" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -206,6 +208,7 @@ export default function MemoryCalculator() {
           </label>
           <input
             type="range"
+            aria-label="Model size"
             min={0.5}
             max={180}
             step={0.5}
@@ -448,7 +451,7 @@ export default function MemoryCalculator() {
                 padding: "10px 12px",
               }}
             >
-              <div style={{ fontSize: 13, color: p.color, marginBottom: 4 }}>
+              <div style={{ fontSize: 13, color: p.textColor ?? p.color, marginBottom: 4 }}>
                 {p.name}
               </div>
               <div style={{ fontSize: 16, color: TEXT_BRIGHT, marginBottom: 2 }}>

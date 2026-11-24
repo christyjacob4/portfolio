@@ -301,7 +301,7 @@ export default function RankExplorer() {
         <span
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.5)",
             letterSpacing: "0.04em",
           }}
         >
@@ -327,7 +327,7 @@ export default function RankExplorer() {
           <div
             style={{
               fontSize: 13,
-              color: "rgba(255,255,255,0.4)",
+              color: "rgba(255,255,255,0.5)",
               marginBottom: 6,
             }}
           >
@@ -348,7 +348,7 @@ export default function RankExplorer() {
           <div
             style={{
               fontSize: 8,
-              color: "rgba(255,255,255,0.3)",
+              color: "rgba(255,255,255,0.5)",
               marginTop: 4,
             }}
           >
@@ -383,7 +383,7 @@ export default function RankExplorer() {
           <div
             style={{
               fontSize: 8,
-              color: "rgba(74,222,128,0.5)",
+              color: "rgba(74,222,128,0.65)",
               marginTop: 4,
             }}
           >
@@ -419,6 +419,7 @@ export default function RankExplorer() {
         </div>
         <input
           type="range"
+          aria-label="Rank"
           min={1}
           max={COMPUTE_SIZE}
           value={rank}
@@ -436,8 +437,8 @@ export default function RankExplorer() {
             marginTop: 4,
           }}
         >
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>1</span>
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>1</span>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
             {COMPUTE_SIZE} (full)
           </span>
         </div>
@@ -456,7 +457,7 @@ export default function RankExplorer() {
         <div
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.5)",
             marginBottom: 8,
           }}
         >
@@ -629,7 +630,7 @@ export default function RankExplorer() {
             <div
               style={{
                 fontSize: 8,
-                color: "rgba(255,255,255,0.35)",
+                color: "rgba(255,255,255,0.5)",
                 marginBottom: 4,
               }}
             >

@@ -144,7 +144,7 @@ export default function FibonacciSpiral() {
         style={{
           marginTop: 8,
           fontSize: 11,
-          color: "rgba(255,255,255,0.4)",
+          color: "rgba(255,255,255,0.5)",
           letterSpacing: "0.05em",
         }}
       >

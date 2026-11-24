@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const ACCENT = "#4ade80";
 const ACCENT_DIM = "rgba(74,222,128,0.3)";
-const FROZEN_COLOR = "rgba(100,150,255,0.5)";
+const FROZEN_COLOR = "rgba(100,150,255,0.8)";
 const FROZEN_FILL = "rgba(100,150,255,0.08)";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
@@ -194,7 +194,7 @@ export default function LowRankDecomposition() {
         <span
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.5)",
             letterSpacing: "0.04em",
           }}
         >
@@ -356,6 +356,7 @@ export default function LowRankDecomposition() {
         </div>
         <input
           type="range"
+          aria-label="Rank"
           min={1}
           max={64}
           value={rank}
@@ -373,8 +374,8 @@ export default function LowRankDecomposition() {
             marginTop: 4,
           }}
         >
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>1</span>
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>1</span>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
             {d} (full rank)
           </span>
         </div>
@@ -421,7 +422,7 @@ export default function LowRankDecomposition() {
               textAlign: "center",
             }}
           >
-            <div style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>
+            <div style={{ fontSize: 8, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>
               {stat.label}
             </div>
             <div style={{ fontSize: 15, color: stat.color, fontWeight: "bold" }}>

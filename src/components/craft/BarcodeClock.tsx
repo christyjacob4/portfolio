@@ -103,7 +103,7 @@ export default function BarcodeClock() {
       </svg>
       <span
         style={{
-          color: hovering ? "rgba(255, 255, 255, 0.4)" : "rgba(255, 255, 255, 0.15)",
+          color: hovering ? "rgba(255, 255, 255, 0.65)" : "rgba(255, 255, 255, 0.5)",
           fontSize: 13,
           letterSpacing: "0.2em",
           transition: "color 0.3s ease",

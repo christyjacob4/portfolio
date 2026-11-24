@@ -366,7 +366,7 @@ export default function SpeculativeDecodingDemo() {
           }}
         >
           {acceptedTokens.length === 0 ? (
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.2)" }}>...</span>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>...</span>
           ) : (
             acceptedTokens.map((tok, i) => (
               <span

@@ -489,6 +489,7 @@ export default function GradientDescentLandscape() {
           </label>
           <input
             type="range"
+            aria-label="Learning rate"
             min={0.01}
             max={0.5}
             step={0.01}

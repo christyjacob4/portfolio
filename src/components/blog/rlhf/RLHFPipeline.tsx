@@ -345,7 +345,7 @@ export default function RLHFPipeline() {
           style={{
             fontSize: 13,
             fontFamily: FONT_MONO,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.5)",
             letterSpacing: "0.04em",
           }}
         >
@@ -355,7 +355,7 @@ export default function RLHFPipeline() {
           style={{
             fontSize: 13,
             fontFamily: FONT_MONO,
-            color: `rgba(${ACCENT_RGB}, 0.5)`,
+            color: `rgba(${ACCENT_RGB}, 0.65)`,
           }}
         >
           interactive

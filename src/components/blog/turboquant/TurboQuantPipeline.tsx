@@ -232,7 +232,7 @@ function Breadcrumb({ active }: { active: number }) {
             {i + 1}. {s.title}
           </div>
           {i < STAGE_COUNT - 1 && (
-            <span style={{ color: i < active ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.15)", fontSize: 10 }}>→</span>
+            <span style={{ color: i < active ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.5)", fontSize: 10 }}>→</span>
           )}
         </div>
       ))}
@@ -436,7 +436,7 @@ export default function TurboQuantPipeline() {
         display: "flex", justifyContent: "space-between", alignItems: "center",
         flexWrap: "wrap", gap: 8,
       }}>
-        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: "0.04em" }}>
+        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: "0.04em" }}>
           TurboQuant two-stage compression pipeline
         </span>
         <BitSelector bits={bits} onChange={setBits} />

@@ -319,6 +319,7 @@ export default function NumberFormatExplorer() {
           </label>
           <input
             type="text"
+            aria-label="Number to convert"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             style={{
@@ -389,7 +390,7 @@ export default function NumberFormatExplorer() {
         </div>
         <div style={{ display: "flex", gap: 20, fontSize: 13, flexWrap: "wrap" }}>
           <span>
-            <span style={{ color: SIGN_COLOR }}>Sign: {format.signBits}b</span>
+            <span style={{ color: "rgb(239, 68, 68)" }}>Sign: {format.signBits}b</span>
           </span>
           {format.exponentBits > 0 && (
             <span>
@@ -577,7 +578,7 @@ export default function NumberFormatExplorer() {
           <div
             style={{
               fontSize: 16,
-              color: error > 0 ? "rgba(239, 68, 68, 0.9)" : ACCENT,
+              color: error > 0 ? "rgb(239, 68, 68)" : ACCENT,
             }}
           >
             {error === 0 ? "0 (exact)" : error.toExponential(4)}

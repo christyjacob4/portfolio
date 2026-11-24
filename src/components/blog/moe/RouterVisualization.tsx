@@ -439,7 +439,7 @@ export default function RouterVisualization() {
             style={{
               fontFamily: FONT_MONO,
               fontSize: 13,
-              color: "rgba(255,255,255,0.35)",
+              color: "rgba(255,255,255,0.5)",
             }}
           >
             Top-{TOP_K} Routing

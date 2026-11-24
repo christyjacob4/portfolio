@@ -106,7 +106,7 @@ function SentenceRow({
         style={{
           fontFamily: FONT_MONO,
           fontSize: 10,
-          color: "rgba(255,255,255,0.35)",
+          color: "rgba(255,255,255,0.5)",
           letterSpacing: "0.05em",
           textTransform: "uppercase" as const,
         }}
@@ -136,7 +136,7 @@ function RepresentationLabel({ showPositions }: { showPositions: boolean }) {
       style={{
         fontFamily: FONT_MONO,
         fontSize: 11,
-        color: showPositions ? ACCENT : "rgba(255,255,255,0.45)",
+        color: showPositions ? ACCENT : "rgba(255,255,255,0.5)",
         backgroundColor: showPositions
           ? "rgba(74,222,128,0.06)"
           : "rgba(255,255,255,0.03)",

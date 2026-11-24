@@ -131,7 +131,7 @@ export default function RewardModelViz() {
         <span
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.5)",
             letterSpacing: "0.04em",
           }}
         >
@@ -140,7 +140,7 @@ export default function RewardModelViz() {
         <span
           style={{
             fontSize: 13,
-            color: `rgba(${ACCENT_RGB}, 0.5)`,
+            color: `rgba(${ACCENT_RGB}, 0.65)`,
           }}
         >
           {exampleIdx + 1}/{EXAMPLES.length}
@@ -161,7 +161,7 @@ export default function RewardModelViz() {
           <div
             style={{
               fontSize: 13,
-              color: "rgba(255,255,255,0.35)",
+              color: "rgba(255,255,255,0.5)",
               marginBottom: 6,
               textTransform: "uppercase",
               letterSpacing: "0.08em",
@@ -211,7 +211,7 @@ export default function RewardModelViz() {
                 color:
                   userVote === "A"
                     ? `rgba(${ACCENT_RGB}, 0.7)`
-                    : "rgba(255,255,255,0.35)",
+                    : "rgba(255,255,255,0.5)",
                 marginBottom: 8,
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
@@ -244,7 +244,7 @@ export default function RewardModelViz() {
                     marginBottom: 4,
                   }}
                 >
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
                     r(x, y_A)
                   </span>
                   <span
@@ -313,7 +313,7 @@ export default function RewardModelViz() {
                 color:
                   userVote === "B"
                     ? `rgba(${ACCENT_RGB}, 0.7)`
-                    : "rgba(255,255,255,0.35)",
+                    : "rgba(255,255,255,0.5)",
                 marginBottom: 8,
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
@@ -346,7 +346,7 @@ export default function RewardModelViz() {
                     marginBottom: 4,
                   }}
                 >
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
                     r(x, y_B)
                   </span>
                   <span
@@ -395,7 +395,7 @@ export default function RewardModelViz() {
               textAlign: "center",
               padding: "12px 0",
               fontSize: 14,
-              color: "rgba(255,255,255,0.4)",
+              color: "rgba(255,255,255,0.5)",
             }}
           >
             Click the response you think is better
@@ -433,7 +433,7 @@ export default function RewardModelViz() {
                 <div
                   style={{
                     fontSize: 13,
-                    color: "rgba(255,255,255,0.35)",
+                    color: "rgba(255,255,255,0.5)",
                     marginBottom: 8,
                     textTransform: "uppercase",
                     letterSpacing: "0.08em",

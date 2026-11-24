@@ -101,7 +101,7 @@ function LineNumbers({ count }: { count: number }) {
           key={index}
           style={{
             textAlign: 'right',
-            color: 'rgba(255, 255, 255, 0.2)',
+            color: 'rgba(255, 255, 255, 0.5)',
             fontFamily:
               'var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace',
             fontSize: '0.84em',
@@ -148,7 +148,7 @@ export function CodeBlock({ children, className, filename, lineCount = 1 }: Code
               left: '50%',
               transform: 'translateX(-50%)',
               fontSize: '0.75rem',
-              color: 'rgba(255, 255, 255, 0.35)',
+              color: 'rgba(255, 255, 255, 0.5)',
               fontFamily:
                 'var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace',
               userSelect: 'none',

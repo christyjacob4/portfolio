@@ -238,6 +238,11 @@
   background-color: rgba(16, 185, 129, 0.2);
 }
 
+.code-line.inserted .token.comment,
+.highlight-line .token.comment {
+  color: #7fb069;
+}
+
 .code-line.deleted {
   background-color: rgba(239, 68, 68, 0.2);
 }

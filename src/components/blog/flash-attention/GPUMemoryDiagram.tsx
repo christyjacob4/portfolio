@@ -337,7 +337,7 @@ function ModeToggle({
           className="px-3 py-1.5 text-[11px] transition-colors duration-150"
           style={{
             fontFamily: FONT_MONO,
-            color: mode === "naive" ? "#fff" : "rgba(255,255,255,0.4)",
+            color: mode === "naive" ? "#fff" : "rgba(255,255,255,0.5)",
             backgroundColor:
               mode === "naive" ? "rgba(74,222,128,0.15)" : "transparent",
             borderRight: "1px solid rgba(255,255,255,0.1)",
@@ -354,7 +354,7 @@ function ModeToggle({
           className="px-3 py-1.5 text-[11px] transition-colors duration-150"
           style={{
             fontFamily: FONT_MONO,
-            color: mode === "flash" ? "#fff" : "rgba(255,255,255,0.4)",
+            color: mode === "flash" ? "#fff" : "rgba(255,255,255,0.5)",
             backgroundColor:
               mode === "flash" ? "rgba(74,222,128,0.15)" : "transparent",
             borderBottom:

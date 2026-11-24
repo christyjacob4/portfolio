@@ -114,7 +114,7 @@ export default function MorseCode() {
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", letterSpacing: "0.05em" }}>
         morse transmitter
       </div>
 
@@ -154,7 +154,7 @@ export default function MorseCode() {
       </div>
 
       {/* Morse text representation */}
-      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", letterSpacing: 2 }}>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: 2 }}>
         {word.split("").map((ch, i) => (
           <span key={i} style={{ marginRight: 8 }}>
             {MORSE[ch]}

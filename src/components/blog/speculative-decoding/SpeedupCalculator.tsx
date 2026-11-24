@@ -103,6 +103,7 @@ export default function SpeedupCalculator() {
           </div>
           <input
             type="range"
+            aria-label="Draft model latency"
             min={0.5}
             max={20}
             step={0.5}
@@ -120,6 +121,7 @@ export default function SpeedupCalculator() {
           </div>
           <input
             type="range"
+            aria-label="Target model latency"
             min={10}
             max={200}
             step={5}
@@ -137,6 +139,7 @@ export default function SpeedupCalculator() {
           </div>
           <input
             type="range"
+            aria-label="Token acceptance rate"
             min={0.1}
             max={0.99}
             step={0.01}
@@ -154,6 +157,7 @@ export default function SpeedupCalculator() {
           </div>
           <input
             type="range"
+            aria-label="Draft length (K)"
             min={1}
             max={20}
             step={1}

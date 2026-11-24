@@ -274,6 +274,7 @@ function ParameterSlider({
       />
       <input
         type="range"
+        aria-label={label.replace(/<[^>]*>/g, "")}
         min={SLIDER_MIN}
         max={SLIDER_MAX}
         step={SLIDER_STEP}
@@ -327,7 +328,7 @@ function ActivationPicker({
               backgroundColor: isActive
                 ? "rgba(74,222,128,0.15)"
                 : "rgba(255,255,255,0.04)",
-              color: isActive ? ACCENT : "rgba(255,255,255,0.45)",
+              color: isActive ? ACCENT : "rgba(255,255,255,0.5)",
               border: isActive
                 ? `1px solid ${ACCENT}`
                 : "1px solid rgba(255,255,255,0.1)",
@@ -401,14 +402,14 @@ function ComputationSteps({
           className="flex flex-wrap items-baseline gap-x-2 text-[11px]"
           style={{ fontFamily: FONT_MONO }}
         >
-          <span className="text-white/40">{step.label}</span>
+          <span className="text-white/50">{step.label}</span>
           {step.expression && (
             <>
-              <span className="text-white/25">=</span>
+              <span className="text-white/50">=</span>
               <span className="text-white/50">{step.expression}</span>
             </>
           )}
-          <span className="text-white/25">=</span>
+          <span className="text-white/50">=</span>
           <span
             className="font-semibold"
             style={{ color: step.isOutput ? ACCENT : "rgba(255,255,255,0.8)" }}
@@ -458,7 +459,7 @@ export default function NeuronPlayground() {
         {/* Activation + computation in a row */}
         <div className="mt-4 flex items-start gap-6">
           <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] text-white/30" style={{ fontFamily: FONT_MONO }}>activation</span>
+            <span className="text-[10px] text-white/50" style={{ fontFamily: FONT_MONO }}>activation</span>
             <ActivationPicker selected={activation} onSelect={setActivation} />
           </div>
           <div className="flex-1 min-w-0 rounded-lg bg-white/[0.02] px-4 py-3">

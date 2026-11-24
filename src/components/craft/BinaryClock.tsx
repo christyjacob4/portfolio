@@ -59,7 +59,7 @@ export default function BinaryClock() {
             <span style={{
               fontSize: "9px",
               fontFamily: "var(--font-geist-mono), monospace",
-              color: "rgba(255,255,255,0.3)",
+              color: "rgba(255,255,255,0.5)",
               width: "18px",
               flexShrink: 0,
             }}>
@@ -84,7 +84,7 @@ export default function BinaryClock() {
             <span style={{
               fontSize: "9px",
               fontFamily: "var(--font-geist-mono), monospace",
-              color: "rgba(255,255,255,0.25)",
+              color: "rgba(255,255,255,0.5)",
               width: "18px",
               textAlign: "right",
               flexShrink: 0,

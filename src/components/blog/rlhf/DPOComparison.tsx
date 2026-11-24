@@ -430,7 +430,7 @@ export default function DPOComparison() {
           style={{
             fontSize: 13,
             fontFamily: FONT_MONO,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.5)",
             letterSpacing: "0.04em",
           }}
         >
@@ -466,7 +466,7 @@ export default function DPOComparison() {
                     : m === "dpo"
                     ? PURPLE
                     : YELLOW
-                  : "rgba(255,255,255,0.35)",
+                  : "rgba(255,255,255,0.5)",
               padding: "10px 16px",
               fontSize: 13,
               fontFamily: FONT_MONO,

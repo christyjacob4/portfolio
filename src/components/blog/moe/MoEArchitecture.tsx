@@ -195,7 +195,7 @@ export default function MoEArchitecture() {
           id: "layernorm1",
           label: "Layer Norm",
           y: blockY + 20,
-          color: "rgba(255,255,255,0.3)",
+          color: "rgba(255,255,255,0.5)",
           isMoE: false,
         },
         {
@@ -209,7 +209,7 @@ export default function MoEArchitecture() {
           id: "layernorm2",
           label: "Layer Norm",
           y: blockY + 20 + 2 * (subBlockH + gap),
-          color: "rgba(255,255,255,0.3)",
+          color: "rgba(255,255,255,0.5)",
           isMoE: false,
         },
         {
@@ -241,7 +241,7 @@ export default function MoEArchitecture() {
           ? block.color
           : block.isMoE
             ? `rgba(${ACCENT_RGB}, 0.25)`
-            : "rgba(255,255,255,0.08)";
+            : "rgba(255,255,255,0.5)";
         ctx.lineWidth = highlight ? 2 : 1;
         ctx.stroke();
 
@@ -607,7 +607,7 @@ export default function MoEArchitecture() {
             style={{
               fontFamily: FONT_MONO,
               fontSize: 13,
-              color: "rgba(255,255,255,0.35)",
+              color: "rgba(255,255,255,0.5)",
             }}
           >
             Click components to inspect

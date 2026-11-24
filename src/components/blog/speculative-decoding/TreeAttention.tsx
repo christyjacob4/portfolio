@@ -603,10 +603,10 @@ export default function TreeAttention() {
           <span style={{ color: RED }}>{"\u25CF"}</span> Rejected
         </span>
         <span>
-          <span style={{ color: "rgba(255,255,255,0.4)" }}>{"\u25CF"}</span> Explored
+          <span style={{ color: "rgba(255,255,255,0.5)" }}>{"\u25CF"}</span> Explored
         </span>
         <span>
-          <span style={{ color: "rgba(255,255,255,0.15)" }}>{"\u25CF"}</span> Unexplored
+          <span style={{ color: "rgba(255,255,255,0.5)" }}>{"\u25CF"}</span> Unexplored
         </span>
       </div>
     </div>

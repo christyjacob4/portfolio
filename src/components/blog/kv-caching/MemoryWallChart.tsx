@@ -596,6 +596,7 @@ export default function MemoryWallChart() {
         </label>
         <input
           type="range"
+          aria-label="Batch size"
           min={1}
           max={32}
           step={1}

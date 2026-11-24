@@ -201,7 +201,7 @@ export default function MemorySavings() {
         <span
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.5)",
             letterSpacing: "0.04em",
           }}
         >
@@ -235,7 +235,7 @@ export default function MemorySavings() {
                   ? "rgba(74,222,128,0.1)"
                   : "rgba(255,255,255,0.02)",
               color:
-                i === selectedModel ? ACCENT : "rgba(255,255,255,0.4)",
+                i === selectedModel ? ACCENT : "rgba(255,255,255,0.5)",
               cursor: "pointer",
               fontFamily: FONT_MONO,
             }}
@@ -436,7 +436,7 @@ export default function MemorySavings() {
                 background: item.color,
               }}
             />
-            <span style={{ fontSize: 8, color: "rgba(255,255,255,0.4)" }}>
+            <span style={{ fontSize: 8, color: "rgba(255,255,255,0.5)" }}>
               {item.label}
             </span>
           </div>
@@ -456,7 +456,7 @@ export default function MemorySavings() {
           {
             label: "Full Fine-Tune",
             value: formatGB(fullMem.total),
-            color: "rgba(239,68,68,0.7)",
+            color: "rgba(239,68,68,1)",
             subtext: "baseline",
           },
           {
@@ -468,7 +468,7 @@ export default function MemorySavings() {
           {
             label: "QLoRA (4-bit)",
             value: formatGB(qloraMem.total),
-            color: "rgba(168,85,247,0.7)",
+            color: "rgba(168,85,247,1)",
             subtext: `${((1 - qloraMem.total / fullMem.total) * 100).toFixed(0)}% savings`,
           },
         ].map((item) => (
@@ -485,7 +485,7 @@ export default function MemorySavings() {
             <div
               style={{
                 fontSize: 8,
-                color: "rgba(255,255,255,0.35)",
+                color: "rgba(255,255,255,0.5)",
                 marginBottom: 4,
               }}
             >
@@ -503,7 +503,7 @@ export default function MemorySavings() {
             <div
               style={{
                 fontSize: 8,
-                color: "rgba(255,255,255,0.3)",
+                color: "rgba(255,255,255,0.5)",
                 marginTop: 2,
               }}
             >

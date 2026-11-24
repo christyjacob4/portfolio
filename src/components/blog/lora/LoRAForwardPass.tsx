@@ -284,7 +284,7 @@ export default function LoRAForwardPass() {
         <span
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(255,255,255,0.5)",
             letterSpacing: "0.04em",
           }}
         >
@@ -572,8 +572,9 @@ export default function LoRAForwardPass() {
           </span>
           <div style={{ display: "flex", gap: 2 }}>
             {STEPS.map((_, i) => (
-              <button
+              <span
                 key={i}
+                aria-hidden="true"
                 onClick={() => { setStep(i); setIsPlaying(false); }}
                 style={{
                   width: 8,
@@ -616,7 +617,7 @@ export default function LoRAForwardPass() {
               border: `1px solid ${FROZEN_STROKE}`,
             }}
           />
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
             Frozen weights
           </span>
         </div>
@@ -630,7 +631,7 @@ export default function LoRAForwardPass() {
               border: `1px solid ${TRAINABLE_STROKE}`,
             }}
           />
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
             Trainable (LoRA)
           </span>
         </div>
@@ -644,7 +645,7 @@ export default function LoRAForwardPass() {
               border: "1px solid rgba(250,204,21,0.4)",
             }}
           />
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
             Data signal
           </span>
         </div>

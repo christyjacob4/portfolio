@@ -179,7 +179,7 @@ export default function TokenizerDemo() {
           style={{
             fontFamily: FONT_MONO,
             fontSize: 11,
-            color: "rgba(255, 255, 255, 0.35)",
+            color: "rgba(255, 255, 255, 0.5)",
             marginTop: 12,
             marginBottom: 0,
           }}

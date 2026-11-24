@@ -67,11 +67,11 @@ export default function Typewriter() {
       style={{ padding: "20px", fontFamily: "var(--font-geist-mono), monospace", fontSize: "15px", lineHeight: "1.9", overflow: "hidden", cursor: "crosshair" }}
     >
       {displayed.map((line, i) => (
-        <div key={i} style={{ color: line.startsWith("$") ? "rgba(74, 222, 128, 0.7)" : line.startsWith("✓") ? "rgba(74, 222, 128, 0.5)" : "rgba(255,255,255,0.4)" }}>
+        <div key={i} style={{ color: line.startsWith("$") ? "rgba(74, 222, 128, 0.7)" : line.startsWith("✓") ? "rgba(74, 222, 128, 0.5)" : "rgba(255,255,255,0.5)" }}>
           {line}
         </div>
       ))}
-      <div style={{ color: currentLine.startsWith("$") ? "rgba(74, 222, 128, 0.7)" : "rgba(255,255,255,0.4)" }}>
+      <div style={{ color: currentLine.startsWith("$") ? "rgba(74, 222, 128, 0.7)" : "rgba(255,255,255,0.5)" }}>
           {currentLine}
           <span style={{ opacity: cursorVisible ? 1 : 0, color: "rgba(74, 222, 128, 0.8)", transition: "opacity 0.1s" }}>▋</span>
         </div>

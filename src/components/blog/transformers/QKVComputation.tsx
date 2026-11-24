@@ -1001,7 +1001,7 @@ function StepDots({ currentStep }: { currentStep: number }) {
             backgroundColor:
               i === currentStep ? ACCENT : "rgba(255,255,255,0.06)",
             color:
-              i === currentStep ? "#fff" : "rgba(255,255,255,0.35)",
+              i === currentStep ? "#fff" : "rgba(255,255,255,0.5)",
             border:
               i === currentStep
                 ? `1px solid ${ACCENT}`

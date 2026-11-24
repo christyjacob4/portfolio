@@ -340,6 +340,7 @@ export default function QuantizationDemo() {
           </label>
           <input
             type="range"
+            aria-label="Bit width"
             min={2}
             max={8}
             value={bits}
@@ -455,7 +456,7 @@ export default function QuantizationDemo() {
                   ? ACCENT
                   : mse < 0.01
                   ? "rgba(234,179,8,0.9)"
-                  : ERROR_COLOR,
+                  : "rgb(239, 68, 68)",
             }}
           >
             {mse.toExponential(2)}
