@@ -89,7 +89,7 @@ export default async function Blog({ params }) {
           <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase mb-3">
             {formatDate(post.metadata.publishedAt)}
           </p>
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight leading-snug mb-4" style={{ fontFamily: 'var(--font-lora), Georgia, serif', color: 'hsl(var(--foreground))' }}>
+          <h1 className="text-3xl md:text-4xl md:leading-10 font-semibold tracking-tight leading-snug mb-4" style={{ fontFamily: 'var(--font-lora), Georgia, serif', color: 'hsl(var(--foreground))' }}>
             {post.metadata.title}
           </h1>
           <p className="max-w-2xl leading-relaxed" style={{ fontFamily: 'var(--font-lora), Georgia, serif', color: 'hsl(var(--muted-foreground))', fontSize: '1.02rem', lineHeight: '1.7' }}>

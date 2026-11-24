@@ -9,6 +9,7 @@ import remarkMath from 'remark-math'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/accordion'
 import { BlogImageGrid } from './BlogImageGrid'
 import { CodeBlock } from './CodeBlock'
+import { countCodeLines } from '@/lib/code-lines'
 import {
   Mermaid,
   AnimatedGauge,
@@ -152,7 +153,7 @@ function Pre({ children, ...props }) {
 
   if (codeProps) {
     return (
-      <CodeBlock className={codeProps.className} {...props}>
+      <CodeBlock className={codeProps.className} lineCount={countCodeLines(codeProps.children)} {...props}>
         {codeProps.children}
       </CodeBlock>
     )
