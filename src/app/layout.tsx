@@ -19,10 +19,10 @@ export const metadata: Metadata = {
     default: "Christy Jacob",
     template: "%s | Christy Jacob",
   },
-  description: "Developer, optimist, and leader.",
+  description: "Engineer at Magic. Writing about ML systems and infrastructure.",
   openGraph: {
     title: "Christy Jacob",
-    description: "Developer, optimist, and leader",
+    description: "Engineer at Magic. Writing about ML systems and infrastructure",
     url: baseUrl,
     siteName: "Christy Jacob",
     locale: "en_US",

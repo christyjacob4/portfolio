@@ -128,8 +128,16 @@ export default async function Page() {
       </h1>
       <p className="text-muted-foreground my-8 animate-fade-up delay-150">
         A software engineer and open-source advocate specialized in building
-        highly performant distributed systems. Currently, I lead AI and Backend
-        at{" "}
+        highly performant distributed systems. Currently at{" "}
+        <Link
+          href="https://magic.dev"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary relative after:absolute after:left-0 after:-bottom-1 after:w-full after:h-[1px] after:bg-primary after:transition-all after:duration-300 after:origin-left after:scale-x-0 hover:after:scale-x-100 tracking-wide"
+        >
+          Magic
+        </Link>
+        . Previously Head of Engineering at{" "}
         <Link
           href="https://appwrite.io"
           target="_blank"
@@ -154,8 +162,8 @@ export default async function Page() {
       </div>
 
       <p className="text-muted-foreground animate-fade-up delay-300">
-        My role involves architecting scalable cloud systems, driving key
-        engineering initiatives and mentoring a global community of developers. I
+        At Appwrite I architected scalable cloud systems, drove key
+        engineering initiatives and mentored a global community of developers. I
         also have a strong background in AI and Machine Learning, holding a
         Master&apos;s degree in Artificial Intelligence. Previously, I&apos;ve
         worked with leading companies like{" "}
