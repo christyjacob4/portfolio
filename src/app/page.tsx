@@ -214,6 +214,7 @@ export default async function Page() {
                     src={project.image}
                     alt={project.title}
                     fill
+                    sizes="(min-width: 768px) 320px, 50vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
@@ -282,6 +283,7 @@ export default async function Page() {
                     src={post.metadata.image}
                     alt={`${post.metadata.title} header image`}
                     fill
+                    sizes="(min-width: 768px) 320px, 100vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (

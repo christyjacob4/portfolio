@@ -46,6 +46,7 @@ export default function Education() {
                 src={edu.icon}
                 alt={`${edu.school} logo`}
                 fill
+                sizes="56px"
                 className="object-contain"
               />
             </div>

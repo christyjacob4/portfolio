@@ -71,6 +71,7 @@ export function ProjectItem({ project }: { project: Project }) {
                 src={project.image}
                 alt={project.title}
                 fill={true}
+                sizes="400px"
                 style={{ objectFit: "cover", objectPosition: "top" }}
                 className=""
               />

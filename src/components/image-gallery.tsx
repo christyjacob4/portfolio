@@ -11,6 +11,7 @@ export function ImageGallery() {
         width={500}
         height={500}
         priority
+        sizes="(min-width: 768px) 214px, 50vw"
         className="object-cover w-full h-full rounded-lg aspect-square object-[0%_10%]"
       />
       <Image
@@ -19,6 +20,7 @@ export function ImageGallery() {
         width={500}
         height={500}
         priority
+        sizes="(min-width: 768px) 214px, 50vw"
         className="object-cover w-full h-full rounded-lg row-span-2 aspect-square"
       />
       <Image
@@ -27,6 +29,7 @@ export function ImageGallery() {
         width={500}
         height={500}
         priority
+        sizes="(min-width: 768px) 214px, 50vw"
         className="object-cover w-full h-full rounded-lg aspect-square"
       />
       <Image
@@ -35,6 +38,7 @@ export function ImageGallery() {
         width={500}
         height={500}
         priority
+        sizes="(min-width: 768px) 214px, 50vw"
         className="object-cover w-full h-full rounded-lg aspect-square"
       />
       <Image
@@ -43,6 +47,7 @@ export function ImageGallery() {
         width={500}
         height={500}
         priority
+        sizes="(min-width: 768px) 214px, 50vw"
         className="object-cover w-full h-full rounded-lg aspect-square"
       />
       <Image
@@ -51,6 +56,7 @@ export function ImageGallery() {
         width={500}
         height={500}
         priority
+        sizes="(min-width: 768px) 430px, 50vw"
         className="object-cover w-full md:h-56 md:col-span-2 rounded-lg aspect-square"
       />
       <Image
@@ -59,6 +65,7 @@ export function ImageGallery() {
         width={500}
         height={500}
         priority
+        sizes="(min-width: 768px) 214px, 50vw"
         className="object-cover w-full h-full rounded-lg aspect-square"
       />
     </div>

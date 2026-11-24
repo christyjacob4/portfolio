@@ -48,6 +48,7 @@ export default function Page() {
                   src={company.icon}
                   alt={`${company.company} logo`}
                   fill
+                  sizes="56px"
                   className="object-contain"
                 />
               </div>
