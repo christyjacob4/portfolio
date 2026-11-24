@@ -80,11 +80,11 @@ export default function Page() {
                     className="border-none"
                   >
                     <AccordionTrigger className="py-1 hover:no-underline">
-                      <div className="flex items-center justify-between w-full">
-                        <h4 className="font-semibold text-lg text-muted-foreground">
+                      <div className="flex items-center justify-between gap-3 w-full">
+                        <h4 className="font-semibold text-lg text-muted-foreground min-w-0 text-left text-balance">
                           {position.title}
                         </h4>
-                        <span className="text-sm text-muted-foreground tabular-nums mr-2">
+                        <span className="text-sm text-muted-foreground tabular-nums mr-2 shrink-0 whitespace-nowrap">
                           {position.period}
                         </span>
                       </div>

@@ -112,6 +112,22 @@
   }
 }
 
+/* Keep long tokens and wide display math inside the text column */
+.katex-display,
+.math-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+article p code,
+article li code,
+article td code,
+article h2,
+article h3,
+article h4 {
+  overflow-wrap: anywhere;
+}
+
 /* ─── Grain overlay ─────────────────────────────────────────────────────────── */
 .grain {
   position: fixed;

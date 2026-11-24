@@ -104,7 +104,7 @@ export default function AttentionMatrix() {
   }
 
   return (
-    <div className="flex flex-col items-center rounded-xl p-8">
+    <div className="flex flex-col items-center rounded-xl p-8 max-w-full overflow-x-auto">
       <div className="relative" data-matrix-container>
         {hoveredCell && (
           <CellTooltip

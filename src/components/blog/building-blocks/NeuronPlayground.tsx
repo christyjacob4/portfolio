@@ -398,7 +398,7 @@ function ComputationSteps({
       {steps.map((step, i) => (
         <div
           key={i}
-          className="flex items-baseline gap-2 text-[11px]"
+          className="flex flex-wrap items-baseline gap-x-2 text-[11px]"
           style={{ fontFamily: FONT_MONO }}
         >
           <span className="text-white/40">{step.label}</span>
@@ -461,7 +461,7 @@ export default function NeuronPlayground() {
             <span className="text-[10px] text-white/30" style={{ fontFamily: FONT_MONO }}>activation</span>
             <ActivationPicker selected={activation} onSelect={setActivation} />
           </div>
-          <div className="flex-1 rounded-lg bg-white/[0.02] px-4 py-3">
+          <div className="flex-1 min-w-0 rounded-lg bg-white/[0.02] px-4 py-3">
             <ComputationSteps
               x1={x1} x2={x2} w1={w1} w2={w2}
               bias={bias} activation={activation}
