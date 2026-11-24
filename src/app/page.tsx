@@ -207,11 +207,8 @@ export default async function Page() {
           </ul>
         </div>
 
-        {/* Talks + links */}
+        {/* Links (the Talks tile returns here once there are talks to show) */}
         <div className="tile flex flex-col lg:col-span-4">
-          <h2 className="display text-3xl">Talks</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Nothing recorded yet. Coming soon.</p>
-          <div className="my-5 h-px bg-border" />
           <h2 className="display text-3xl">Elsewhere</h2>
           <ul className="mt-3 grid grid-cols-2 gap-x-4">
             {elsewhere.map((l) => (
