@@ -6,7 +6,7 @@ image: "/blog/regularization/cover.jpg"
 published: true
 ---
 
-A model can memorize 60,000 MNIST digits and still fail on the 61st. In the [previous posts](/blog/building-blocks), we hit 97.8% accuracy on MNIST's clean test set. But that number is deceptively optimistic. Train on a small subset, throw messier data at it, or add a few more layers, and the whole thing unravels. Understanding why - and how to fix it - is what separates models that work in demos from ones that survive contact with reality.
+A model can memorize 60,000 MNIST digits and still fail on the 61st. In the [previous posts](/blog/deep-learning-from-first-principles), we hit 97.8% accuracy on MNIST's clean test set. But that number is deceptively optimistic. Train on a small subset, throw messier data at it, or add a few more layers, and the whole thing unravels. Understanding why - and how to fix it - is what separates models that work in demos from ones that survive contact with reality.
 
 We'll keep evolving the same `DigitClassifier`, adding dropout, normalization, and residual connections one at a time and measuring what each actually buys us.
 

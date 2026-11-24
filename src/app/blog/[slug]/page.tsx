@@ -24,9 +24,8 @@ export function generateMetadata({ params }) {
     summary: description,
     image,
   } = post.metadata
-  let ogImage = image
-    ? image
-    : `${baseUrl}/og?title=${encodeURIComponent(title)}`
+  // Build-time OG image from ./og.png/route.tsx unless the post has a cover.
+  const ogImage = image ? image : `/blog/${post.slug}/og.png`
 
   return {
     title,
@@ -74,7 +73,7 @@ export default function Blog({ params }) {
             description: post.metadata.summary,
             image: post.metadata.image
               ? `${baseUrl}${post.metadata.image}`
-              : `/og?title=${encodeURIComponent(post.metadata.title)}`,
+              : `${baseUrl}/blog/${post.slug}/og.png`,
             url: `${baseUrl}/blog/${post.slug}`,
             author: {
               '@type': 'Person',

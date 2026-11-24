@@ -1,3 +1,5 @@
+export const dynamic = "force-static";
+
 import { getBlogPosts } from "../blog/utils";
 import { baseUrl } from "../sitemap";
 
