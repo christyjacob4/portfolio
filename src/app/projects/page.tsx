@@ -5,9 +5,9 @@ const projects: Project[] = [
     title: "orionlabs",
     description:
       "A software development studio specializing in AI development, full-stack engineering, and custom software solutions. Built for clients ranging from seed-stage startups to Fortune 500 enterprises.",
-    coverText: "orionlabs",
+    image: "/projects/orionlabs.png",
     projectUrl: "https://orionlabs.work",
-    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion", "Vercel"],
+    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "Cloudflare Pages"],
   },
   {
     title: "mcat",
@@ -29,10 +29,10 @@ const projects: Project[] = [
   {
     title: "remotenomad",
     description:
-      "A modern job board platform helping developers find their dream remote positions at top tech companies worldwide.",
+      "A remote-only job board with listings pulled straight from company careers pages, checked every few hours so closed roles drop off. Includes an employer portal with paid listings.",
     image: "/projects/remotenomad.png",
-    projectUrl: "https://remotenomad.app",
-    techStack: ["Sveltekit", "Tailwind CSS", "Appwrite"],
+    projectUrl: "https://www.remotenomad.app",
+    techStack: ["Next.js", "Appwrite", "Cloudflare", "Dodo Payments"],
   },
   {
     title: "promptsauce",

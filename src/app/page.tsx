@@ -18,14 +18,24 @@ type Project = {
   stars?: number | null;
 };
 
+const FEATURED = ["orionlabs", "remotenomad", "appwrite/appwrite"];
+
 const projects: Project[] = [
   {
     title: "orionlabs",
     description:
       "A software development studio specializing in AI development, full-stack engineering, and custom software solutions.",
-    coverText: "orionlabs",
+    image: "/projects/orionlabs.png",
     projectUrl: "https://orionlabs.work",
-    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"],
+    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "Cloudflare Pages"],
+  },
+  {
+    title: "remotenomad",
+    description:
+      "A remote-only job board with listings pulled straight from company careers pages, checked every few hours so closed roles drop off.",
+    image: "/projects/remotenomad.png",
+    projectUrl: "https://www.remotenomad.app",
+    techStack: ["Next.js", "Appwrite", "Cloudflare", "TypeScript"],
   },
   {
     title: "mcat",
@@ -99,7 +109,7 @@ function formatDate(date: string) {
 }
 
 export default async function Page() {
-  // Fetch stars for projects with GitHub URLs, sort by stars, take top 4
+  // Featured projects first, then the rest by GitHub stars; show 4
   const projectsWithStars = (
     await Promise.all(
       projects.map(async (p) => ({
@@ -108,7 +118,7 @@ export default async function Page() {
       }))
     )
   )
-    .sort((a, b) => (b.stars ?? 0) - (a.stars ?? 0))
+    .sort((a, b) => Number(FEATURED.includes(b.title)) - Number(FEATURED.includes(a.title)) || (b.stars ?? 0) - (a.stars ?? 0))
     .slice(0, 4);
 
   // Get 4 most recent blog posts
