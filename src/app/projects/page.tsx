@@ -2,6 +2,15 @@ import { ProjectItem, Project } from "@/components/ProjectItem";
 
 const projects: Project[] = [
   {
+    title: "eyezen",
+    description:
+      "A menu bar app for macOS that reminds you to look away from the screen, walks you through short guided eye exercises, and shows where your focus time went. Free, with no account, and everything stays on your Mac.",
+    image: "/projects/eyezen.png",
+    projectUrl: "https://eyezen.dev",
+    githubUrl: "https://github.com/christyjacob4/eyezen",
+    techStack: ["Swift", "SwiftUI", "SwiftData", "macOS"],
+  },
+  {
     title: "orionlabs",
     description:
       "A software development studio specializing in AI development, full-stack engineering, and custom software solutions. Built for clients ranging from seed-stage startups to Fortune 500 enterprises.",

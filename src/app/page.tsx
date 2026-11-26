@@ -18,9 +18,18 @@ type Project = {
   stars?: number | null;
 };
 
-const FEATURED = ["orionlabs", "remotenomad", "appwrite/appwrite"];
+const FEATURED = ["eyezen", "orionlabs", "remotenomad", "appwrite/appwrite"];
 
 const projects: Project[] = [
+  {
+    title: "eyezen",
+    description:
+      "A macOS menu bar app for break reminders, guided eye exercises and private focus insights.",
+    image: "/projects/eyezen.png",
+    projectUrl: "https://eyezen.dev",
+    githubUrl: "https://github.com/christyjacob4/eyezen",
+    techStack: ["Swift", "SwiftUI", "macOS"],
+  },
   {
     title: "orionlabs",
     description:

@@ -42,7 +42,7 @@ export function ProjectItem({ project }: { project: Project }) {
           </div>
         </HoverCardTrigger>
         <div className="flex items-center gap-2">
-          {project.githubUrl && project.stars !== undefined && project.stars !== null && (
+          {project.githubUrl && project.stars != null && project.stars > 0 && (
             <Link
               href={project.githubUrl}
               className="flex items-center hover:text-neutral-800 dark:hover:text-neutral-500 transition-colors"
